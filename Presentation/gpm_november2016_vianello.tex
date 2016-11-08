@@ -28,11 +28,11 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \newbox\footlineextrabox
 % for reducing font on a single slide
 \newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
-\title{Topic 21: Filamentary transport in high-power H-mode conditions and in
+\title{Filamentary transport in high-power H-mode conditions and in
   no/small-ELM regimes to predict heat and particle loads on PFCs for
   future devices}
 \date{15 November 2016}
-\author[N.Vianello]{J. Madsen and N. Vianello}
+\author[J. Madsen and N.Vianello]{J. Madsen and N. Vianello}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
@@ -41,10 +41,51 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
   \begin{enumerate}[<+(1) | invisible@-+>]
     \item Recent experimental and theoretical investigation agrees on
       suggesting SOL density profiles is determined by a balance
-      between outward convective filamentary transport and parallel dynamics
-    \item The 
-     
-  \end{itemize}
+      between radial convective filamentary transport and parallel dynamics
+    \item The balance is observed to change at high density in L-Mode
+      and this is at the basis of the \emph{shoulder formation}
+    \item This is observed in a variety of devices including AUG \parencite{Carralero:2014gs},
+      TCV \parencite{Garcia:2007p2615} and MAST \parencite{Militello:2016hk}
+    \item The observations exhibit a dependence on I$_p$ (increasing
+      the current at constant B$_{\phi}$ shoulder tends to disappear)
+    \item The H-Mode behavior is still a work in progress and exhibit
+      a dependence on the level of \alert{fueling}
+    \item L-Mode and H-Mode behavior are not yet reconciled and
+      different devices show somehow contradictory behavior
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{L-Mode studies}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+      \item<1-> AUG and JET \parencite{Carralero:2015gu} suggest that $\Lambda_{div}$ dominates this
+        process and a transition from
+        \textcolor{ta3chameleon}{sheath-limited}
+        to \textcolor{blue}{inertial regime}
+        \item<2-> \textcolor{red}{Tested by changing n$_e$
+            and $T_e$ through fueling/seeding/heating}
+        \item<3> This determines a change of the velocity-size scaling
+            
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \only<1-2>{
+      \begin{tikzonimage}[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15a}
+          \draw [thick, ta3chameleon, thick, rotate=1] (0.43,0.25) ellipse (0.23 and 0.1);
+          \draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
+        \only<2>{
+          \draw [ultra thick, red, thick, dashed] (0.5,0.63) circle (0.12);
+        }
+      \end{tikzonimage}}
+    \only<3>{
+      \begin{tikzonimage}[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15b}
+          \draw [ultra thick, ta3chameleon, thick, rotate=1] (0.2,0.5) ellipse (0.05 and 0.4);
+          \draw [thick, blue, ultra thick, rotate=18] (0.65,0.05) ellipse (0.35 and 0.1);
+      \end{tikzonimage}
+    }
+    \end{column}
+  \end{columns}
 \end{frame}
 % \begin{frame}{Background and objectives}
 % \only<1>{
