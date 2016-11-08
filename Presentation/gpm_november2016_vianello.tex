@@ -1,5 +1,5 @@
 \documentclass[10pt, compress]{beamer}
-\usetheme[conference=23rd SOLDiv ITPA,venue=Naka, date=25/10/2016, titleprogressbar, logo=RFX-logo]{Eurof}
+\usetheme[conference=MST1-GPM,venue=Garching, date=15/11/2016, titleprogressbar, logo=RFX-logo]{Eurof}
 \usepackage{listings,amsmath,multimedia, amssymb}
 \usepackage{tangocolors}
 \usepackage{rfxcolor}
@@ -16,7 +16,7 @@
 
 \usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
 uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
-\bibliography{../biblio}
+\bibliography{biblio}
 \renewcommand*{\bibfont}{\footnotesize}
 \renewcommand*{\citesetup}{\footnotesize}
 \usepackage[export]{adjustbox}
@@ -28,352 +28,349 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \newbox\footlineextrabox
 % for reducing font on a single slide
 \newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
-\title{Latest results from TCV}
-\date{25 October 2016}
-\author[N.Vianello]{presented by N. Vianello}
+\title{Topic 21: Filamentary transport in high-power H-mode conditions and in
+  no/small-ELM regimes to predict heat and particle loads on PFCs for
+  future devices}
+\date{15 November 2016}
+\author[N.Vianello]{J. Madsen and N. Vianello}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
-\begin{frame}{Scientific team}
-\centering{N. Vianello$^{1,2}$, C. Tsui$^{3,2}$, C. Theiler$^2$,
-  S. Allan$^4$, J. Boedo$^3$, B. Labit$^2$, H. Reimerdes$^2$, K. Verhaegh$^{5}$,
-  W. Vijvers$^6$, N. Walkden$^4$,  S. Costea$^7$, J. Kovacic$^{8}$, C. Ionita$^{7}$, 
-V. Naulin$^9$, A. H. Nielsen$^9$, J. J. Rasmussen$^9$, B. Schneider$^7$, 
-R. Schrittwieser$^7$, M. Spolaore$^1$, 
-D. Carralero$^{10}$, J. Madsen$^9$, the TCV Team and the EUROfusion MST1 Team}
-
-\centering{\footnotesize
-\textit{$^1$Consorzio
-RFX,  Padova, Italy, $^2$Swiss Plasma Center (SPC), EPFL Lausanne, Switzerland,
-  $^3$UCSD,  La Jolla, USA, $^4$CCFE,  Culham UK, $^5$York Plasma Institute, University of York, York, UK,
-$^6$FOM Institute DIFFER, The Netherlands, $^7$Institute for Ion Physics and Applied Physics,
-Innsbruck,  Austria, $^{8}$Jozef Stefan Institute, Ljubljana, $^9$DTU,  Copenhagen, Denmark, $^{10}$Max-Plank-Institut fur Plasmaphysik, Garching, Germany}}
-\end{frame}
-\begin{frame}{Background and objectives}
-\only<1>{
-\begin{itemize}
-\item Role of turbulence transport in the SOL saturation is a well
-  know
-  feature \parencite{LaBombard:2001ks,Rudakov:2005ic,Garcia:2007hh,Carralero:2014gs}. \textcolor{red}{Increasing
-  density, even without reaching detachment SOL profile tend to flatten}
-\end{itemize}}
-\only<2-3>{
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item Present understanding suggests that a transition of filament
-        propagation regime is dominated by effective
-        collisionality $\Lambda$ \parencite{Myra:2006p2754}
-        \begin{equation*}
-          \Lambda = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
-        \end{equation*}
-        \item<3> \textcolor{red}{At constant blob size, increasing
-            collisionality provide a change in the filaments velocity
-            scaling properties}
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-%      \includegraphics<2>[width=\textwidth]{../pdfbox/Presentation/FigMyra}
-        \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/FigMyra}
-          \only<3>{
-            \draw [->, ultra thick, red] (0.7,0.3) -- (0.7,0.6);}
-        \end{tikzonimage}
-    \end{column}
-  \end{columns}
-}
-\only<4-6>{
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item AUG and JET \parencite{Carralero:2015gu} suggest that $\Lambda_{div}$ dominates this
-        process and a transition from
-        \textcolor{ta3chameleon}{sheath-limited}
-        \onslide<5-6>{to \textcolor{blue}{inertial regime}} 
-        \item<6> \textcolor{red}{Tested by changing n$_e$
-            and $T_e$ through fueling/seeding/heating}
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/KoMFig2.png}
-        \only<4-6>{
-          \draw [thick, ta3chameleon, thick] (0.45,0.25) ellipse (0.23 and 0.1);
-      }
-        \only<5-6>{
-          \draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
-      }
-        \only<6>{
-          \draw [thick, red, thick, dashed] (0.35,0.75) circle (0.25);
-      }
-    \end{tikzonimage}
-  \end{column}
-  \end{columns}
-}
-\only<7->{
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item MAST \parencite{Militello:2016hk} and old TCV
-        \parencite{Garcia:2007p2615} data 
-        suggested and I$_P$ dependence. 
-          \textcolor{red}{At higher current and
-        same density SOL shoulder disappear} 
-      \item<8> \textcolor{ta3chameleon}{Being shoulder formation
-          induced by a change of $\Gamma_{\perp}$ \textit{vs}
-          $\Gamma_{\parallel}$ balance we will try to test dependence
-          on L$_{\parallel}$}
-    \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \includegraphics[width=\textwidth]{../pdfbox/Presentation/FigMilitello.pdf}
-    \end{column}
-  \end{columns}
-}
-\centering{\includegraphics<1>[width=1.1\textwidth]{../pdfbox/Presentation/Fig1Presentation}}
-\end{frame}
-
-\begin{frame}{Flux expansion scan/1}
-\vspace{-1cm}
-  \Fontvi
-  % \begin{columns}
-  %   \begin{column}{0.3\textwidth}
-      \centering{\includegraphics[width=.75\textwidth]{../pdfbox/Fig1a}}
-      \begin{itemize}
-      \item Parallel connection length varied by scanning 
-        flux expansion during density
-        ramps in ohmically heated discharges. \textcolor{red}{$\nabla B_i$ towards the X-point}
-        %\begin{equation*}
-        \[  f_x = \frac{(B_p/B_t)_{MP}}{(B_p/B_t)_{SP}}\]
-        %\end{equation*}
-        \item Variation of $f_x$ change the volume of flux tube as
-          well as parallel connection length (Increased up to 70\%)
-      \end{itemize}
-    % \end{column}
-    % \begin{column}{0.7\textwidth}
-  %   \end{column}
-  % \end{columns}
-\end{frame}
-
-\begin{frame}{Flux expansion scan/2}
-  \Fontvi
-      \begin{itemize}
-      \item<1-> Flux expansion variation induce modification at the target
-      \item<1-> Radiation front from bolometry  moves earlier in
-        density at larger f$_x$. Front movement trails CIII cut-off
-        movement (Reimerdes IAEA 2016)
-      \item<2-> Volumetric recombination rates from $n=6, 7$ balmer line
-        emission \parencite{kevin:jnm} indicates that \textcolor{red}{recombination occurs
-          earlier in density at high $f_x$}
-      \item<3|only@3> \textcolor{ta3skyblue}{This is not confirmed in reversed B$_t$ where
-        increasing the f$_x$ lead to deeper detachment without}
-        changing density threshold  
-    \end{itemize}
-    \only<1-2>{\begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig2c}
-      \only<1>{\fill[white] (0.,0) rectangle (0.52,1); }    
-      \draw [->, ultra thick, black] (0.79,0.69) -- (0.75,0.51);
-    \end{tikzonimage}}
-\centering{\includegraphics<3>[width=.5\textwidth]{../pdfbox/Presentation/XD_detach_HM}}
-  \end{frame}
-
-\begin{frame}{Flux expansion scan/3}
-  \vspace{-1cm}
-\Fontvi
-      \begin{itemize}
-      \item Target and upstream profile measured at the same density
-        but different f$_x$
-      \item<3-> Target profiles in the near SOL modified with broader profile at higher
-        f$_x$. \textcolor{red}{Huge variation on $\Lambda_{div}$
-          without upstream modification}
-      \item<4|only@4> \textcolor{ta3chameleon}{Only further increase
-          of density (although $\Lambda_{div}$ in the far SOL
-          decreases) leads to profile broadening}
-      \end{itemize}
-      \centering{\includegraphics<1>[width=.65\textwidth]{../pdfbox/Fig4Series_1}}
-      \centering{\includegraphics<2>[width=.65\textwidth]{../pdfbox/Fig4Series_2}}
-      \centering{\includegraphics<3>[width=.65\textwidth]{../pdfbox/Fig4Series_3}}
-      \centering{\includegraphics<4>[width=.65\textwidth]{../pdfbox/Fig4Series_4}}
-\end{frame}
-
-\begin{frame}{Filaments effect}
-  \vspace{-1cm}
-\Fontvi
-      \begin{itemize}
-      \item<1-3> Blob properties deduced from fast reciprocating as done in \parencite{Boedo:2001tt}
-      \item<1|only@1> Blob size deduced as $\delta_b = \tau_b v_{\perp}$
-        % \begin{equation*}
-        %   \tau_b = \text{FWHM of CAS} \qquad v_{\perp} = \sqrt{v_{E\times B, r}^2 +
-        %     v_{E\times B, p}^2}
-        % \end{equation*}
-      \item<2-3> No clear dependence on
-          $\Lambda_{div}$ during f$_x$ scan
-      \item<3> \textcolor{ta3chameleon}{When we increase the
-          density filaments are bigger at same $\Lambda_{div}$}
-      \item<4-> \textcolor{ta3skyblue}{On a statistical basis,
-          blob size increases with density without clear dependence on
-          f$_x$ \onslide<5>{\textcolor{red}{as well as $\lambda_n$ in the Far SOL}}}
-      \item<6> \textcolor{ta3chameleon}{Behavior at very high
-          density to be confirmed}  
-      \end{itemize}
-      \centering{\includegraphics<1>[width=.53\textwidth]{../pdfbox/Fig14b}}
-      \centering{\includegraphics<2>[width=.63\textwidth]{../pdfbox/Fig7}}
-      \centering{\includegraphics<3>[width=.63\textwidth]{../pdfbox/Fig7b}}
-      \centering{\includegraphics<4>[width=.85\textwidth]{../pdfbox/Fig12}}
-      \centering{\includegraphics<5>[width=.85\textwidth]{../pdfbox/Fig12b}}
-      \only<6>{
-        \begin{center}
-          \begin{tikzonimage}[width=.85\textwidth]{../pdfbox/Fig12b}
-          \draw [thick, ta3chameleon, thick] (0.75,0.5) ellipse (0.1 and 0.1);
-          \end{tikzonimage}
-        \end{center}
-      }
-\end{frame}
-
-\begin{frame}{Current scan/1}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item<1-3> On a single shape (f$_x \approx 4$) current scan with
-        similar density ramps performed
-      \item<2-3> \textcolor{red}{At lower current indication of shoulder for $R-R_{sep}
-        \geq 1$ cm which disappear at higher current (same density)}
-      \item<3> \textcolor{ta3chameleon}{At even higher current we need to substantially
-        increase the fueling (even if at the same $n/n_G$)}
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \only<1-2>{
-      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series1}
-        \only<2>{
-          \draw [thick, red, thick] (0.75,0.75) ellipse (0.2 and 0.1);
-        }
-      \end{tikzonimage} }
-    \only<3>{
-      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series2}
-          \draw [thick, ta3chameleon, thick] (0.67,0.35) ellipse (0.22 and 0.1);
-          \draw [thick, ta3chameleon, thick] (0.5,0.14) ellipse (0.3 and 0.03);
-        \end{tikzonimage}      
-      }
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{Current scan/2}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item On a statistical basis we have a slight
-        reduction of radial velocity of the filaments as in MAST \parencite{Kirk:2016jj} with unclear
-        effect on blob-size
-      \end{itemize}
-    \end{column}
-      \begin{column}{0.5\textwidth}
-     \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig8}
-       \draw [->, ultra thick, red, dashed] (0.33,0.37) -- (0.7,0.27);
-     \end{tikzonimage}
-   \end{column}
-  \end{columns}
-  \end{frame}
-
-\begin{frame}{Lower Single Null (LSN) and Double Null (DN)}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-      \item<1|only@1> We compare LSN \textit{vs} DN on a single discharge at
-        two levels of density
-        \item<2|only@2> At lower density values the radiation is spread among
-          upper and lower X-points, whereas at higher density radiation
-          is higher at lower X-point
-        \item<6|only@6> Blob size increases with density with DN cases always
-          exhibiting larger blobs. Still compatible with general density
-          scaling. \textcolor{orange}{Radial velocity seems to decrease for DN}
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \includegraphics<1>[trim={0 7.6cm 0 0}, clip, width=\textwidth]{../pdfbox/Fig5}
-      \includegraphics<2>[width=\textwidth]{../pdfbox/Fig5c}
-      \only<6>{
-        \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig9}
-          \draw [->, thick, orange] (0.33, 0.33) -- (0.83, 0.21);
-        \end{tikzonimage}
-      }
-    \end{column}
-  \end{columns}
-  \only<3>{
-    \begin{itemize}
-      \item At the LFS target, DN density profile at lower level of
-        density is reduced and closer to 
-        what observed at higher density
-      \end{itemize}
-      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5e}
-        \draw [dashed, red, ultra thick] (0.7, 0.37) -- (0.3, 0.37);
-        \draw [->, dashed, red, ultra thick] (0.3, 0.7) -- (0.3, 0.38);
-      \end{tikzonimage}
-    }
-  \only<4-5>{
-    \begin{itemize}
-      \item Upstream profile suggests that a stronger tendency of
-        developing density shoulder is observed in DN 
-      \end{itemize}
-      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5d}
-        \only<5>{\draw[dashed, red, thick] (1.0, 0.55) -- (0.1, 0.55);}
-      \end{tikzonimage}
-    }
-
-\end{frame}
-
-\begin{frame}{Upper, Lower and Double Null}
-    \Fontvi
-    \begin{itemize}
-      \item The same density ramp performed in Upper, Lower and Double
-        null with all the Strikes points at the inner wall
-      \item This allow to test any possible dependence from $\nabla
-        B_i$ drift direction. C-Mod suggests difference in the medium
-        density range \parencite{LaBombard:2004kg}
-    \end{itemize}
-    \centering{\includegraphics[width=0.9\textwidth]{../pdfbox/Fig1b}}
-\end{frame}
-\begin{frame}{Upper, Lower and Double Null}
-    \Fontvi
-    \begin{itemize}
-      \item<2-> Lower and Double null blob size scale consistently with
-        density scaling
-      \item<3->  Upper Single null always exhibits
-        larger blob
-      \end{itemize}
-      \vspace{-0.27cm}
-    \centering{\includegraphics<1>[width=.6\textwidth]{../pdfbox/Fig11b_Series1}}
-    \centering{\includegraphics<2>[width=.6\textwidth]{../pdfbox/Fig11b_Series2}}
-    \centering{\includegraphics<3>[width=.6\textwidth]{../pdfbox/Fig11b_Series3}}
-\end{frame}  
-
-\begin{frame}{Summary}
-  \Fontvi
-  \begin{itemize}
-  \item<1-> $\lambda_n = |\nabla n_e/n_e|^{-1}$ computed around 1cm from the
-    separatrix
-  \item<2-> $\lambda_n$ clearly increases with $\Theta = (\delta_b
-        R^{1/5}/L_{\parallel}^{2/5}\rho_s^{4/5})^{5/2}$,
-    i.e. with blob-size
-  \item<3-> \alert{The dependence on L$_{\parallel}$ is marginal
-      although we obtain 
-      larger $\Theta$ at smaller $L_{\parallel}$}.
-  \item<4-> The increase of $\lambda_n$ is consistent with an increase
-    of perpendicular to parallel losses
-  \item<5-> The dependence on $\Lambda_{div}$ is weaker than in
-    AUG/JET. \onslide<6>{\textcolor{ta3chameleon}{ Large $\Lambda$ is not
-        sufficient for flat profile.}}
-      
+\begin{frame}{Present status}
+  \setbeamercovered{transparent}
+  \begin{enumerate}[<+(1) | invisible@-+>]
+    \item Recent experimental and theoretical investigation agrees on
+      suggesting SOL density profiles is determined by a balance
+      between outward convective filamentary transport and parallel dynamics
+    \item The 
+     
   \end{itemize}
-  \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig10c}
-    \only<1>{\fill[white] (0, 0) rectangle (1, 1);}
-    \only<2>{\fill[white] (0.348,0) rectangle (1,1); }    
-    \only<3>{\fill[white] (0.348,0) rectangle (0.897,1); }    
-    \only<4>{\fill[white] (0.62,0) rectangle (0.897,1); }    
-    \only<6>{
-      \draw [thick, ta3chameleon, thick, rotate = 4] (0.865,0.2) ellipse (0.04 and 0.2);
-      \draw [thick, ta3chameleon, thick, rotate = 3] (0.72,0.6) ellipse (0.03 and 0.15);
- }    
-    \end{tikzonimage}
 \end{frame}
+% \begin{frame}{Background and objectives}
+% \only<1>{
+% \begin{itemize}
+% \item Role of turbulence transport in the SOL saturation is a well
+%   know
+%   feature \parencite{LaBombard:2001ks,Rudakov:2005ic,Garcia:2007hh,Carralero:2014gs}. \textcolor{red}{Increasing
+%   density, even without reaching detachment SOL profile tend to flatten}
+% \end{itemize}}
+% \only<2-3>{
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item Present understanding suggests that a transition of filament
+%         propagation regime is dominated by effective
+%         collisionality $\Lambda$ \parencite{Myra:2006p2754}
+%         \begin{equation*}
+%           \Lambda = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
+%         \end{equation*}
+%         \item<3> \textcolor{red}{At constant blob size, increasing
+%             collisionality provide a change in the filaments velocity
+%             scaling properties}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+% %      \includegraphics<2>[width=\textwidth]{../pdfbox/Presentation/FigMyra}
+%         \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/FigMyra}
+%           \only<3>{
+%             \draw [->, ultra thick, red] (0.7,0.3) -- (0.7,0.6);}
+%         \end{tikzonimage}
+%     \end{column}
+%   \end{columns}
+% }
+% \only<4-6>{
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item AUG and JET \parencite{Carralero:2015gu} suggest that $\Lambda_{div}$ dominates this
+%         process and a transition from
+%         \textcolor{ta3chameleon}{sheath-limited}
+%         \onslide<5-6>{to \textcolor{blue}{inertial regime}} 
+%         \item<6> \textcolor{red}{Tested by changing n$_e$
+%             and $T_e$ through fueling/seeding/heating}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/KoMFig2.png}
+%         \only<4-6>{
+%           \draw [thick, ta3chameleon, thick] (0.45,0.25) ellipse (0.23 and 0.1);
+%       }
+%         \only<5-6>{
+%           \draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
+%       }
+%         \only<6>{
+%           \draw [thick, red, thick, dashed] (0.35,0.75) circle (0.25);
+%       }
+%     \end{tikzonimage}
+%   \end{column}
+%   \end{columns}
+% }
+% \only<7->{
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item MAST \parencite{Militello:2016hk} and old TCV
+%         \parencite{Garcia:2007p2615} data 
+%         suggested and I$_P$ dependence. 
+%           \textcolor{red}{At higher current and
+%         same density SOL shoulder disappear} 
+%       \item<8> \textcolor{ta3chameleon}{Being shoulder formation
+%           induced by a change of $\Gamma_{\perp}$ \textit{vs}
+%           $\Gamma_{\parallel}$ balance we will try to test dependence
+%           on L$_{\parallel}$}
+%     \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \includegraphics[width=\textwidth]{../pdfbox/Presentation/FigMilitello.pdf}
+%     \end{column}
+%   \end{columns}
+% }
+% \centering{\includegraphics<1>[width=1.1\textwidth]{../pdfbox/Presentation/Fig1Presentation}}
+% \end{frame}
+
+% \begin{frame}{Flux expansion scan/1}
+% \vspace{-1cm}
+%   \Fontvi
+%   % \begin{columns}
+%   %   \begin{column}{0.3\textwidth}
+%       \centering{\includegraphics[width=.75\textwidth]{../pdfbox/Fig1a}}
+%       \begin{itemize}
+%       \item Parallel connection length varied by scanning 
+%         flux expansion during density
+%         ramps in ohmically heated discharges. \textcolor{red}{$\nabla B_i$ towards the X-point}
+%         %\begin{equation*}
+%         \[  f_x = \frac{(B_p/B_t)_{MP}}{(B_p/B_t)_{SP}}\]
+%         %\end{equation*}
+%         \item Variation of $f_x$ change the volume of flux tube as
+%           well as parallel connection length (Increased up to 70\%)
+%       \end{itemize}
+%     % \end{column}
+%     % \begin{column}{0.7\textwidth}
+%   %   \end{column}
+%   % \end{columns}
+% \end{frame}
+
+% \begin{frame}{Flux expansion scan/2}
+%   \Fontvi
+%       \begin{itemize}
+%       \item<1-> Flux expansion variation induce modification at the target
+%       \item<1-> Radiation front from bolometry  moves earlier in
+%         density at larger f$_x$. Front movement trails CIII cut-off
+%         movement (Reimerdes IAEA 2016)
+%       \item<2-> Volumetric recombination rates from $n=6, 7$ balmer line
+%         emission \parencite{kevin:jnm} indicates that \textcolor{red}{recombination occurs
+%           earlier in density at high $f_x$}
+%       \item<3|only@3> \textcolor{ta3skyblue}{This is not confirmed in reversed B$_t$ where
+%         increasing the f$_x$ lead to deeper detachment without}
+%         changing density threshold  
+%     \end{itemize}
+%     \only<1-2>{\begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig2c}
+%       \only<1>{\fill[white] (0.,0) rectangle (0.52,1); }    
+%       \draw [->, ultra thick, black] (0.79,0.69) -- (0.75,0.51);
+%     \end{tikzonimage}}
+% \centering{\includegraphics<3>[width=.5\textwidth]{../pdfbox/Presentation/XD_detach_HM}}
+%   \end{frame}
+
+% \begin{frame}{Flux expansion scan/3}
+%   \vspace{-1cm}
+% \Fontvi
+%       \begin{itemize}
+%       \item Target and upstream profile measured at the same density
+%         but different f$_x$
+%       \item<3-> Target profiles in the near SOL modified with broader profile at higher
+%         f$_x$. \textcolor{red}{Huge variation on $\Lambda_{div}$
+%           without upstream modification}
+%       \item<4|only@4> \textcolor{ta3chameleon}{Only further increase
+%           of density (although $\Lambda_{div}$ in the far SOL
+%           decreases) leads to profile broadening}
+%       \end{itemize}
+%       \centering{\includegraphics<1>[width=.65\textwidth]{../pdfbox/Fig4Series_1}}
+%       \centering{\includegraphics<2>[width=.65\textwidth]{../pdfbox/Fig4Series_2}}
+%       \centering{\includegraphics<3>[width=.65\textwidth]{../pdfbox/Fig4Series_3}}
+%       \centering{\includegraphics<4>[width=.65\textwidth]{../pdfbox/Fig4Series_4}}
+% \end{frame}
+
+% \begin{frame}{Filaments effect}
+%   \vspace{-1cm}
+% \Fontvi
+%       \begin{itemize}
+%       \item<1-3> Blob properties deduced from fast reciprocating as done in \parencite{Boedo:2001tt}
+%       \item<1|only@1> Blob size deduced as $\delta_b = \tau_b v_{\perp}$
+%         % \begin{equation*}
+%         %   \tau_b = \text{FWHM of CAS} \qquad v_{\perp} = \sqrt{v_{E\times B, r}^2 +
+%         %     v_{E\times B, p}^2}
+%         % \end{equation*}
+%       \item<2-3> No clear dependence on
+%           $\Lambda_{div}$ during f$_x$ scan
+%       \item<3> \textcolor{ta3chameleon}{When we increase the
+%           density filaments are bigger at same $\Lambda_{div}$}
+%       \item<4-> \textcolor{ta3skyblue}{On a statistical basis,
+%           blob size increases with density without clear dependence on
+%           f$_x$ \onslide<5>{\textcolor{red}{as well as $\lambda_n$ in the Far SOL}}}
+%       \item<6> \textcolor{ta3chameleon}{Behavior at very high
+%           density to be confirmed}  
+%       \end{itemize}
+%       \centering{\includegraphics<1>[width=.53\textwidth]{../pdfbox/Fig14b}}
+%       \centering{\includegraphics<2>[width=.63\textwidth]{../pdfbox/Fig7}}
+%       \centering{\includegraphics<3>[width=.63\textwidth]{../pdfbox/Fig7b}}
+%       \centering{\includegraphics<4>[width=.85\textwidth]{../pdfbox/Fig12}}
+%       \centering{\includegraphics<5>[width=.85\textwidth]{../pdfbox/Fig12b}}
+%       \only<6>{
+%         \begin{center}
+%           \begin{tikzonimage}[width=.85\textwidth]{../pdfbox/Fig12b}
+%           \draw [thick, ta3chameleon, thick] (0.75,0.5) ellipse (0.1 and 0.1);
+%           \end{tikzonimage}
+%         \end{center}
+%       }
+% \end{frame}
+
+% \begin{frame}{Current scan/1}
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item<1-3> On a single shape (f$_x \approx 4$) current scan with
+%         similar density ramps performed
+%       \item<2-3> \textcolor{red}{At lower current indication of shoulder for $R-R_{sep}
+%         \geq 1$ cm which disappear at higher current (same density)}
+%       \item<3> \textcolor{ta3chameleon}{At even higher current we need to substantially
+%         increase the fueling (even if at the same $n/n_G$)}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \only<1-2>{
+%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series1}
+%         \only<2>{
+%           \draw [thick, red, thick] (0.75,0.75) ellipse (0.2 and 0.1);
+%         }
+%       \end{tikzonimage} }
+%     \only<3>{
+%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series2}
+%           \draw [thick, ta3chameleon, thick] (0.67,0.35) ellipse (0.22 and 0.1);
+%           \draw [thick, ta3chameleon, thick] (0.5,0.14) ellipse (0.3 and 0.03);
+%         \end{tikzonimage}      
+%       }
+%     \end{column}
+%   \end{columns}
+% \end{frame}
+
+% \begin{frame}{Current scan/2}
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item On a statistical basis we have a slight
+%         reduction of radial velocity of the filaments as in MAST \parencite{Kirk:2016jj} with unclear
+%         effect on blob-size
+%       \end{itemize}
+%     \end{column}
+%       \begin{column}{0.5\textwidth}
+%      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig8}
+%        \draw [->, ultra thick, red, dashed] (0.33,0.37) -- (0.7,0.27);
+%      \end{tikzonimage}
+%    \end{column}
+%   \end{columns}
+%   \end{frame}
+
+% \begin{frame}{Lower Single Null (LSN) and Double Null (DN)}
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}
+%       \item<1|only@1> We compare LSN \textit{vs} DN on a single discharge at
+%         two levels of density
+%         \item<2|only@2> At lower density values the radiation is spread among
+%           upper and lower X-points, whereas at higher density radiation
+%           is higher at lower X-point
+%         \item<6|only@6> Blob size increases with density with DN cases always
+%           exhibiting larger blobs. Still compatible with general density
+%           scaling. \textcolor{orange}{Radial velocity seems to decrease for DN}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \includegraphics<1>[trim={0 7.6cm 0 0}, clip, width=\textwidth]{../pdfbox/Fig5}
+%       \includegraphics<2>[width=\textwidth]{../pdfbox/Fig5c}
+%       \only<6>{
+%         \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig9}
+%           \draw [->, thick, orange] (0.33, 0.33) -- (0.83, 0.21);
+%         \end{tikzonimage}
+%       }
+%     \end{column}
+%   \end{columns}
+%   \only<3>{
+%     \begin{itemize}
+%       \item At the LFS target, DN density profile at lower level of
+%         density is reduced and closer to 
+%         what observed at higher density
+%       \end{itemize}
+%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5e}
+%         \draw [dashed, red, ultra thick] (0.7, 0.37) -- (0.3, 0.37);
+%         \draw [->, dashed, red, ultra thick] (0.3, 0.7) -- (0.3, 0.38);
+%       \end{tikzonimage}
+%     }
+%   \only<4-5>{
+%     \begin{itemize}
+%       \item Upstream profile suggests that a stronger tendency of
+%         developing density shoulder is observed in DN 
+%       \end{itemize}
+%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5d}
+%         \only<5>{\draw[dashed, red, thick] (1.0, 0.55) -- (0.1, 0.55);}
+%       \end{tikzonimage}
+%     }
+
+% \end{frame}
+
+% \begin{frame}{Upper, Lower and Double Null}
+%     \Fontvi
+%     \begin{itemize}
+%       \item The same density ramp performed in Upper, Lower and Double
+%         null with all the Strikes points at the inner wall
+%       \item This allow to test any possible dependence from $\nabla
+%         B_i$ drift direction. C-Mod suggests difference in the medium
+%         density range \parencite{LaBombard:2004kg}
+%     \end{itemize}
+%     \centering{\includegraphics[width=0.9\textwidth]{../pdfbox/Fig1b}}
+% \end{frame}
+% \begin{frame}{Upper, Lower and Double Null}
+%     \Fontvi
+%     \begin{itemize}
+%       \item<2-> Lower and Double null blob size scale consistently with
+%         density scaling
+%       \item<3->  Upper Single null always exhibits
+%         larger blob
+%       \end{itemize}
+%       \vspace{-0.27cm}
+%     \centering{\includegraphics<1>[width=.6\textwidth]{../pdfbox/Fig11b_Series1}}
+%     \centering{\includegraphics<2>[width=.6\textwidth]{../pdfbox/Fig11b_Series2}}
+%     \centering{\includegraphics<3>[width=.6\textwidth]{../pdfbox/Fig11b_Series3}}
+% \end{frame}  
+
+% \begin{frame}{Summary}
+%   \Fontvi
+%   \begin{itemize}
+%   \item<1-> $\lambda_n = |\nabla n_e/n_e|^{-1}$ computed around 1cm from the
+%     separatrix
+%   \item<2-> $\lambda_n$ clearly increases with $\Theta = (\delta_b
+%         R^{1/5}/L_{\parallel}^{2/5}\rho_s^{4/5})^{5/2}$,
+%     i.e. with blob-size
+%   \item<3-> \alert{The dependence on L$_{\parallel}$ is marginal
+%       although we obtain 
+%       larger $\Theta$ at smaller $L_{\parallel}$}.
+%   \item<4-> The increase of $\lambda_n$ is consistent with an increase
+%     of perpendicular to parallel losses
+%   \item<5-> The dependence on $\Lambda_{div}$ is weaker than in
+%     AUG/JET. \onslide<6>{\textcolor{ta3chameleon}{ Large $\Lambda$ is not
+%         sufficient for flat profile.}}
+      
+%   \end{itemize}
+%   \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig10c}
+%     \only<1>{\fill[white] (0, 0) rectangle (1, 1);}
+%     \only<2>{\fill[white] (0.348,0) rectangle (1,1); }    
+%     \only<3>{\fill[white] (0.348,0) rectangle (0.897,1); }    
+%     \only<4>{\fill[white] (0.62,0) rectangle (0.897,1); }    
+%     \only<6>{
+%       \draw [thick, ta3chameleon, thick, rotate = 4] (0.865,0.2) ellipse (0.04 and 0.2);
+%       \draw [thick, ta3chameleon, thick, rotate = 3] (0.72,0.6) ellipse (0.03 and 0.15);
+%  }    
+%     \end{tikzonimage}
+% \end{frame}
 
 \end{document}
 %\draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
