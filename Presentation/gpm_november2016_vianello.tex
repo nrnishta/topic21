@@ -46,28 +46,34 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
       and this is at the basis of the \emph{shoulder formation}
     \item This is observed in a variety of devices including AUG \parencite{Carralero:2014gs},
       TCV \parencite{Garcia:2007p2615} and MAST \parencite{Militello:2016hk}
-    \item The observations exhibit a dependence on I$_p$ (increasing
-      the current at constant B$_{\phi}$ shoulder tends to disappear)
+    \item The observations exhibit various dependence on Divertor
+      Collisionality, Plasma current,  seeding. \alert{Results from
+        different devices not fully reconciled.}
     \item The H-Mode behavior is still a work in progress and exhibit
       a dependence on the level of \alert{fueling}
-    \item L-Mode and H-Mode behavior are not yet reconciled and
-      different devices show somehow contradictory behavior
+    \item First we will report a summary of the achievements and then
+     personal comments and plans
     \end{enumerate}
 \end{frame}
-
-\begin{frame}{L-Mode studies}
+\section{L-Mode}
+\begin{frame}{L-Mode studies: AUG/1}
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{itemize}
-      \item<1-> AUG and JET \parencite{Carralero:2015gu} suggest that $\Lambda_{div}$ dominates this
+      \item<1-> AUG and JET \parencite{Carralero:2015gu} suggest that
+        \begin{equation*}
+        \Lambda_{div} = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
+      \end{equation*}
+      dominates this
         process and a transition from
         \textcolor{ta3chameleon}{sheath-limited}
         to \textcolor{blue}{inertial regime}
         \item<2-> \textcolor{red}{Tested by changing n$_e$
             and $T_e$ through fueling/seeding/heating}
-        \item<3> This determines a change of the velocity-size scaling
-            
-      \end{itemize}
+        \item<3-> This determines a change of the velocity-size
+          scaling. \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
+          length}} 
+        \end{itemize}
     \end{column}
     \begin{column}{0.5\textwidth}
       \only<1-2>{
@@ -80,15 +86,135 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
       \end{tikzonimage}}
     \only<3>{
       \begin{tikzonimage}[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15b}
-          \draw [ultra thick, ta3chameleon, thick, rotate=1] (0.2,0.5) ellipse (0.05 and 0.4);
-          \draw [thick, blue, ultra thick, rotate=18] (0.65,0.05) ellipse (0.35 and 0.1);
+          \draw [ultra thick, ta3chameleon, rotate=1] (0.2,0.5) ellipse (0.05 and 0.4);
+          \draw [thick, blue, rotate=15] (0.65,0.07) ellipse (0.4 and 0.1);
       \end{tikzonimage}
     }
+    \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15c}
     \end{column}
   \end{columns}
 \end{frame}
-% \begin{frame}{Background and objectives}
-% \only<1>{
+\begin{frame}{L-Mode studies: AUG/2}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+      \item<1-> Profile modified by increase of blob-size and change of
+        \alert{packing fraction: $f_{fil} = \nu_{fil}\tau_{AC}$}
+        \onslide<2->{\textcolor{blue}{and filament relative density}
+          {\footnotesize (Carralero 2016 in preparation)}}
+      \item<3-> As a consequence the contribution of filaments to
+        radial transport increases
+      \item<4> Parallel flow is strongly reduced whenever we increase
+        the divertor collisionality
+      \end{itemize}
+    \end{column}
+      \begin{column}{0.5\textwidth}
+        \includegraphics<1>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16a}
+        \includegraphics<2>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16b}
+        \includegraphics<3>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16c}
+        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16d}
+      \end{column}
+    \end{columns}
+  \end{frame}
+
+  \begin{frame}{L-Mode studies:AUG/3}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+      \item<1-> Electron and ions behave differently
+      \item<2|only@2> T$_{e, fil} \sim 1.2 $T$_{e, bk}$ roughly constant
+        accross the SOL and slightly affected by the increase of
+        divertor collisionality
+      \item<3|only@3> Ions are strongly affected: for
+        \textcolor{red}{$\Lambda_{div}<1$ T$_{i, fil} > $ T$_{i, bk}$
+          and $\lambda_{T_i} \sim 30$
+          mm}. \textcolor{blue}{$\Lambda_{div}>1$ T$_{i, fil} \sim $
+          T$_{i, bk}\sim 25$ eV
+          and $\lambda_{T_i} \sim 8$ mm}
+       \item<4-> Ion energy spectrum from
+         $\mathbf{E}\times\mathbf{B}$ analyzer shrinks towards lower
+         energy for $\Lambda_{div} > 1$
+       \item<5> EMC3-Eirene simulation suggests that such a reduction
+         can't be accounted for thermalization process. An
+         \alert{ionization front builds in front of the limiter shadow}   
+       \end{itemize}
+    \end{column}
+      \begin{column}{0.5\textwidth}
+        \includegraphics<2>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16e}
+        \includegraphics<3>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16f}
+        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16g}
+        \includegraphics<5>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16h}
+      \end{column}
+    \end{columns}
+  \end{frame}
+
+  \begin{frame}{L-Mode: TCV}
+    \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+      \item<1|only@1> Flexibility has allowed to test $\Lambda_{div}$
+        dependence on L$_{\parallel}$ by varying flux expansion f$_x$:
+        \begin{equation*}
+          f_x = \frac{(B_p/B_t)_{MP}}{(B_p/B_t)_{SP}}
+        \end{equation*}
+        in ohmic density ramps \parencite{vianello:iaea2016}
+      \item<2|only@2> Slight variation of density profiles at the target but
+        due to direct dependence on L$_{\parallel}$ large increase of
+        $\Lambda_{div}$. \alert{Upstream profiles only varies whenever
+        we reach a certain amount of $\langle n_e \rangle$}
+       \only<3-5>{\item Weak dependence of blob-size from $\Lambda_{div}$,
+        \onslide<4-5>{\textcolor{red}{also on a statistical
+            basis}}. \onslide<5>{Strong dependence on average density,
+          independent of L$_{\parallel}$}}
+       \item<6|only@6> $\lambda_n$ depends clearly on blob-size
+         whereas the dependence on divertor condition is less
+         obvious. \alert{$\Lambda_{div}$ necessary but not sufficient}
+      \end{itemize}
+    \end{column}
+      \begin{column}{0.5\textwidth}
+        \includegraphics<2>[width=\textwidth]{../pdfbox/KoM15Nov/VianelloIAEA16a}
+        \includegraphics<3>[width=\textwidth]{../pdfbox/KoM15Nov/VianelloIAEA16b}
+        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/VianelloIAEA16c}
+        \includegraphics<5>[width=\textwidth]{../pdfbox/KoM15Nov/VianelloIAEA16d}
+        \includegraphics<6>[width=\textwidth]{../pdfbox/KoM15Nov/VianelloIAEA16e}
+      \end{column}
+    \end{columns}
+  \end{frame}
+
+  \begin{frame}{L-Mode: JET}
+    \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+      \item<1|only@1> The shoulder formation strongly depends on
+        divertor geometry, disappear with vertical target and strike
+        point closest to cryogenics pumps \parencite{Wynn:EPS2016}
+      \item<2|only@2> The midplane pressure from baratrons is
+        equivalent between the different divertor. \alert{This would
+          indicate that SOL neutral density does not play any role}
+       \item<3|only@3> In the horizontal target configuration the
+         results indicate that the shoulder forms right at the
+         transition from sheath-limited to high-recycling where also
+         $\Lambda_{div}$ strongly increase
+       \item<4|only@4> Shoulder amplitude correlates with strike
+         points position. \alert{Shoulder, ionization and
+           $\Gamma_{ion, plate}$ larger when R$_{strike}$ smaller away
+         from the pump}
+       \item<5|only@5> In seeded discharges the transition observed at
+         very high level of $\Lambda_{div} >> 1$
+      \end{itemize}
+    \end{column}
+      \begin{column}{0.5\textwidth}
+        \includegraphics<1>[width=\textwidth]{../pdfbox/KoM15Nov/LipschultzITPA16a}
+        \includegraphics<2>[width=\textwidth]{../pdfbox/KoM15Nov/LipschultzITPA16b}
+        \includegraphics<3>[width=\textwidth]{../pdfbox/KoM15Nov/LipschultzITPA16c}
+        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/LipschultzITPA16d}
+        \includegraphics<5>[width=\textwidth]{../pdfbox/KoM15Nov/LipschultzITPA16e}
+      \end{column}
+    \end{columns}
+
+
+  \end{frame}
+  % \only<1>{
 % \begin{itemize}
 % \item Role of turbulence transport in the SOL saturation is a well
 %   know
