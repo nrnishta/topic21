@@ -1,0 +1,59 @@
+% Beamer mtheme
+%
+% Copyright 2014 Matthias Vogelgesang
+% Licensed under CC-BY-SA 4.0 International.
+%
+% The initial template comes from the HSRM beamer theme by Benjamin Weiss, which
+% you can find at https://github.com/hsrmbeamertheme/hsrmbeamertheme.
+%
+
+\ProvidesPackage{beamerfontthemeeurof}
+
+\usepackage[no-math]{fontspec}
+
+% Original set for Fira Sans
+\defaultfontfeatures{Mapping=tex-text}
+% \setsansfont[BoldFont={Fira Sans}]{Fira Sans Light}
+% \setmonofont{Fira Mono}
+% \newfontfamily\ExtraLight{Fira Sans ExtraLight}
+% \newfontfamily\Light{Fira Sans Light}
+% \newfontfamily\Book{Fira Sans}
+% \newfontfamily\Medium{Fira Sans Medium}
+% Change to Gill Sans
+\defaultfontfeatures{Mapping=tex-text}
+\setsansfont[BoldFont={Gill Sans SemiBold}, Scale=MatchLowercase]{Gill Sans Light}
+\setmonofont{Fira Mono}
+\newfontfamily\ExtraLight{Gill Sans Light}
+\newfontfamily\Light{Gill Sans Light}
+\newfontfamily\Book{Gill Sans Light}
+\newfontfamily\Medium{Gill Sans Light}
+
+% \AtBeginEnvironment{tabular}{\setsansfont[BoldFont={Fira Sans}, Numbers={Monospaced}]{Fira Sans Light}}
+\AtBeginEnvironment{tabular}{\setsansfont[BoldFont={Gill Sans SemiBold}, Numbers={Monospaced}]{Gill Sans Light}}
+
+% original
+\setbeamerfont{title}{family=\Book, shape=\scshape, size=\Large}
+% original
+\setbeamerfont{author}{family=\ExtraLight, size=\small}
+% original
+\setbeamerfont{date}{family=\ExtraLight, size=\small}
+% original
+\setbeamerfont{section title}{family=\Book, size=\Large}
+% original
+\setbeamerfont{block title}{family=\Book, size=\normalsize}
+% original
+\setbeamerfont{block title alerted}{family=\Book,size=\normalsize}
+% original
+\setbeamerfont{subtitle}{family=\Liht, size=\fontsize{12}{14}}
+% original
+\setbeamerfont{frametitle}{family=\Book, series=\scshape, size=\Large}
+%original
+\setbeamerfont{caption}{size=\small}
+% original
+\setbeamerfont{caption name}{family=\Book}
+% original
+\setbeamerfont{description item}{family=\Book}
+% original
+\setbeamerfont{page number in head/foot}{size=\scriptsize}
+% original
+\linespread{1.15}

@@ -1,0 +1,59 @@
+\ProvidesPackage{beamerinnerthemeeurof}
+
+\mode<presentation>
+
+%{{{ --- Itemize ----------------------
+
+\setlength{\leftmargini}{1em}
+
+% Actually one level should be enough but ...
+\setlength{\leftmarginii}{1em}
+\setlength{\leftmarginiii}{1em}
+
+\newcommand{\itemBullet}{\checkmark}
+
+\setbeamertemplate{itemize item}{\itemBullet}
+\setbeamertemplate{itemize subitem}{\itemBullet}
+\setbeamertemplate{itemize subsubitem}{\itemBullet}
+\setlength{\parskip}{0.5em}
+
+%}}}
+%{{{ --- Sections ---------------------
+
+% Insert frame with section title at every section start
+\AtBeginSection[]
+{
+  \begingroup
+  \setbeamercolor{background canvas}{bg=black!2}
+  \begin{frame}[plain]
+    \vspace{2em}\usebeamerfont{section title}
+    \progressbar@sectionprogressbar%
+  \end{frame}
+  \endgroup
+}
+
+%}}}
+%{{{ --- Captions ---------------------
+
+\setbeamertemplate{caption label separator}{: }
+%}}}
+%{{{ --- Palette for the fonts----------
+\setbeamercolor{title}{parent=palette primary}
+\setbeamercolor{subtitle}{parent=palette primary}
+\setbeamercolor{author}{parent=palette tertiary}
+\setbeamercolor{date}{parent=palette tertiary}
+\setbeamercolor{institute}{parent=palette tertiary}
+
+\setbeamercolor{section title}{parent=palette primary}
+\setbeamercolor{frametitle}{parent=palette secondary}
+\setbeamercolor{background canvas}{parent=palette primary}
+\setbeamercolor{structure}{fg=mDarkTeal}
+
+\setbeamercolor{normal text}{fg=black!97}
+\setbeamercolor{alerted text}{fg=mLightBrown}
+
+\setbeamercolor{footnote}{fg=mDarkTeal!50}
+\setbeamercolor{page number in head/foot}{fg=mDarkTeal}
+%}}}
+\mode
+<all>
