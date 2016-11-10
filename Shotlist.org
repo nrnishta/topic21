@@ -1,7 +1,7 @@
 * Shotlist for TOPIC 21
 ** AUG:
    Available number of Shots #14
-*** L-Mode investigation
+*** L-Mode investigation: Forseen number 6
     1. Choose fueling levels for reference shot at 0.8 MA from AUG14-2.2-3 #30276. Perform the same density ramp at 0.6 MA
        by keeping the same Toroidal Field
     2. Repeat Shot #1 by keeping the same q_{95} as reference
@@ -10,7 +10,7 @@
     5. Repeat #30276 with Reverse Bt
     6. Repeat #5 with Probe at different insertion
     
-*** H-Mode investigation 
+*** H-Mode investigation: Foreseen number 9
     The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
     1. Scenario development. Start from succesful shot 33059 (Total heating 3.1 MW),
        keep the probe head in a safe position (FAR SOL) increase the heating power (two steps to 4.5 and 6) up to 6 MW
@@ -25,6 +25,19 @@
     9. Contingency
  
 ** TCV 
-*** L-Mode
-*** H-Mode
+   Available number of Shots #23 
+*** L-Mode: Forseen number 9
+    The reference shape is a LSN with a ion BxgradB pointing towards the X-point as in
+    #53514 @0.6s. Density ramp with Line average density from 3.5e19 to 8.2e19 Ip @ 240kA.
+    Plasma vertical position @ +8cm to increase the SOL region in front of the probe
+    1. Perform reference shot with 2 RCP stroke and SP sweeping for better coverage of target probe
+    2. Repeat #1 with strokes at different timing 
+    3. Repeat #1 @ 160kA with stroke at the timing of maximum variation of the profiles according to #1-2 
+    4. Repeat #3 eventually reducing the Drate and repeat #3
+    5. Repeat #1 @ 300kA with the same density ramp and strokes according to #3
+    6. Repeat #1 @ 300kA increasing the Drate up to Line average density of 9e19
+    7. Repeat #1 with strokes according to best timing from #1-#2 but with Reverse Bt
+    8. Drate from #1,  Ip=240kA, Z=+23 strokes from #7
+    9. Drate from #1, Ip = 240kA, Z=-10 strokes from #7
+*** H-Mode: Forseen number 14
     Reference shot for Type I ELMy H-Mode from TCV15-2.3-1 #53352 
