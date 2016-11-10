@@ -1,15 +1,29 @@
 * Shotlist for TOPIC 21
-** AUG
+** AUG:
+   Available number of Shots #14
 *** L-Mode investigation
     1. Choose fueling levels for reference shot at 0.8 MA from AUG14-2.2-3 #30276. Perform the same density ramp at 0.6 MA
        by keeping the same Toroidal Field
     2. Repeat Shot #1 by keeping the same q_{95} as reference
     3. Repeat Shot #30276 @ 1MA with the same toroidal field
     4. Repeat #3 by keeping the same q_{95} as the reference
+    5. Repeat #30276 with Reverse Bt
+    6. Repeat #5 with Probe at different insertion
     
 *** H-Mode investigation 
-    The reference shot is 33059 (AUG15-2.2-3) or 31607 (Sun PPCF 2015)
-
+    The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
+    1. Scenario development. Start from succesful shot 33059 (Total heating 3.1 MW),
+       keep the probe head in a safe position (FAR SOL) increase the heating power (two steps to 4.5 and 6) up to 6 MW
+       monitoring midplane probe by IR and Divertor through Langmuir.
+    2. Repeat #1 Fueling ramps according to reference. Monitor of Divertor condition
+    3. Repeat #2 adjusting eventually the fueling and N seeding ramp monitoring the Divertor condition
+    4. Repeat #4 with optimum level of Fueling/Seeding 1st Radial position of probe
+    5. Repeat #5, different probe position
+    6. Repeat #6, different probe position
+    7. Repeat #6 with Strike-point sweeping (if feasible)
+    8. Contingency
+    9. Contingency
+ 
 ** TCV 
 *** L-Mode
 *** H-Mode
