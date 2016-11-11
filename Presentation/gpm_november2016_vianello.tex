@@ -58,6 +58,14 @@ loads.
 \underline{Motivation}: Particle and energy transport in the SOL is crucial for the lifetime of plasma facing components in ITER and DEMO
 \end{frame}
 
+\begin{frame}{Outline}
+	\begin{itemize}
+		\item Background 
+		\item Plans
+		\item Discussion
+	\end{itemize}	
+\end{frame}
+
 \section{Background}
 \begin{frame}{Present status}
   \setbeamercovered{transparent}
@@ -66,8 +74,8 @@ loads.
     \item The balance changes at high density and leads to broadened SOL density profiles $\rightarrow$ \emph{shoulder formation}
     \item This is observed in L-mode plasmas in a variety of devices including AUG \parencite{Carralero:2014gs},
       TCV \parencite{Garcia:2007p2615} and MAST \parencite{Militello:2016hk}
-    \item Observations exhibit various dependencies on divertor
-      collisionality, plasma current,  seeding. \alert{Results from
+    \item Observations exhibit various other dependencies e.g., divertor
+      collisionality, plasma current, seeding. \alert{Results from
         different devices not fully reconciled and the underlying mechanism is not fully understood.}
     \item Studies of shoulder formation in H-Mode are so far limited 
 	%\item Particle and energy transport in the SOL is crucial for lifetime of PFC in ITER and DEMO
@@ -80,17 +88,19 @@ loads.
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{itemize}
-      \item<1-> AUG and JET \parencite{Carralero:2015gu} suggest that
+      \item<1-> AUG and JET \parencite{Carralero:2015gu} suggest that divertor collisionality 
         \begin{equation*}
         \Lambda_{div} = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
       \end{equation*}
       controls shoulder formation
-        \item<2-> \textcolor{red}{Tested by changing n$_e$
-            and $T_e$ through fueling/seeding/heating}
-        \item<3-> This determines a change of the velocity-size
+        \item<2-> ... which is associated with a change of the velocity-size
           scaling from
-        \textcolor{ta3chameleon}{sheath-limited}
-        to \textcolor{blue}{inertial regime}. \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
+            \textcolor{ta3chameleon}{sheath-limited}
+        to \textcolor{blue}{inertial regime}.
+        \item<3-> \textcolor{red}{Tested by changing n$_e$
+            and $T_e$ through fueling/seeding/heating}
+
+       \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
           length}} 
         \end{itemize}
     \end{column}
@@ -113,11 +123,13 @@ loads.
     \end{column}
   \end{columns}
 \end{frame}
+
+
 \begin{frame}{L-Mode studies: AUG/2}
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{itemize}
-      \item<1-> Profile modified by increase of blob-size and change of
+      \item<1-> Profile modified by an increase of blob-size and change of
         \alert{packing fraction: $f_{fil} = \nu_{fil}\tau_{AC}$}
         \onslide<2->{\textcolor{blue}{and filament relative density}
           {\footnotesize (Carralero 2016 in preparation)}}
@@ -293,17 +305,18 @@ loads.
     \item Do we observe same behavior in L and H-Mode? \alert{So
       far no as shown in H-Mode AUG. We need higher detachment
       condition and we need enough fueling}
-      \item What are the underlying mechanisms? 
+      \item Is the density shoulder accompanied with an ion temperature shoulder?
+%      \item What are the underlying mechanisms? 
     \end{enumerate}
   \end{frame}
   
 \section{Topic 21 experiments }
 \begin{frame}{$n_{\text{proposed shots}} \gg n_{\text{allocated shots}}$}
 	\begin{itemize}
-		\item 15 proposals submitted to Topic 21
+		\item 15 were proposals submitted to Topic 21
 		\item Proposals include experiments on all three machines 
 		\item There are overlaps between several of the proposals 
-		\item Preliminary shot allocation. AUG: 14. MAST: 13. TCV: 23
+		\item Preliminary shot allocation. AUG: 14. MAST: 13. TCV: 23 !!!!!!!1SHOULD WE ADD PRELIMINARY DATES FOR THE EXPERIMENTS??
 		\item However, total number of proposed shots:  \textbf{449}
 		\item Several of the proposed experiments can be combined. \underline{But we must prioritize}
 		\item Reaching all goals is not possible with the current number of allocated shots.
@@ -316,12 +329,13 @@ loads.
 	\item Several of the proposed experiments overlap 
 	\item A cross machine experiment has the makings of settling open issues
 	\item Therefore, we will allocate shots for cross-machine comparison
-	\item L-mode experiments: 
+	\item ....but also to other proposed experiments
+	\item Cross machine L-mode experiments: 
 	\begin{enumerate}
 		\item Investigate the role of neutrals 
 		\item $I_p$ and $q_{95}$ scans
 	\end{enumerate}
-	\item H-mode experiments. 
+	\item Cross machine H-mode experiments. 
 \end{itemize}	
 \end{frame}
 
@@ -351,8 +365,8 @@ loads.
 		\item Investigate the SOL (filamentary) transport properties. Main diagnostic is reciprocating probes $\rightarrow$ limits heating power
 		\item Experiments must gradually increase power and density. 
 	\end{enumerate}
-	\item Fueling in H-mode is problematic due to transport barrier? NBI fueling?
-	\item H-mode density limit\parencite{Bernert:2015ppcf} must be avoided
+	\item Fueling in H-mode is problematic due to transport barrier? NBI, pellet fueling?
+	\item H-mode density limit\parencite{Bernert:2015ppcf} must be dealt with
 \end{itemize}
 
 \end{frame}
@@ -367,6 +381,8 @@ loads.
 		\item $\bm{B} \times \nabla B$ towards active divertor 
 		\item Strike-point and cryo pump location (AUG and MAST-U)
 		\item Heating 
+		\item Fueling location 
+		\item Seeding (species, location, rate)
 	\end{enumerate}
 \end{itemize} 
 %things we cannot influence but could be important : wall (carbon, tungsten), helicity, aspect ratio, divertor design, 
@@ -401,6 +417,9 @@ Allocated shots $\sim$ 14 + contingency
 		\item Perform $I_p$ scan (three values) with fixed $B_T$
 		\item Perform $I_p$ scan fixing  $q_{95}$	 ($B_T$)	
 		\item $B_T= 2.0$ required by proposal 6 (Aguiam). Should be possible for some shots? 		
+		\item should we add OM puff to validate neutral measurements?
+		\item Possibility of strike-point sweeping during shot
+		\item RFEA measurements in internal program. 
 		\item These shots combines experiments proposed by: Carralero, Militello, 	Vianello 
 
 	\end{enumerate}
@@ -418,37 +437,72 @@ Allocated shots $\sim$ 14 + contingency
 \end{frame}
 
 \begin{frame}{Proposed shot plan - TCV}
-	
+	\begin{itemize}
+		\item L-mode (11 shots)
+		\begin{enumerate}
+			\item Reference shot \# 53514
+			\item Same $I_p$ and $q_{95}$ scans as on AUG
+			\item Two shots with reversed $\bm{B} \times \nabla B$
+			\item Move plasma vertically. Disentangle $q_{95}$ and $L_{\|}$			
+		\end{enumerate}
+		\item H-mode (12 shots)
+		\begin{enumerate}
+			\item Reference shot \# 53352
+			\item Since H-mode shoulder is new territory on TCV first shots will be scenario development
+			\item As on AUG. Incremental increases of power and density. Close monitoring the midplane probe. 
+		\end{enumerate}
+	\end{itemize}
 \end{frame}
 
-\begin{frame}{With aloocated shot we cannot do interesting stuff }
+
+\begin{frame}{Preliminary shot plan  - MAST-U}
+	\begin{itemize}
+		\item L-mode (6 shots)
+		\begin{enumerate}		
+			\item New machine. No reference shot yet			
+			\item Same $I_p$ and $q_{95}$ scans as on AUG. Availability of multi pin probe? 
+			\item Try varying fueling location
+			\item RFEA measurements during shoulder formation 
+		\end{enumerate}
+		\item H-mode (7 shots)
+		\begin{enumerate}
+			\item These experiments require the existence of H-mode reference shot. Perhaps not available in 2017
+			\item Similar scenario development as on other machines
+		\end{enumerate}
+		
+					\item Same $I_p$ and $q_{95}$ scans as on AUG
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{There are urgent experiment which cannot be addressed}
 \begin{itemize}
-	\item Ion temp measurements
+	\item Detailed ion temp measurements 
 	\item Topology investigations
 	\item Strikepoint sweeping and cryo pump
 	\item Parameters scans in H-mode
-	\item Strike-point sweep
-
+	\item X-point probes
 \end{itemize}
 \end{frame}
 
-\begin{frame}{piggybag on Quescient H-mode shots}
+
+\begin{frame}{Future and Miscellaneous}
+	\begin{itemize}
+		\item Possibility to piggybag on Quescient/small ELM H-mode shots (Topic 5,6, 18)
+		\item Shortly after this meeting we will organize a follow-up meeting to 						reconcile ideas from this discussion (date not fixed yet)
+		\item All information will be gathered on the wiki
+		\item Filament database		
+	\end{itemize}
 \end{frame}
 
 \begin{frame}{Discussion agenda}
-	
+	\begin{enumerate}
+		\item Priorities. Do we agree? 
+		\item Common measurement techniques. E.g. $I_{sat}$ instead if $\phi_f$ for filament velocities?
+		\item Publications 
+ 	\end{enumerate}
 \end{frame}
 
-\begin{frame}{Future}
-	meetings
-	
-	wiki 
-	
-	Decisions made here uploaded to wiki 
-	
-	Form experiment planning groups for each machine
-	
-\end{frame}
+
   % \only<1>{
 % \begin{itemize}
 % \item Role of turbulence transport in the SOL saturation is a well
