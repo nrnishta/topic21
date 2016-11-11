@@ -32,27 +32,46 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
   no/small-ELM regimes to predict heat and particle loads on PFCs for
   future devices}
 \date{15 November 2016}
-\author[J. Madsen and N.Vianello]{J. Madsen and N. Vianello}
+\author[Topic 21. J. Madsen and N.Vianello]{J. Madsen and N. Vianello}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
+
+\begin{frame}{Main focus of topic 21 is shoulder formation}
+\vspace{-1cm}
+Objectives:
+\begin{enumerate}
+\item Use the new HHF probe on AUG to study filamentary transport under
+high-power H-mode conditions and under different plasma configurations (SN,
+DN).
+\item Study the role of ELM regimes, neutral compression, and particle density in
+filamentary transport and related shoulder formation.
+\item Identify the contribution of collisionality and seeding on filamentary transport
+and related shoulder formation.
+\item Extend the studies to quiescent H-modes as well as to other small-ELM regimes.
+\item Determine the effect of filaments and shoulder formation on target heat loads
+in different H-mode plasmas.
+\item Investigate the effect of plasma shape and configuration on ELM-induced heat
+loads.
+\end{enumerate}
+\underline{Motivation}: Particle and energy transport in the SOL is crucial for the lifetime of plasma facing components in ITER and DEMO
+\end{frame}
+
+\section{Background}
 \begin{frame}{Present status}
   \setbeamercovered{transparent}
   \begin{enumerate}[<+(1) | invisible@-+>]
-    \item Recent experimental and theoretical investigation agrees on
-      suggesting SOL density profiles is determined by a balance
-      between radial convective filamentary transport and parallel dynamics
-    \item The balance is observed to change at high density in L-Mode
-      and this is at the basis of the \emph{shoulder formation}
-    \item This is observed in a variety of devices including AUG \parencite{Carralero:2014gs},
+    \item Experimental and theoretical investigations suggest that SOL density profiles are  determined by the balance between radial filamentary transport and parallel dynamics
+    \item The balance changes at high density and leads to broadened SOL density profiles $\rightarrow$ \emph{shoulder formation}
+    \item This is observed in L-mode plasmas in a variety of devices including AUG \parencite{Carralero:2014gs},
       TCV \parencite{Garcia:2007p2615} and MAST \parencite{Militello:2016hk}
-    \item The observations exhibit various dependence on Divertor
-      Collisionality, Plasma current,  seeding. \alert{Results from
-        different devices not fully reconciled.}
-    \item The H-Mode behavior is still a work in progress and exhibit
-      a dependence on the level of \alert{fueling}
-    \item First we will report a summary of the achievements and then
-     personal comments and plans
+    \item Observations exhibit various dependencies on divertor
+      collisionality, plasma current,  seeding. \alert{Results from
+        different devices not fully reconciled and the underlying mechanism is not fully understood.}
+    \item Studies of shoulder formation in H-Mode are so far limited 
+	%\item Particle and energy transport in the SOL is crucial for lifetime of PFC in ITER and DEMO
+%    \item First we will report a summary of the achievements and then
+ %    personal comments and plans
     \end{enumerate}
 \end{frame}
 \section{L-Mode}
@@ -64,14 +83,13 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
         \begin{equation*}
         \Lambda_{div} = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
       \end{equation*}
-      dominates this
-        process and a transition from
-        \textcolor{ta3chameleon}{sheath-limited}
-        to \textcolor{blue}{inertial regime}
+      controls shoulder formation
         \item<2-> \textcolor{red}{Tested by changing n$_e$
             and $T_e$ through fueling/seeding/heating}
         \item<3-> This determines a change of the velocity-size
-          scaling. \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
+          scaling from
+        \textcolor{ta3chameleon}{sheath-limited}
+        to \textcolor{blue}{inertial regime}. \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
           length}} 
         \end{itemize}
     \end{column}
@@ -190,7 +208,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
         point closest to cryogenics pumps \parencite{Wynn:EPS2016}
       \item<2|only@2> The midplane pressure from baratrons is
         equivalent between the different divertor. \alert{This would
-          indicate that SOL neutral density does not play any role}
+          indicate that SOL neutral density at the outboard midplane does not play any role}
        \item<3|only@3> In the horizontal target configuration the
          results indicate that the shoulder forms right at the
          transition from sheath-limited to high-recycling where also
@@ -219,7 +237,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
       \begin{itemize}
       \item<1|only@1> Strong dependence on
         I$_p$ \parencite{Militello:2016hk}. Increasing I$_p$ at
-        constant toroidal field shoulder disapper. Consistent with
+        constant toroidal field shoulder disappears. Consistent with
         observation in other devices
       \item<2|only@2> Filaments binormal dimension increases with
         current \parencite{Kirk:2016jj} or equivalently decreases with L$_{\parallel}$
@@ -246,7 +264,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
         suggested to be mandatory for increasing of $\lambda_n$ \parencite{Sun:2015bu}
        \item<3|only@3> In weak H-Mode \parencite{carralero:psi2016}
          shoulder depends on a combination of $\Lambda_{div}$ and
-         fueling rate
+         fueling rate. Complete detachment not necessary.
       \end{itemize}
     \end{column}
       \begin{column}{0.6\textwidth}
@@ -261,22 +279,21 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
   \begin{frame}{Open and unresolved issues}
   \setbeamercovered{transparent}
   \begin{enumerate}[<+(1) | invisible@-+>]
-    \item Does $\Lambda_{div}$ unifies the picture among the devices?
+    \item Does $\Lambda_{div}$ unify the picture among the devices?
       \alert{No, a dependence on neutral pressure is likely to play a role}
-    \item If neutrals play a role is the divertor or midplane?
+    \item If neutrals play a role is it at the divertor and/or at the midplane?
       \alert{Contradictory results if one include experiments with
         midplane puffing, JET and EIRENE simulations}
-    \item Does L$_\parallel$ plays any role? \alert{So far TCV suggests no
+    \item Does L$_\parallel$ play any role? \alert{So far TCV suggests no
       dependence from f$_x$ scan but both TCV and MAST observe an
       I$_p$ dependence. MAST clearly state filament $\sigma_{\perp}$
       increases with L$_{\parallel}$ }
-    \item Cooling the divertor with fueling or seeding is really
-      equivalent? \alert{Contradictory observation in AUG and JET}
-    \item Can be translate straightforward from L to H-Mode? \alert{So
+    \item Is cooling the divertor with fueling or with equivalent? \alert{Contradictory observations in AUG and JET}
+    \item Do we observe same behavior in L and H-Mode? \alert{So
       far no as shown in H-Mode AUG. We need higher detachment
       condition and we need enough fueling}
+      \item What are the underlying mechanisms? 
     \end{enumerate}
-
   \end{frame}
   
 \section{Topic 21 experiments }
@@ -296,6 +313,8 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 
 \begin{frame}{requirements form cross machine comparison }
 same configuration, SN Btimes grad b, cryo pumps, greenwald fraction, heating 
+
+things we cannot influence but could be important : wall (carbon, tungsten), helicity, aspect ratio, divertor design, 
 
 same diagnostics Isat blob speed, density profiles (Libes reflectometry), , divertor n and Te, fast camera plus n and te measure at OM
 
