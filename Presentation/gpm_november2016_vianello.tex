@@ -1,5 +1,5 @@
 \documentclass[10pt, compress]{beamer}
-\usetheme[conference=MST1-GPM,venue=Garching, date=15/11/2016, titleprogressbar, logo=RFX-logo]{Eurof}
+\usetheme[conference=MST1-EPM,venue=Garching, date=15/11/2016, titleprogressbar, logo=RFX-logo]{Eurof}
 \usepackage{listings,amsmath,multimedia, amssymb}
 \usepackage{../beamerclass/tangocolors}
 \usepackage{../beamerclass/rfxcolor}
@@ -38,7 +38,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
 
-\begin{frame}{Main focus of topic 21 is shoulder formation}
+\begin{frame}{Main focus of topic as listed in MST1 call}
 \vspace{-1cm}
 Objectives:
 \begin{enumerate}
@@ -61,7 +61,8 @@ loads.
 \begin{frame}{Outline}
 	\begin{itemize}
 		\item Background 
-		\item Plans
+		\item Plans (we will not make a detailed list of the
+                  proposal, we already tried to combine and summarize them)
 		\item Discussion
 	\end{itemize}	
 \end{frame}
@@ -70,7 +71,8 @@ loads.
 \begin{frame}{Present status}
   \setbeamercovered{transparent}
   \begin{enumerate}[<+(1) | invisible@-+>]
-    \item Experimental and theoretical investigations suggest that SOL density profiles are  determined by the balance between radial filamentary transport and parallel dynamics
+    \item Experimental and theoretical investigations suggest that SOL density profiles are
+      determined by the balance between radial filamentary transport and parallel dynamics
     \item The balance changes at high density and leads to broadened SOL density profiles $\rightarrow$ \emph{shoulder formation}
     \item This is observed in L-mode plasmas in a variety of devices including AUG \parencite{Carralero:2014gs},
       TCV \parencite{Garcia:2007p2615} and MAST \parencite{Militello:2016hk}
@@ -92,16 +94,16 @@ loads.
         \begin{equation*}
         \Lambda_{div} = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
       \end{equation*}
-      controls shoulder formation
-        \item<2-> ... which is associated with a change of the velocity-size
+      controls filaments size
+        \item<2-> \textcolor{red}{Tested by changing n$_e$
+            and $T_e$ through fueling/seeding/heating}
+        \item<3-> This determines a change of the velocity-size
           scaling from
             \textcolor{ta3chameleon}{sheath-limited}
         to \textcolor{blue}{inertial regime}.
-        \item<3-> \textcolor{red}{Tested by changing n$_e$
-            and $T_e$ through fueling/seeding/heating}
-
-       \onslide<4>{\alert{$\Lambda_{div}$ rules the density profile scale
-          length}} 
+       \onslide<4->{\alert{$\Lambda_{div}$ rules the density profile scale
+           length}}
+       \item<5> This finally determines the shoulder formation
         \end{itemize}
     \end{column}
     \begin{column}{0.5\textwidth}
@@ -113,13 +115,13 @@ loads.
           \draw [ultra thick, red, thick, dashed] (0.5,0.63) circle (0.12);
         }
       \end{tikzonimage}}
-    \only<3>{
+    \only<3-4>{
       \begin{tikzonimage}[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15b}
           \draw [ultra thick, ta3chameleon, rotate=1] (0.2,0.5) ellipse (0.05 and 0.4);
           \draw [thick, blue, rotate=15] (0.65,0.07) ellipse (0.4 and 0.1);
       \end{tikzonimage}
     }
-    \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15c}
+    \includegraphics<5>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroPRL15c}
     \end{column}
   \end{columns}
 \end{frame}
@@ -135,7 +137,10 @@ loads.
           {\footnotesize (Carralero 2016 in preparation)}}
       \item<3-> As a consequence the contribution of filaments to
         radial transport increases
-      \item<4> Parallel flow is strongly reduced whenever we increase
+      \item<4|only@4> \alert{Beware the change of frequency may be due to a
+        modification of fluctuation velocity which is know to vary
+        with densities ad normalized greenwald fraction \parencite{0029-5515-51-5-053020}}  
+      \item<5> Parallel flow is strongly reduced whenever we increase
         the divertor collisionality
       \end{itemize}
     \end{column}
@@ -143,7 +148,8 @@ loads.
         \includegraphics<1>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16a}
         \includegraphics<2>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16b}
         \includegraphics<3>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16c}
-        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16d}
+        \includegraphics<4>[width=\textwidth]{../pdfbox/KoM15Nov/AgostiniNF2011}
+        \includegraphics<5>[width=\textwidth]{../pdfbox/KoM15Nov/CarraleroMST16d}
       \end{column}
     \end{columns}
   \end{frame}
@@ -272,12 +278,13 @@ loads.
     \begin{column}{0.4\textwidth}
       \begin{itemize}
       \item<1|only@1> SOL profiles in H-Mode so far investigated on
-        AUG \parencite{Muller:2015jt,Sun:2015bu}
+        AUG \parencite{Muller:2015jt,Sun:2015bu,carralero:psi2016}
       \item<2|only@2> Differently from L-Mode, complete detachment
         suggested to be mandatory for increasing of $\lambda_n$ \parencite{Sun:2015bu}
        \item<3|only@3> In weak H-Mode \parencite{carralero:psi2016}
          shoulder depends on a combination of $\Lambda_{div}$ and
-         fueling rate. Complete detachment not necessary.
+         fueling rate. Complete detachment seems instead not necessary
+         although very weak shoulder
       \end{itemize}
     \end{column}
       \begin{column}{0.6\textwidth}
@@ -293,7 +300,7 @@ loads.
   \setbeamercovered{transparent}
   \begin{enumerate}[<+(1) | invisible@-+>]
     \item Does $\Lambda_{div}$ unify the picture among the devices?
-      \alert{No, a dependence on neutral pressure is likely to play a role}
+      \alert{No, deos neutral pressure play a role?}
     \item If neutrals play a role is it at the divertor and/or at the midplane?
       \alert{Contradictory results if one include experiments with
         midplane puffing, JET and EIRENE simulations}
@@ -316,7 +323,7 @@ loads.
 		\item 15 were proposals submitted to Topic 21
 		\item Proposals include experiments on all three machines 
 		\item There are overlaps between several of the proposals 
-		\item Preliminary shot allocation. AUG: 14. MAST: 13. TCV: 23 !!!!!!!1SHOULD WE ADD PRELIMINARY DATES FOR THE EXPERIMENTS??
+		\item Preliminary shot allocation. AUG: 14. MAST: 13. TCV: 23 
 		\item However, total number of proposed shots:  \textbf{449}
 		\item Several of the proposed experiments can be combined. \underline{But we must prioritize}
 		\item Reaching all goals is not possible with the current number of allocated shots.
@@ -326,7 +333,7 @@ loads.
 \begin{frame}{Focal points}
 \begin{itemize}
 	\item MST1 uniquely facilitates cross comparison between machines
-	\item Several of the proposed experiments overlap 
+	\item Several of the proposed experiments overlap and will be combined
 	\item A cross machine experiment has the makings of settling open issues
 	\item Therefore, we will allocate shots for cross-machine comparison
 	\item ....but also to other proposed experiments
@@ -341,12 +348,22 @@ loads.
 
 \begin{frame}{L-mode experiments}
 	\begin{itemize}
-		\item The role of neutrals in the shoulder formation is not understood 		{\scriptsize(proponents: Carralero, Militello, Vianello, Walkden)}
+		\item The role of neutrals in the shoulder formation is not understood
+                  {\scriptsize(proponents: Carralero (\# 7), Militello
+                    (\# 1, 2), Vianello (\# 13), Walkden (\# 9))}
 		\begin{enumerate}
-			\item We envisage to measure neutral gas profiles at the outboard 		midplane using fast cameras and reciprocating Langmuir probes
-			\item Reciprocating probes and fast cameras available on all machines
+		\item We envisage to measure neutral gas profiles at the outboard midplane
+                  using fast cameras with D$_{\alpha}$ filter, density
+                  and temperature SOL profiles and appropriate code
+                  (e.g. KN1D as in \parencite{Lipschultz:2005gg,Lipschultz:2016vk})
+		\item Reciprocating probes and profiles available on
+                  all machines
+                \item Investigate role of fueling location (MAST)
 		\end{enumerate}
-		\item Disentangle the roles of $I_p$, $q_{95}$, and $L_{\|}$. {\scriptsize(proponents: Carralero, Militello, Vianello, Tsui, Walkden)}
+		\item Disentangle the roles of $I_p$, $q_{95}$, and $L_{\|}$.
+                  {\scriptsize(proponents: Carralero , Militello, Vianello, Tsui, WalkdenCarralero (\# 7), Militello
+                    (\# 1, 2), Vianello (\# 13), Walkden (\# 9), Tsui
+                    (\# 15))}
 		\begin{enumerate}
 			\item Carry out parameter scans on all machines
 			\item Strive after similar machine configurations
@@ -362,11 +379,13 @@ loads.
 	\item Main priorities: 
 	\begin{enumerate}
 		\item Investigate if clear shoulder formation exists and what plasma parameters required? 
-		\item Investigate the SOL (filamentary) transport properties. Main diagnostic is reciprocating probes $\rightarrow$ limits heating power
+		\item Investigate the SOL (filamentary) transport properties.
+                  Whenever main diagnostic is reciprocating probes $\rightarrow$ limits heating power
 		\item Experiments must gradually increase power and density. 
 	\end{enumerate}
-	\item Fueling in H-mode is problematic due to transport barrier? NBI, pellet fueling?
-	\item H-mode density limit\parencite{Bernert:2015ppcf} must be dealt with
+	\item Fueling in H-mode is problematic due to transport
+          barrier. Is there a way to overcome it? NBI, pellet fueling?
+	\item H-mode density limit \parencite{Bernert:2015bq} must be dealt with
 \end{itemize}
 
 \end{frame}
@@ -390,24 +409,30 @@ loads.
 
 \end{frame}
 
-\begin{frame}{Required diagnostics}
+\begin{frame}{Required diagnostics and competences}
 In order to compare experiments the following diagnostics must be available: 
 \begin{enumerate}
-	\item Reciprocating probe at OM measuring: 
+	\item Filaments analysis in the Outboard midplane: 
 	\begin{itemize} 
-		\item $I_{sat}$  on minimum three pins poloidally and radially separated
-		 (filamens speed and size). 
-		\item Electron temperature
+		\item Through Reciprocating probe then $I_{sat}$  on minimum three pins poloidally and radially separated
+		 (filaments speed and size). 
+		\item Electron temperature (fast T$_e$ measurements
+                  can be achieved with BPP in MAST-U {\footnotesize
+                    (N. Walkden \#11)})
 		\item If possible $M_{\|}$
 	 \end{itemize}
 	 \item Camera viewing OM for measuring neutrals 
-	 \item Divertor measurements of $n$ and $T_e$ (probes). Collisionallity
-	 \item Density profile measurements (Li-Bes, Reflectometry, Edge Thomson scattering) 
+	 \item Divertor measurements of $n$ and $T_e$ (probes) plus
+           spectroscopy and bolometry 
+	 \item Density profile measurements (Li-Bes, Reflectometry (\#
+           6 Acquiam, \# 8 Vicente), Edge Thomson scattering) 
+         \item Sami and Field for fast particles accelleration (piggy
+           back on developed scenarion \# 4 McClements)
 %	\item H-mode quality diagnostics(div current, magnetics)
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Proposed shot plan - AUG}
+\begin{frame}[allowframebreaks]{Proposed shot plan - AUG}
 \vspace{-1cm}
 Allocated shots $\sim$ 14 + contingency 
 \begin{itemize}
@@ -420,17 +445,22 @@ Allocated shots $\sim$ 14 + contingency
 		\item should we add OM puff to validate neutral measurements?
 		\item Possibility of strike-point sweeping during shot
 		\item RFEA measurements in internal program. 
-		\item These shots combines experiments proposed by: Carralero, Militello, 	Vianello 
+		\item These shots combines experiments proposed by:
+                  Carralero (\# 7), Militello (\#1), Vianello (\#13)
 
 	\end{enumerate}
 	\item H-mode (9 shots)
 	\begin{enumerate}
-		\item Reference shot \# 33059 (AUG15-2.2-3). Aim is to achieve conditions in \# 31607 (Sun 6 MW) through careful power and density ramp monitoring new HHF probe 
+		\item Reference shot \# 33059 (AUG15-2.2-3). Aim is to achieve conditions
+                  in \# 31607 (Sun 6 MW) through careful power and density ramp monitoring new HHF probe 
 		\item With clear shoulder formation repeat with midplane probe at varying radial positions 
 		\item Strike-point sweep if feasible? 
-		\item In all shots, particle acceleration in ELMs will be studied using microwaves, soft X-rays, and FILD (proposal by McClements) 
+		\item In all shots, particle acceleration in ELMs will be studied using microwaves,
+                  soft X-rays, and FILD 
 		\item Reflectometry measurements of density profiles and fluctuations at multiple poloidal locations (Aguiam and Vicente)
-		\item These shots combine experiments proposed by: Aguiam, Carralero, McClements, Militello, Vianello, Vicente 
+		\item These shots combine experiments proposed by:
+                  Aguiam (\#6), Carralero (\#7), McClements (\#4),
+                  Militello (\# 1, 2), Vianello (\#13), Vicente (\#8)
 		
 	\end{enumerate}
 \end{itemize}
@@ -443,13 +473,18 @@ Allocated shots $\sim$ 14 + contingency
 			\item Reference shot \# 53514
 			\item Same $I_p$ and $q_{95}$ scans as on AUG
 			\item Two shots with reversed $\bm{B} \times \nabla B$
-			\item Move plasma vertically. Disentangle $q_{95}$ and $L_{\|}$			
+			\item Move plasma vertically. Disentangle
+                          $q_{95}$ and $L_{\|}$	
+                        \item These shots combines proposal: Vianello
+                          (\#13), Tsui (\#15), Militello (\#1, 2)
 		\end{enumerate}
 		\item H-mode (12 shots)
 		\begin{enumerate}
 			\item Reference shot \# 53352
 			\item Since H-mode shoulder is new territory on TCV first shots will be scenario development
 			\item As on AUG. Incremental increases of power and density. Close monitoring the midplane probe. 
+                        \item These shots combines proposal: Vianello
+                          (\#13), Tsui (\#15), Militello (\#1, 2)
 		\end{enumerate}
 	\end{itemize}
 \end{frame}
@@ -460,373 +495,81 @@ Allocated shots $\sim$ 14 + contingency
 		\item L-mode (6 shots)
 		\begin{enumerate}		
 			\item New machine. No reference shot yet			
-			\item Same $I_p$ and $q_{95}$ scans as on AUG. Availability of multi pin probe? 
+			\item Same $I_p$ and $q_95$ scan to allow
+                          cross-machine comparison. Availability of multi pin probe? 
 			\item Try varying fueling location
-			\item RFEA measurements during shoulder formation 
+			\item RFEA measurements during shoulder
+                          formation 
+                        \item These shots combines proposal: Militello
+                          (\#1, 2, 3), Walkden (\#11), Vianello (\#13)
 		\end{enumerate}
 		\item H-mode (7 shots)
 		\begin{enumerate}
 			\item These experiments require the existence of H-mode reference shot. Perhaps not available in 2017
-			\item Similar scenario development as on other machines
+			\item Similar scenario development as on other emachines
+                        \item These shots combines proposal: Militello
+                          (\#1, 2, 3),  Vianello (\#13)
 		\end{enumerate}
-		
-					\item Same $I_p$ and $q_{95}$ scans as on AUG
+		\item Probe head must be changed to allow
+                  investigation of both fast T$_e$ (BPP),  and T$_i$
+                  (RFEA) but this require careful schedule of machine time
 	\end{itemize}
 \end{frame}
 
 \begin{frame}{There are urgent experiment which cannot be addressed}
 \begin{itemize}
-	\item Detailed ion temp measurements 
-	\item Topology investigations
+	\item Detailed ion temp measurements. Must eventually be
+          completed in internal programs. Are you willing to share the
+          information among Topic 21 even though done internally?
+	\item Topology investigations? For example the comparison
+          USN/LSN/DN is not possible. Upper divertor information is
+          actually less detailed. Better to use reverse B$_t$ or ion
+          $\mathbf{B}\times\nabla\mathbf{B}$ pointing away from
+          X-Point which is know to have influences in detachment as
+          well \parencite{McLean}
 	\item Strikepoint sweeping and cryo pump
 	\item Parameters scans in H-mode
 	\item X-point probes
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Modelling require}
+  \begin{enumerate}
+    \item Mean field modelling available for AUG (EMC3-EIRENCE) and
+      MAST-U (SOLPS). So far we lack investigation for these scenario
+      targeting TCV. Manpower needed from edge and SOL modelling
+    \item Turbulence code: we should need self-consistent interaction
+      with neutrals. Possible tools \texttt{BOUT ++}, \texttt{HESEL},
+      \texttt{GBS}. Some of them can be run by people who will, very
+      likely, apply for this topic, some other not
+  \end{enumerate}
+\end{frame}
 
 \begin{frame}{Future and Miscellaneous}
 	\begin{itemize}
 		\item Possibility to piggybag on Quescient/small ELM H-mode shots (Topic 5,6, 18)
-		\item Shortly after this meeting we will organize a follow-up meeting to 						reconcile ideas from this discussion (date not fixed yet)
+		\item Shortly after this meeting we will organize a follow-up meeting to reconcile ideas
+                  from this discussion (date not fixed yet)
 		\item All information will be gathered on the wiki
-		\item Filament database		
+                \item Other channels for discussion/sharing. Slack
+                  (mst1-topic21.slack.com), Github for code sharing
+		\item We aim to arrive to a proper shared database of
+                  filaments between the machines, where properties
+                  will be obtained using agreed approaches so that a
+                  cross-machine comparison paper could at the end be
+                  finalized at a certain point		
 	\end{itemize}
 \end{frame}
 
 \begin{frame}{Discussion agenda}
 	\begin{enumerate}
-		\item Priorities. Do we agree? 
-		\item Common measurement techniques. E.g. $I_{sat}$ instead if $\phi_f$ for filament velocities?
-		\item Publications 
+		\item Priorities. These are our personal ideas. Do we agree? 
+		\item \underline{Common measurement techniques}. Filament
+                  properties, $\Lambda_{div}$ estimate and location,
+                  Neutrals, \ldots 
  	\end{enumerate}
 \end{frame}
 
 
-  % \only<1>{
-% \begin{itemize}
-% \item Role of turbulence transport in the SOL saturation is a well
-%   know
-%   feature \parencite{LaBombard:2001ks,Rudakov:2005ic,Garcia:2007hh,Carralero:2014gs}. \textcolor{red}{Increasing
-%   density, even without reaching detachment SOL profile tend to flatten}
-% \end{itemize}}
-% \only<2-3>{
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item Present understanding suggests that a transition of filament
-%         propagation regime is dominated by effective
-%         collisionality $\Lambda$ \parencite{Myra:2006p2754}
-%         \begin{equation*}
-%           \Lambda = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
-%         \end{equation*}
-%         \item<3> \textcolor{red}{At constant blob size, increasing
-%             collisionality provide a change in the filaments velocity
-%             scaling properties}
-%       \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-% %      \includegraphics<2>[width=\textwidth]{../pdfbox/Presentation/FigMyra}
-%         \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/FigMyra}
-%           \only<3>{
-%             \draw [->, ultra thick, red] (0.7,0.3) -- (0.7,0.6);}
-%         \end{tikzonimage}
-%     \end{column}
-%   \end{columns}
-% }
-% \only<4-6>{
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item AUG and JET \parencite{Carralero:2015gu} suggest that $\Lambda_{div}$ dominates this
-%         process and a transition from
-%         \textcolor{ta3chameleon}{sheath-limited}
-%         \onslide<5-6>{to \textcolor{blue}{inertial regime}} 
-%         \item<6> \textcolor{red}{Tested by changing n$_e$
-%             and $T_e$ through fueling/seeding/heating}
-%       \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Presentation/KoMFig2.png}
-%         \only<4-6>{
-%           \draw [thick, ta3chameleon, thick] (0.45,0.25) ellipse (0.23 and 0.1);
-%       }
-%         \only<5-6>{
-%           \draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
-%       }
-%         \only<6>{
-%           \draw [thick, red, thick, dashed] (0.35,0.75) circle (0.25);
-%       }
-%     \end{tikzonimage}
-%   \end{column}
-%   \end{columns}
-% }
-% \only<7->{
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item MAST \parencite{Militello:2016hk} and old TCV
-%         \parencite{Garcia:2007p2615} data 
-%         suggested and I$_P$ dependence. 
-%           \textcolor{red}{At higher current and
-%         same density SOL shoulder disappear} 
-%       \item<8> \textcolor{ta3chameleon}{Being shoulder formation
-%           induced by a change of $\Gamma_{\perp}$ \textit{vs}
-%           $\Gamma_{\parallel}$ balance we will try to test dependence
-%           on L$_{\parallel}$}
-%     \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-%       \includegraphics[width=\textwidth]{../pdfbox/Presentation/FigMilitello.pdf}
-%     \end{column}
-%   \end{columns}
-% }
-% \centering{\includegraphics<1>[width=1.1\textwidth]{../pdfbox/Presentation/Fig1Presentation}}
-% \end{frame}
-
-% \begin{frame}{Flux expansion scan/1}
-% \vspace{-1cm}
-%   \Fontvi
-%   % \begin{columns}
-%   %   \begin{column}{0.3\textwidth}
-%       \centering{\includegraphics[width=.75\textwidth]{../pdfbox/Fig1a}}
-%       \begin{itemize}
-%       \item Parallel connection length varied by scanning 
-%         flux expansion during density
-%         ramps in ohmically heated discharges. \textcolor{red}{$\nabla B_i$ towards the X-point}
-%         %\begin{equation*}
-%         \[  f_x = \frac{(B_p/B_t)_{MP}}{(B_p/B_t)_{SP}}\]
-%         %\end{equation*}
-%         \item Variation of $f_x$ change the volume of flux tube as
-%           well as parallel connection length (Increased up to 70\%)
-%       \end{itemize}
-%     % \end{column}
-%     % \begin{column}{0.7\textwidth}
-%   %   \end{column}
-%   % \end{columns}
-% \end{frame}
-
-% \begin{frame}{Flux expansion scan/2}
-%   \Fontvi
-%       \begin{itemize}
-%       \item<1-> Flux expansion variation induce modification at the target
-%       \item<1-> Radiation front from bolometry  moves earlier in
-%         density at larger f$_x$. Front movement trails CIII cut-off
-%         movement (Reimerdes IAEA 2016)
-%       \item<2-> Volumetric recombination rates from $n=6, 7$ balmer line
-%         emission \parencite{kevin:jnm} indicates that \textcolor{red}{recombination occurs
-%           earlier in density at high $f_x$}
-%       \item<3|only@3> \textcolor{ta3skyblue}{This is not confirmed in reversed B$_t$ where
-%         increasing the f$_x$ lead to deeper detachment without}
-%         changing density threshold  
-%     \end{itemize}
-%     \only<1-2>{\begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig2c}
-%       \only<1>{\fill[white] (0.,0) rectangle (0.52,1); }    
-%       \draw [->, ultra thick, black] (0.79,0.69) -- (0.75,0.51);
-%     \end{tikzonimage}}
-% \centering{\includegraphics<3>[width=.5\textwidth]{../pdfbox/Presentation/XD_detach_HM}}
-%   \end{frame}
-
-% \begin{frame}{Flux expansion scan/3}
-%   \vspace{-1cm}
-% \Fontvi
-%       \begin{itemize}
-%       \item Target and upstream profile measured at the same density
-%         but different f$_x$
-%       \item<3-> Target profiles in the near SOL modified with broader profile at higher
-%         f$_x$. \textcolor{red}{Huge variation on $\Lambda_{div}$
-%           without upstream modification}
-%       \item<4|only@4> \textcolor{ta3chameleon}{Only further increase
-%           of density (although $\Lambda_{div}$ in the far SOL
-%           decreases) leads to profile broadening}
-%       \end{itemize}
-%       \centering{\includegraphics<1>[width=.65\textwidth]{../pdfbox/Fig4Series_1}}
-%       \centering{\includegraphics<2>[width=.65\textwidth]{../pdfbox/Fig4Series_2}}
-%       \centering{\includegraphics<3>[width=.65\textwidth]{../pdfbox/Fig4Series_3}}
-%       \centering{\includegraphics<4>[width=.65\textwidth]{../pdfbox/Fig4Series_4}}
-% \end{frame}
-
-% \begin{frame}{Filaments effect}
-%   \vspace{-1cm}
-% \Fontvi
-%       \begin{itemize}
-%       \item<1-3> Blob properties deduced from fast reciprocating as done in \parencite{Boedo:2001tt}
-%       \item<1|only@1> Blob size deduced as $\delta_b = \tau_b v_{\perp}$
-%         % \begin{equation*}
-%         %   \tau_b = \text{FWHM of CAS} \qquad v_{\perp} = \sqrt{v_{E\times B, r}^2 +
-%         %     v_{E\times B, p}^2}
-%         % \end{equation*}
-%       \item<2-3> No clear dependence on
-%           $\Lambda_{div}$ during f$_x$ scan
-%       \item<3> \textcolor{ta3chameleon}{When we increase the
-%           density filaments are bigger at same $\Lambda_{div}$}
-%       \item<4-> \textcolor{ta3skyblue}{On a statistical basis,
-%           blob size increases with density without clear dependence on
-%           f$_x$ \onslide<5>{\textcolor{red}{as well as $\lambda_n$ in the Far SOL}}}
-%       \item<6> \textcolor{ta3chameleon}{Behavior at very high
-%           density to be confirmed}  
-%       \end{itemize}
-%       \centering{\includegraphics<1>[width=.53\textwidth]{../pdfbox/Fig14b}}
-%       \centering{\includegraphics<2>[width=.63\textwidth]{../pdfbox/Fig7}}
-%       \centering{\includegraphics<3>[width=.63\textwidth]{../pdfbox/Fig7b}}
-%       \centering{\includegraphics<4>[width=.85\textwidth]{../pdfbox/Fig12}}
-%       \centering{\includegraphics<5>[width=.85\textwidth]{../pdfbox/Fig12b}}
-%       \only<6>{
-%         \begin{center}
-%           \begin{tikzonimage}[width=.85\textwidth]{../pdfbox/Fig12b}
-%           \draw [thick, ta3chameleon, thick] (0.75,0.5) ellipse (0.1 and 0.1);
-%           \end{tikzonimage}
-%         \end{center}
-%       }
-% \end{frame}
-
-% \begin{frame}{Current scan/1}
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item<1-3> On a single shape (f$_x \approx 4$) current scan with
-%         similar density ramps performed
-%       \item<2-3> \textcolor{red}{At lower current indication of shoulder for $R-R_{sep}
-%         \geq 1$ cm which disappear at higher current (same density)}
-%       \item<3> \textcolor{ta3chameleon}{At even higher current we need to substantially
-%         increase the fueling (even if at the same $n/n_G$)}
-%       \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-%       \only<1-2>{
-%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series1}
-%         \only<2>{
-%           \draw [thick, red, thick] (0.75,0.75) ellipse (0.2 and 0.1);
-%         }
-%       \end{tikzonimage} }
-%     \only<3>{
-%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig4d_series2}
-%           \draw [thick, ta3chameleon, thick] (0.67,0.35) ellipse (0.22 and 0.1);
-%           \draw [thick, ta3chameleon, thick] (0.5,0.14) ellipse (0.3 and 0.03);
-%         \end{tikzonimage}      
-%       }
-%     \end{column}
-%   \end{columns}
-% \end{frame}
-
-% \begin{frame}{Current scan/2}
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item On a statistical basis we have a slight
-%         reduction of radial velocity of the filaments as in MAST \parencite{Kirk:2016jj} with unclear
-%         effect on blob-size
-%       \end{itemize}
-%     \end{column}
-%       \begin{column}{0.5\textwidth}
-%      \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig8}
-%        \draw [->, ultra thick, red, dashed] (0.33,0.37) -- (0.7,0.27);
-%      \end{tikzonimage}
-%    \end{column}
-%   \end{columns}
-%   \end{frame}
-
-% \begin{frame}{Lower Single Null (LSN) and Double Null (DN)}
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item<1|only@1> We compare LSN \textit{vs} DN on a single discharge at
-%         two levels of density
-%         \item<2|only@2> At lower density values the radiation is spread among
-%           upper and lower X-points, whereas at higher density radiation
-%           is higher at lower X-point
-%         \item<6|only@6> Blob size increases with density with DN cases always
-%           exhibiting larger blobs. Still compatible with general density
-%           scaling. \textcolor{orange}{Radial velocity seems to decrease for DN}
-%       \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-%       \includegraphics<1>[trim={0 7.6cm 0 0}, clip, width=\textwidth]{../pdfbox/Fig5}
-%       \includegraphics<2>[width=\textwidth]{../pdfbox/Fig5c}
-%       \only<6>{
-%         \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig9}
-%           \draw [->, thick, orange] (0.33, 0.33) -- (0.83, 0.21);
-%         \end{tikzonimage}
-%       }
-%     \end{column}
-%   \end{columns}
-%   \only<3>{
-%     \begin{itemize}
-%       \item At the LFS target, DN density profile at lower level of
-%         density is reduced and closer to 
-%         what observed at higher density
-%       \end{itemize}
-%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5e}
-%         \draw [dashed, red, ultra thick] (0.7, 0.37) -- (0.3, 0.37);
-%         \draw [->, dashed, red, ultra thick] (0.3, 0.7) -- (0.3, 0.38);
-%       \end{tikzonimage}
-%     }
-%   \only<4-5>{
-%     \begin{itemize}
-%       \item Upstream profile suggests that a stronger tendency of
-%         developing density shoulder is observed in DN 
-%       \end{itemize}
-%       \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig5d}
-%         \only<5>{\draw[dashed, red, thick] (1.0, 0.55) -- (0.1, 0.55);}
-%       \end{tikzonimage}
-%     }
-
-% \end{frame}
-
-% \begin{frame}{Upper, Lower and Double Null}
-%     \Fontvi
-%     \begin{itemize}
-%       \item The same density ramp performed in Upper, Lower and Double
-%         null with all the Strikes points at the inner wall
-%       \item This allow to test any possible dependence from $\nabla
-%         B_i$ drift direction. C-Mod suggests difference in the medium
-%         density range \parencite{LaBombard:2004kg}
-%     \end{itemize}
-%     \centering{\includegraphics[width=0.9\textwidth]{../pdfbox/Fig1b}}
-% \end{frame}
-% \begin{frame}{Upper, Lower and Double Null}
-%     \Fontvi
-%     \begin{itemize}
-%       \item<2-> Lower and Double null blob size scale consistently with
-%         density scaling
-%       \item<3->  Upper Single null always exhibits
-%         larger blob
-%       \end{itemize}
-%       \vspace{-0.27cm}
-%     \centering{\includegraphics<1>[width=.6\textwidth]{../pdfbox/Fig11b_Series1}}
-%     \centering{\includegraphics<2>[width=.6\textwidth]{../pdfbox/Fig11b_Series2}}
-%     \centering{\includegraphics<3>[width=.6\textwidth]{../pdfbox/Fig11b_Series3}}
-% \end{frame}  
-
-% \begin{frame}{Summary}
-%   \Fontvi
-%   \begin{itemize}
-%   \item<1-> $\lambda_n = |\nabla n_e/n_e|^{-1}$ computed around 1cm from the
-%     separatrix
-%   \item<2-> $\lambda_n$ clearly increases with $\Theta = (\delta_b
-%         R^{1/5}/L_{\parallel}^{2/5}\rho_s^{4/5})^{5/2}$,
-%     i.e. with blob-size
-%   \item<3-> \alert{The dependence on L$_{\parallel}$ is marginal
-%       although we obtain 
-%       larger $\Theta$ at smaller $L_{\parallel}$}.
-%   \item<4-> The increase of $\lambda_n$ is consistent with an increase
-%     of perpendicular to parallel losses
-%   \item<5-> The dependence on $\Lambda_{div}$ is weaker than in
-%     AUG/JET. \onslide<6>{\textcolor{ta3chameleon}{ Large $\Lambda$ is not
-%         sufficient for flat profile.}}
-      
-%   \end{itemize}
-%   \begin{tikzonimage}[width=\textwidth]{../pdfbox/Fig10c}
-%     \only<1>{\fill[white] (0, 0) rectangle (1, 1);}
-%     \only<2>{\fill[white] (0.348,0) rectangle (1,1); }    
-%     \only<3>{\fill[white] (0.348,0) rectangle (0.897,1); }    
-%     \only<4>{\fill[white] (0.62,0) rectangle (0.897,1); }    
-%     \only<6>{
-%       \draw [thick, ta3chameleon, thick, rotate = 4] (0.865,0.2) ellipse (0.04 and 0.2);
-%       \draw [thick, ta3chameleon, thick, rotate = 3] (0.72,0.6) ellipse (0.03 and 0.15);
-%  }    
-%     \end{tikzonimage}
-% \end{frame}
-
 \end{document}
-%\draw [thick, blue, thick, rotate=-4] (0.8,0.55) ellipse (0.1 and 0.33);
+
