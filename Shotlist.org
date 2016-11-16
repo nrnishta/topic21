@@ -2,8 +2,7 @@
 ** AUG:
    Available number of Shots #14
 *** L-Mode investigation: Forseen number 6
-    1. Choose fueling levels for reference shot at 0.8 MA from AUG14-2.2-3 #30276.
-       Perform the same density ramp at 0.6 MA
+    1. Choose fueling levels for reference shot at 0.8 MA from AUG14-2.2-3 #30276. Perform the same density ramp at 0.6 MA
        by keeping the same Toroidal Field
     2. Repeat Shot #1 by keeping the same q_{95} as reference
     3. Repeat Shot #30276 @ 1MA with the same toroidal field
