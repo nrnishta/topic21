@@ -1,0 +1,20 @@
+* Meeting minutes
+** SC meetings
+*** <2016-11-22 Tue>
+    - Write a document which includes
+      1. Common machine configuration
+	 1. LSN plasma
+	 2. B\times\nabla B pointing towards the active X-point
+	 3. Fueling location. Check where the valves are
+	 4. Heating (Ohmic for L-Mode) NBI for the H-Mode
+	 5. Outer gap in term of \rho_s
+	 6. Running TCV at z=+8 with larger outer gap. 
+      2. Common measuring technique
+	 1. Measurement of divertor collisionality
+	    1. See Topic of Mathias Berndt for the reconstruction of divertor properties
+	    2. Is there any possible way to have Te and ne along the field line? DSS? 
+	 2. Measurement of fluctuations
+	 3. Measurement of neutrals
+      3. Long statistics only on wall mounted probe because of limited amount of time available
+      4. PPY for TFL 
+      
