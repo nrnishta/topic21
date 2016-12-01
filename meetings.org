@@ -18,3 +18,26 @@
       3. Long statistics only on wall mounted probe because of limited amount of time available
       4. PPY for TFL 
       
+** Other Meetings
+*** Neutral measurement meetings
+    <2016-12-01 Thu>
+    Attendes: J. Madsen (JM), B. Lipschultz (BL), F. Militello (FM),
+              N. Vianello (NV), M. Agostini (MA), P. Scarin (PS)
+    - NV ask for clarification regarding the paper circulated by Bruce.
+    - BL clarify that the difference between foil bolometer and AXUV is only needed
+      if one need the power emission from neutrals. If the aiming is the determination
+      of neutral density this is not needed
+    - BL clarify that to get neutral density for AXUV one need diods with Lyman-a
+      filter, looking toroidally for proper Abel inversion to be coupled with density and
+      temperature profile
+    - JM and FM suggest that careful must be used for interpretation as one get density and temperature
+      profile as a sort of /*statistical object*/ wheras extraction of density profile from emission
+      is a strong non-linear process
+    - If camera needs to be used rather then diods then we need to get rid of reflection with appropriate
+      view dump. Can be less a proble in graphite machines due to lower reflection from graphite with respect
+      to W
+    - Is Lyman-a optically thin?
+    - Agreed on following steps
+      - [ ] check Camera's and AXUV on TCV: view location, resolution, view dump, filters  (NV)
+      - [ ] check Camera's and AXUV on AUG: view location, resolution, view dump, filters (JM)
+      - [ ] check Camera's and AXUV on MAST-U: view location, resolution, view dump, filters (FM)
