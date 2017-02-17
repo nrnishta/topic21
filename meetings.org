@@ -18,6 +18,12 @@
       3. Long statistics only on wall mounted probe because of limited amount of time available
       4. PPY for TFL 
       
+*** <2017-02-20 Mon>
+**** Agenda 
+     - Discussion on Shotlist for AUG experiment. See preliminary
+     - Diagnostic request
+     - Experimental analysis request and identification of key persons
+     - Identification of relevant SL to be contacted
 ** Other Meetings
 *** Neutral measurement meetings
     <2016-12-01 Thu>
