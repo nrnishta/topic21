@@ -42,12 +42,14 @@ The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition fo
 So far we have 4 shot of contingency which need to be allocated accordingly to week 15
 operation. In the following the priorities we give to contingency once the L-Mode and H-Mode 
 program has been obtained
+
 ### L-mode
 1. Reversing Bt direction and repeat one identical shot (e.g # 30276) to investigate
    the role of SOL flows in SOL shoulder formation and filamentary transport
 2. Strike point sweeping to check with similar observation in JET
 3. DN discharge with similar density ramps as in reference. Possibly the two X-point should
    sit on the same flux surface
+
 ### H-Mode
 1. Attempt a scenario similar to Topic-06 which will be performed later in time. See for example
    shot #29816 (Presented by T. Eich in the GPM) which is at even higher power (8 MW) or #25740
@@ -58,6 +60,7 @@ program has been obtained
 3. Strike point sweeping
 
 ## Diagnostics
+
 We must ensure reliable and manned (?) operation of the following diagnostics and identify people
 responsible for the analysis
 - [x] Midplane manipulator
