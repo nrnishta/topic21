@@ -1,53 +1,24 @@
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="#org47d5f53">1. Shotlist for TOPIC 21</a>
-<ul>
-<li><a href="#org57f4b80">1.1. AUG:</a>
-<ul>
-<li><a href="#org3b47554">1.1.1. L-Mode investigation: Forseen number 6</a></li>
-<li><a href="#org5bd0b8a">1.1.2. H-Mode investigation: Foreseen number 9</a></li>
-</ul>
-</li>
-<li><a href="#orgfe4f070">1.2. TCV</a></li>
-<li><a href="#org5d218d8">1.3. MAST-U</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
+# Shotlist for TOPIC 21: AUG
 
-<a id="org47d5f53"></a>
+Available number of Shots allocated for the experiment is **14** split
+up to now in two weeks (Calendar Week 15 and Calendar week 17). We 
+propose the following shotlist for the two weeks which should accomodate the main 
+topic proposed:
+* L-Mode investigation with **Ip<sub>p</sub> scan** performed both with _constant_ and _variable_ q95
+* H-Mode investigation with **High Power (up to 6 MW)**.
+With the present proposal there should be room for including additional investigation 
+in particular in L-Mode (less demanding scenario development)
 
-# Shotlist for TOPIC 21
+## Week 15
+### L-Mode: Ip/q95 scan
 
-
-<a id="org57f4b80"></a>
-
-## AUG:
-
-Available number of Shots #14
-
-
-<a id="org3b47554"></a>
-
-### L-Mode investigation: Forseen number 6
-
-1.  Choose fueling levels for reference shot at 0.8 MA from AUG14-2.2-3 #30276.
-    Perform the same density ramp at 0.6 MA
-    by keeping the same Toroidal Field
+1.  Reference Shot @ 0.8 MA (e.g. #30276). Keeping the same Bt and adjusting the Fueling rate in
+order to ensure long enough pulse perform a similar shot @ 0.6MA
 2.  Repeat Shot #1 by keeping the same q<sub>95</sub> as reference
 3.  Repeat Shot #30276 @ 1MA with the same toroidal field
 4.  Repeat #3 by keeping the same q<sub>95</sub> as the reference
-5.  Repeat #30276 with Reverse Bt
-6.  Repeat #5 with Probe at different insertion
 
-
-<a id="org5bd0b8a"></a>
-
-### H-Mode investigation: Foreseen number 9
-
+### H-Mode: Scenario development
 The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
 
 1.  Scenario development. Start from succesful shot 33059 (Total heating 3.1 MW),
@@ -55,20 +26,49 @@ The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition fo
     monitoring midplane probe by IR and Divertor through Langmuir.
 2.  Repeat #1 Fueling ramps according to reference. Monitor of Divertor condition
 3.  Repeat #2 adjusting eventually the fueling and N seeding ramp monitoring the Divertor condition
-4.  Repeat #4 with optimum level of Fueling/Seeding 1st Radial position of probe
-5.  Repeat #5, different probe position
-6.  Repeat #6, different probe position
-7.  Repeat #6 with Strike-point sweeping (if feasible)
-8.  Contingency
-9.  Contingency
 
+## Week 17
+### H-Mode investigation: Foreseen number 9
 
-<a id="orgfe4f070"></a>
+1.  Repeat best H-Mode shot found in Week 15 1st Radial position of probe
+2.  Repeat #1, different probe position
+3.  Repeat #1, different probe position
+4.  Contingency
+5.  Contingency
+6.  Contingency
+7.  Contingency
 
-## TCV
+## Notes
+So far we have 4 shot of contingency which need to be allocated accordingly to week 15
+operation. In the following the priorities we give to contingency once the L-Mode and H-Mode 
+program has been obtained
+### L-mode
+1. Reversing Bt direction and repeat one identical shot (e.g # 30276) to investigate
+   the role of SOL flows in SOL shoulder formation and filamentary transport
+2. Strike point sweeping to check with similar observation in JET
+3. DN discharge with similar density ramps as in reference. Possibly the two X-point should
+   sit on the same flux surface
+### H-Mode
+1. Attempt a scenario similar to Topic-06 which will be performed later in time. See for example
+   shot #29816 (Presented by T. Eich in the GPM) which is at even higher power (8 MW) or #25740
+   which is actually in DN. If we choose for this we could actually compare with the priority 3 of L-Mode
+   contingency
+2. Reverse Bt operation. In this case the L-H treshold is different and we might end
+   by careful adjusting the power into I-Mode scenario. **Are this scenario interesting for us?**
+3. Strike point sweeping
 
+## Diagnostics
+We must ensure reliable and manned (?) operation of the following diagnostics and identify people
+responsible for the analysis
+- [x] Midplane manipulator
+- [ ] Li-Beam. _Are fluctuations available for this diagnostic and in case are available together with profiles?_
+- [ ] FILD: fixed one to ensure
+- [ ] Reflectometer. The operation at 2T suggested by Diogo can be obtained during the q<sub>95</sub> scan
+- [ ] Divertor probes
+- [ ] Camera for neutral analysis
+- [ ] B.Geiger and D LoS with Abel inversion?
+- [ ] Infrared (to monitor probe head)
+- [ ] Divertor Bolometry
+- [ ] AXUV in the divertor region
 
-<a id="org5d218d8"></a>
-
-## MAST-U
 
