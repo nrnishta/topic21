@@ -47,3 +47,21 @@
       - [ ] check Camera's and AXUV on TCV: view location, resolution, view dump, filters  (NV)
       - [ ] check Camera's and AXUV on AUG: view location, resolution, view dump, filters (JM)
       - [ ] check Camera's and AXUV on MAST-U: view location, resolution, view dump, filters (FM)
+*** AUG experimental planning meeting
+    <2017-02-23 Thu>
+    - Choose a different reference shot 30269 where we have also 300 kW ECRH
+    - We need to check if changes in carrent and changes in q95 changes the entire
+      shaping
+    - Strike point sweeping can be used for diagnostic purpouse to provide better
+      resolved divertor profiles
+    - H-Mode reference shot from internal campaign (See PSI table last shot)
+    - Different approach proposed for H-Mode
+      1. Take scenario, at increased NB power (6 MW). Density ramp adjusted from
+	 reference. 1 Plunge in safe position of the probe
+      2. Repeat #1 eventually adjusting the fueling and add N seeding in
+	 feedforward
+      3. Find the optimum betwee #1 and #2
+      4. Repeat #3 with probe at different position
+      5. Repeat #3 with probe at different position
+      6. Repeat at reduced Cryopump
+      7. Repeat with puffing from the midplane

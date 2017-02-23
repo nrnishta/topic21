@@ -12,20 +12,22 @@ in particular in L-Mode (less demanding scenario development)
 ## Week 15
 ### L-Mode: Ip/q95 scan
 
-1.  Reference Shot @ 0.8 MA (e.g. #30276). Keeping the same Bt and adjusting the Fueling rate in
-order to ensure long enough pulse perform a similar shot @ 0.6MA
+1.  Reference Shot @ 0.8 MA (e.g. #30269) with 300 kW ECRH.
+Keeping the same Bt and adjusting the Fueling rate in
+order to ensure long enough pulse perform a similar shot @ 0.6MA. 
 2.  Repeat Shot #1 by keeping the same q<sub>95</sub> as reference
 3.  Repeat Shot #30276 @ 1MA with the same toroidal field
 4.  Repeat #3 by keeping the same q<sub>95</sub> as the reference
 
 ### H-Mode: Scenario development
-The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
+The reference shot is 33478 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
 
-1.  Scenario development. Start from succesful shot 33059 (Total heating 3.1 MW),
-    keep the probe head in a safe position (FAR SOL) increase the heating power (two steps to 4.5 and 6) up to 6 MW
-    monitoring midplane probe by IR and Divertor through Langmuir.
-2.  Repeat #1 Fueling ramps according to reference. Monitor of Divertor condition
-3.  Repeat #2 adjusting eventually the fueling and N seeding ramp monitoring the Divertor condition
+1.  Scenario development. Start from succesful shot 33478 but with increased power (6MW). Adjust
+    fueling rate from reference but increase by a factor of 30%. 1 Plunge of probe head
+	in a safe position. Monitoring with Infrared probe head
+2.  Repeat #1 eventually adjusting the Fueling rate. Start N seeding in feedword still starting from
+    reference 
+3.  Trade off between 1 and 2. 1 Plunge late in the discharge
 
 ## Week 17
 ### H-Mode investigation: Foreseen number 9
@@ -33,21 +35,20 @@ The reference shot is 33059 (AUG15-2.2-3) with the aim to reach the condition fo
 1.  Repeat best H-Mode shot found in Week 15 1st Radial position of probe
 2.  Repeat #1, different probe position
 3.  Repeat #1, different probe position
-4.  Contingency
-5.  Contingency
+4.  Repeat best H-Mode shot found in week 15 and reduce the cryopumps
+5.  Repeat best H-Mode shot found in week 15 and puff from midplane
 6.  Contingency
 7.  Contingency
 
 ## Notes
-So far we have 4 shot of contingency which need to be allocated accordingly to week 15
+So far we have 2 shot of contingency which need to be allocated accordingly to week 15
 operation. In the following the priorities we give to contingency once the L-Mode and H-Mode 
 program has been obtained
 
 ### L-mode
-1. Reversing Bt direction and repeat one identical shot (e.g # 30276) to investigate
+1. Reversing Bt direction and repeat one identical shot (e.g # 30269) to investigate
    the role of SOL flows in SOL shoulder formation and filamentary transport
-2. Strike point sweeping to check with similar observation in JET
-3. DN discharge with similar density ramps as in reference. Possibly the two X-point should
+2. DN discharge with similar density ramps as in reference. Possibly the two X-point should
    sit on the same flux surface
 
 ### H-Mode
@@ -57,7 +58,7 @@ program has been obtained
    contingency
 2. Reverse Bt operation. In this case the L-H treshold is different and we might end
    by careful adjusting the power into I-Mode scenario. **Are this scenario interesting for us?**
-3. Strike point sweeping
+
 
 ## Diagnostics
 
@@ -73,5 +74,10 @@ responsible for the analysis
 - [ ] Infrared (to monitor probe head)
 - [ ] Divertor Bolometry
 - [ ] AXUV in the divertor region
+- [ ] RFA  #2
+- [ ] Fast probe on the limited
+- [ ] GPI
 
-
+## To be done
+- [ ] Check shape modification during current and q95 scan
+- [ ] Check GPI operation with I. Cziegler
