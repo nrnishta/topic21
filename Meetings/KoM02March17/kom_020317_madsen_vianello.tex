@@ -38,22 +38,35 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 
 \begin{frame}{AUG experimental plan}
 \vspace{-1cm}
-\only<1>{The present experimental plan addressed some of the proposed
+\only<1>{
+  \begin{itemize}
+  \item For Topic-21 on AUG 14 shots forseen, split into two blocks of
+    7 shot each on week 15 and week 17 respectively
+  \item The proposed experimental plan address some of the proposed
 experimental plan for both the \textcolor{ta3chameleon}{L-Mode} and
-\textcolor{ta3scarletred}{H-Mode} part. \\
+\textcolor{ta3scarletred}{H-Mode} part.
+\end{itemize}
 }
 \only<2>{
 We will conclude the \textcolor{ta3chameleon}{L-Mode}
 part in Week 15 where we also would like to include part of the \textcolor{ta3scarletred}{H-Mode}
-scenario development\\
+scenario development. This would give us an additional week between
+the experiments to address possible issues in particular for the
+H-mode part\\
 \textbf{Week 15} \\
   \begin{enumerate}
-    \item \textcolor{ta3chameleon}{Take Shot \# 30269 as Reference, Reduce current to 0.6 MA
+    \item \textcolor{ta3chameleon}{Take Shot \# 30269 as Reference
+        (0.8 MA). Reduce current to 0.6 MA
       keeping the same toroidal field $B_{\phi}$ adjust the fueling
-      rate (\emph{Current scan})}
-    \item \textcolor{ta3chameleon}{Repeat shot \#1 keeping the same $q_{95}$ as reference
-      (\emph{Current scan at fixed $q_{95}$})}
-    \item \textcolor{ta3chameleon}{Repeat \#1 at higher current 1 MA adjusting the fueling rate}
+      rate (\emph{Current scan with modification of $q_{95}$})}
+    \item \textcolor{ta3chameleon}{Repeat shot \#1 changing
+        the toroidal field in order to match the same $q_{95}$ as reference
+      (\emph{Current scan at fixed $q_{95}$}). We can adjust the
+      current level in order to match the request for operation with
+      B$_{t} = 2$T (Alves)}
+    \item \textcolor{ta3chameleon}{Repeat \#1 at higher current 1 MA
+        adjusting the fueling rate and keeping the same toroidal field
+      as reference}
     \item \textcolor{ta3chameleon}{Repeat \# 3 keeping the same
         $q_{95}$ as reference shot}
     \end{enumerate}
@@ -72,18 +85,22 @@ scenario development\\
         the fueling rate. Start the N seeding in feedforward starting
         fro the level found in reference}
     \item \textcolor{ta3scarletred}{Trade off between \#1 and \#2
-        Fueling/Seeding. Additional plunge of probe at the end of the discharge}
+        Fueling/Seeding. Additional plunge of probe at the end of the
+        discharge}
+      \item \textcolor{ta3skyblue}{This scenario would allow the
+          exploitation of particle accelleration (McClements) physics as piggy-back}
     \end{enumerate}
   }
   \only<4>{
-  \textbf{Week 17} \\
+  \textbf{Week 17: This strongly depends on the achievement of H-Mode
+    scenario obtained in Week 15 } \\
     \begin{enumerate}
     \item \textcolor{ta3scarletred}{Repeat best H-Mode shot found in Week 15 1st Radial position of probe}
     \item \textcolor{ta3scarletred}{Repeat \#1, different probe position}
     \item \textcolor{ta3scarletred}{Repeat \#1, different probe
         position}
     \item \textcolor{ta3scarletred}{Repeat best H-Mode shot found in
-        week 15 and reduce the cryopumps}
+        week 15 and reduced the cryopumps}
     \item \textcolor{ta3scarletred}{Repeat best H-Mode shot found in
         week 15 and puff from midplane}
     \item \textcolor{ta3scarletred}{Contingency}
@@ -102,10 +119,12 @@ scenario development\\
    \item \textcolor{ta3scarletred}{Attempt a scenario similar to Topic-06 which will be performed later in time. See for example
    shot \# 29816 (Presented by T. Eich in the GPM) which is at even
    higher power (8 MW) or \# 25740
-   which is actually in DN. If we choose for this we could actually compare with the priority 3 of L-Mode
+   which is actually in DN (see proposal from J. Vicente). If we choose for this we could actually compare with the priority 3 of L-Mode
    contingency}
  \item \textcolor{ta3scarletred}{Reverse B$_{t}$ operation. In this case the L-H treshold is different and we might end
-   by careful adjusting the power into I-Mode scenario}
+     by careful adjusting the power into I-Mode scenario}
+   \item \textcolor{ta3skyblue}{Working at 2T in H-Mode would require
+       additional development}
 \end{enumerate}
   }
 \end{frame}
@@ -134,9 +153,13 @@ scenario development\\
     \item Probe conditioning?
     \item Check the status of the diagnostics including GPI (issue
       regarding the puffing)
+    \item Methodology ($\Lambda_{div}$ computation and profile)
+      $\lambda_n$ filaments properties etc.  
     \item Code preparation for analysis and
       visualization. \emph{GITHUB repository?}
-    \item Other?
+    \item Optimization of the effort: please provide us a more
+      detailed plan of your analysis in order to limit superposition
+      or work duplication
   \end{enumerate}
 \end{frame}
 \end{document}

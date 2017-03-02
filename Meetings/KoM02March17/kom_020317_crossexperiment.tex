@@ -1,0 +1,65 @@
+\documentclass[10pt, compress]{beamer}
+\usetheme[conference=KoM,venue=Remote, date=03/13/2017, titleprogressbar, logo=RFX-logo]{Eurof}
+\usepackage{listings,amsmath,multimedia, amssymb}
+\usepackage{../beamerclass/tangocolors}
+\usepackage{../beamerclass/rfxcolor}
+% for drawing
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,backgrounds}
+\usepackage{../beamerclass/onimage}
+\usepackage[export]{adjustbox}
+\usepackage{bm}
+% for font
+\usepackage[absolute,overlay]{textpos}
+  \setlength{\TPHorizModule}{1mm}
+  \setlength{\TPVertModule}{1mm}
+
+\usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
+uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
+\bibliography{biblio}
+\renewcommand*{\bibfont}{\footnotesize}
+\renewcommand*{\citesetup}{\footnotesize}
+\usepackage[export]{adjustbox}
+\makeatother
+\mode<presentation>
+\makeatletter
+% add a macro that saves its argument
+\newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
+\newbox\footlineextrabox
+% for reducing font on a single slide
+\newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
+\title{Topic 21: AUG experiment KoM}
+\date{03 March 2017}
+\author[N.Vianello]{N. Vianello}
+\begin{document}
+\tikzstyle{every picture}+=[remember picture]
+\maketitle
+
+\begin{frame}{Cross-machine comparison}
+\vspace{-1cm}
+  \begin{itemize}
+    \item Brief summary of proposals done by N.Vianello and
+      F. Militello who suggest the repetition of similar experiments
+      in the 3 devices to provide appropriate comparison
+    \item<2|only@2> \textbf{L-Mode}
+      \begin{itemize}
+        \item Current scan both at fixed and varied q$_{95}$
+        \item Equivalent density ramp in favorable/unfavorable
+          $B\times \nabla B$ direction
+        \item Probe at a fixed position for long time statistics
+        \item Parallel flow and modification accordingly to
+          favorable/unfavorable direction
+        \end{itemize}
+      \item<3|only@3> \textbf{H-Mode}
+      \begin{itemize}
+        \item H-Mode with density ramps/seeding proposed by all the proponents
+        \item Similar density ramps/seeded experiments performed in
+          LSN/USN/DN configuration and monitor of filaments at the
+          target and at the midplane
+        \item QH-mode or Type-III ELMy regime
+        \end{itemize}
+\end{itemize}
+\end{frame}
+\end{document}
+
