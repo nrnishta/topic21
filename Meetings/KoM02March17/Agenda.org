@@ -1,0 +1,17 @@
+* TOPIC-21 KoM 03 March 2017
+** Agenda
+   1. Introduction and general information: SCs
+   2. Proposal for AUG experiments from participant
+      1. Daniel Carralero /Advanced measurements of filamentary transport in the SOL/
+      2. Zhang Wei /Interaction of blobs and radio-frequency convection/
+      3. Ken McClements /Studies of particle acceleration during ELMs in MAST-U and AUG/
+      4. Jose Vicente /Poloidal asymmetry (LFS-HFS) of turbulence and magnetic configuration effects on turbulence and filamentary transport/
+      5. Nicola Vianello /Cross-machine studies of shoulder formation/
+   3. Experimental Shot Plan and Diagnostic SCs
+   4. General Discussion
+** Connection details
+
+Presentation: https://tv.euro-fusion.org/channel6/home \\
+Presentation Password: topic21 \\
+Video-conference nr. (H.323): 004910097920066 
+    
