@@ -91,43 +91,43 @@ class fieldline(object):
             self.Y[i] = self.R[i]*sin(self.phi[i] + rotateAng)
         self.phi = self.phi + rotateAng
 
-    def at(self,key,value,returns=None):
-    """
-    Function to return values of parameters along the fieldline at a given
-    point, eg S=10 or phi=3.14 or Z=-1.5
-    
-    example:   
-        
-        vals = fieldline.at('phi',3.14159)   #find all fieldline parameters at phi = pi
-        
-        R_at_pi = vals['R']
-        Z_at_pi = vals['Z']
-        
-        #Find just the radial position at Z=-1.0
-        
-        vals = fieldline.at('Z',-1.0,returns=['R'])
-        
-        R = vals['R']
-    """
-    
-    val_dict = {}
-    if key not in self.list():
-        print("WARNING: No "+key+" found in fieldline object, returning.\n")
-        return val_dict
-    
-    inds_low = np.where(getattr(self,key) < value)[0]
-    inds_high = np.where(getattr(self,key) > value)[0]
-    
-    #These will be used to identify discontinuities 
-    inds_low_diff = np.diff(inds_low)
-    inds_high_diff = np.diff(inds_high)
-    
-    if np.any(np.abs(inds_low_diff) > 1) or np.any(np.abs(inds_high_diff) > 1):
-        #There are multiple points where the fieldline crosses value
-        
-    else:
-        #There is only one point where the value is crossed
-        
+    #def at(self,key,value,returns=None):
+    #"""
+    #Function to return values of parameters along the fieldline at a given
+    #point, eg S=10 or phi=3.14 or Z=-1.5
+    #
+    #example:   
+    #    
+    #    vals = fieldline.at('phi',3.14159)   #find all fieldline parameters at phi = pi
+    #    
+    #    R_at_pi = vals['R']
+    #    Z_at_pi = vals['Z']
+    #    
+    #    #Find just the radial position at Z=-1.0
+    #    
+    #    vals = fieldline.at('Z',-1.0,returns=['R'])
+    #    
+    #    R = vals['R']
+    #"""
+    #
+    #val_dict = {}
+    #if key not in self.list():
+    #    print("WARNING: No "+key+" found in fieldline object, returning.\n")
+    #    return val_dict
+    #
+    #inds_low = np.where(getattr(self,key) < value)[0]
+    #inds_high = np.where(getattr(self,key) > value)[0]
+    #
+    ##These will be used to identify discontinuities 
+    #inds_low_diff = np.diff(inds_low)
+    #inds_high_diff = np.diff(inds_high)
+    #
+    #if np.any(np.abs(inds_low_diff) > 1) or np.any(np.abs(inds_high_diff) > 1):
+    #    #There are multiple points where the fieldline crosses value
+    #    
+    #else:
+    #    #There is only one point where the value is crossed
+    #    
            
            
     
