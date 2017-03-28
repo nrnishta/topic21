@@ -20,6 +20,10 @@ except:
     #Otherwise just use a named tuple
     Point = namedtuple('Point', 'r z')
 
+try:
+    import map_equ
+except:
+    print('Import of map_equ Failed, you are not at IPP')
 from scipy.interpolate import interp1d
 from scipy.interpolate import RectBivariateSpline 
 
@@ -178,6 +182,8 @@ class equilibrium(object):
                 self.load_JET(shot,time,with_bfield=with_bfield,verbose=verbose)
             elif device is 'TCV':
                 self.load_TCV(shot,time,port=mdsport,with_bfield=with_bfield,verbose=verbose)
+            elif device is 'AUG':
+                self.load_AUG(shot,time,with_bfield=with_bfield,verbose=verbose)
             elif gfile is not None:
                 self.load_geqdsk(gfile,with_bfield=with_bfield,verbose=verbose,fiesta_geqdsk=fiesta_geqdsk)
             else: 
@@ -638,6 +644,77 @@ class equilibrium(object):
         self.wall = { 'R' : R, 'Z' : Z }
         if with_bfield: self.calc_bfield()
 
+        
+    def load_AUG(self,shot,time,with_bfield=True,verbose=False):
+        self.machine = 'AUG'
+        self._shot = shot
+        if not self._loaded:
+            eqm = map_equ.equ_map()
+            Eqm = eqm.Open(shot, diag='EQH')
+            eqm._read_scalars()
+            eqm._read_profiles()
+            eqm._read_pfm()
+            #Tree = mds.Tree('tcv_shot',shot)
+            conn.openTree('tcv_shot',int(shot))
+            #Load in required data from Lique off the MDS server
+            self._psi = Eqm.pfm
+            self._time_array = Eqm.t_eq
+            nr = self._psi.shape[0]
+            nz = self._psi.shape[1]
+            self._r = Eqm.Rmesh       
+            self._z   = Eqm.Zmesh      
+            self._psi_axis = Eqm.psi0
+            self._psi_bnd  = Eqm.psix
+            self._bphi = conn.get('\\magnetics::rbphi').data()
+            self._bt_time_array = conn.get('dim_of(\\magnetics::rbphi)').data()    
+            # these are the lower xpoints
+            self._xpointr = Eqm.ssq['Rxpu']       
+            self._xpointz = Eqm.ssq['Zxpu']       
+            # R magnetic axis
+            self._axisr = Eqm.ssq['Rmag']          
+            # Z magnetic axis
+            self._axisz = Eqm.ssh['Zmag'] 
+            conn.closeTree('tcv_shot',int(shot))
+            self._loaded = True
+        
+        tind = np.abs(self._time_array - time).argmin()     
+        #print "\n\n",tind,"\n\n"
+        self.R = self._r#.data[0,:]
+        self.Z = self._z#.data[0,:]
+        psi_func = interp2d(self.R,self.Z,self._psi[tind])
+        self.psi = equilibriumField(self._psi[tind],psi_func) 
+        self.nr = len(self.R)
+        self.nz = len(self.Z)       
+        tind_ax = tind#np.abs(self._psi_axis.time - time).argmin()
+        self.psi_axis = self._psi_axis[tind_ax]
+        tind_bnd = tind#np.abs(self._psi_bnd.time - time).argmin()
+        self.psi_bnd = 0.0 #np.max(self._psi_bnd[tind_bnd])
+        self.Rcent = 0.88 # Hard-coded(!)
+        tind_Bt = np.abs(self._bt_time_array - time).argmin()
+        self.Btcent = self._bphi[0,tind_Bt]
+        tind_sigBp = tind#np.abs(self._cpasma.time - time).argmin()
+        self.sigBp = 1.0#-(abs(self._cpasma.data[tind_sigBp])/self._cpasma.data[tind_sigBp])
+    
+        self.nxpt = 2
+        tind_xpt = tind#np.abs(self._xpoint1r.time - time).argmin()
+        self.xpoints = {'xp1':Point(self._xpointr[tind_xpt],self._xpointz[tind_xpt])}
+        self.spoints = None
+        #self.xpoint.append(Point(self._xpoint2r.data[tind_xpt],self._xpoint2z.data[tind_xpt]))
+        self.axis = Point(self._axisr[tind_xpt],self._axisz[tind_xpt])      
+        self.fpol = None        
+    
+        self._loaded = True
+        self._time = 0.0#self._psi.time[tind]
+    
+        psiN_func = interp2d(self.R,self.Z,(self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis))
+        self.psiN = equilibriumField((self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis),psiN_func)
+    
+        R = [0.624,0.624,0.666,0.672,0.965,0.971,1.136,1.136,0.971,0.965,0.672,0.666,0.624,0.624,0.624]
+        Z = [0.697,0.704,0.75,0.75,0.75,0.747,0.55,-0.55,-0.747,-0.75,-0.75,-0.75,-0.704,-0.697,0.697]
+
+    
+        self.wall = { 'R' : R, 'Z' : Z }
+        if with_bfield: self.calc_bfield()
 
 
 
