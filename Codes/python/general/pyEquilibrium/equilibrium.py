@@ -22,8 +22,10 @@ except:
 
 try:
     import map_equ
+    import dd
 except:
-    print('Import of map_equ Failed, you are not at IPP')
+    print('You are not at IPP dd and map_equ not find')
+from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 from scipy.interpolate import RectBivariateSpline 
 
@@ -649,14 +651,12 @@ class equilibrium(object):
         self.machine = 'AUG'
         self._shot = shot
         if not self._loaded:
-            eqm = map_equ.equ_map()
-            Eqm = eqm.Open(shot, diag='EQH')
-            eqm._read_scalars()
-            eqm._read_profiles()
-            eqm._read_pfm()
-            #Tree = mds.Tree('tcv_shot',shot)
-            conn.openTree('tcv_shot',int(shot))
-            #Load in required data from Lique off the MDS server
+            Eqm = map_equ.equ_map()
+            status = Eqm.Open(self._shot, diag='EQH')
+            Eqm._read_scalars()
+            Eqm._read_profiles()
+            Eqm._read_pfm()
+            #Load in required data 
             self._psi = Eqm.pfm
             self._time_array = Eqm.t_eq
             nr = self._psi.shape[0]
@@ -665,55 +665,64 @@ class equilibrium(object):
             self._z   = Eqm.Zmesh      
             self._psi_axis = Eqm.psi0
             self._psi_bnd  = Eqm.psix
-            self._bphi = conn.get('\\magnetics::rbphi').data()
-            self._bt_time_array = conn.get('dim_of(\\magnetics::rbphi)').data()    
+            # get the fpol in similar way
+            # as done in eqtools
+            self._jpol = Eqm.jpol
             # these are the lower xpoints
-            self._xpointr = Eqm.ssq['Rxpu']       
-            self._xpointz = Eqm.ssq['Zxpu']       
+            self._rxpl = Eqm.ssq['Rxpu']       
+            self._zxpl = Eqm.ssq['Zxpu']       
+            # read also the upper xpoint
+            self._rxpu = Eqm.ssq['Rxpo']
+            self._zxpu = Eqm.ssq['Zxpo']
             # R magnetic axis
             self._axisr = Eqm.ssq['Rmag']          
             # Z magnetic axis
-            self._axisz = Eqm.ssh['Zmag'] 
-            conn.closeTree('tcv_shot',int(shot))
+            self._axisz = Eqm.ssq['Zmag'] 
+            # eqm does not load the RBphi on axis
+            Mai = dd.shotfile('MAI', self._shot)
+            self.Rcent = 1.65
+            # we want to interpolate on the same time basis
+            Spl = UnivariateSpline(Mai('BTF').time, Mai('BTF').data, s=0)
+            self._bphi = Spl(self._time_array)*self.Rcent
+            Mai.close()
+            Mag = dd.shotfile('MAG', self._shot)
+            Spl = UnivariateSpline(Mag('Ipa').time, Mag('Ipa').data, s=0)
+            self._cplasma = Spl(self._time_array)
+            # we want to load also the plasma curent
             self._loaded = True
         
         tind = np.abs(self._time_array - time).argmin()     
-        #print "\n\n",tind,"\n\n"
         self.R = self._r#.data[0,:]
         self.Z = self._z#.data[0,:]
-        psi_func = interp2d(self.R,self.Z,self._psi[tind])
-        self.psi = equilibriumField(self._psi[tind],psi_func) 
+        psi_func = interp2d(self.R,self.Z,self._psi[:, :, tind].transpose())
+        self.psi = equilibriumField(self._psi[:, :, tind].transpose(),psi_func) 
         self.nr = len(self.R)
         self.nz = len(self.Z)       
-        tind_ax = tind#np.abs(self._psi_axis.time - time).argmin()
-        self.psi_axis = self._psi_axis[tind_ax]
-        tind_bnd = tind#np.abs(self._psi_bnd.time - time).argmin()
-        self.psi_bnd = 0.0 #np.max(self._psi_bnd[tind_bnd])
-        self.Rcent = 0.88 # Hard-coded(!)
-        tind_Bt = np.abs(self._bt_time_array - time).argmin()
-        self.Btcent = self._bphi[0,tind_Bt]
-        tind_sigBp = tind#np.abs(self._cpasma.time - time).argmin()
-        self.sigBp = 1.0#-(abs(self._cpasma.data[tind_sigBp])/self._cpasma.data[tind_sigBp])
-    
+        self.psi_axis = self._psi_axis[tind]
+        self.psi_bnd = self._psi_bnd[tind]
+        self.Btcent = self._bphi[tind]
+        self.sigBp = np.sign(self._cplasma[tind])
+        fpol = self._jpol[:, tind]*2e-7
+        fpol = fpol[:np.argmin(np.abs(fpol))]
+        psigrid = np.linspace(self.psi_axis, self.psi_bnd, len(fpol))
+        self.fpol = equilibriumField(fpol, UnivariateSpline(psigrid, fpol, s=0))
         self.nxpt = 2
         tind_xpt = tind#np.abs(self._xpoint1r.time - time).argmin()
-        self.xpoints = {'xp1':Point(self._xpointr[tind_xpt],self._xpointz[tind_xpt])}
+        self.xpoints = {'xpl':Point(self._rxpl[tind], self._zxpl[tind]),
+                        'xpu':Point(self._rxpu[tind], self._zxpu[tind])}
         self.spoints = None
         #self.xpoint.append(Point(self._xpoint2r.data[tind_xpt],self._xpoint2z.data[tind_xpt]))
-        self.axis = Point(self._axisr[tind_xpt],self._axisz[tind_xpt])      
+        self.axis = Point(self._axisr[tind],self._axisz[tind])      
         self.fpol = None        
     
         self._loaded = True
-        self._time = 0.0#self._psi.time[tind]
+        self._time = self._time_array[tind]
     
         psiN_func = interp2d(self.R,self.Z,(self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis))
-        self.psiN = equilibriumField((self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis),psiN_func)
+        self.psiN = equilibriumField(
+            (self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis),psiN_func)
     
-        R = [0.624,0.624,0.666,0.672,0.965,0.971,1.136,1.136,0.971,0.965,0.672,0.666,0.624,0.624,0.624]
-        Z = [0.697,0.704,0.75,0.75,0.75,0.747,0.55,-0.55,-0.747,-0.75,-0.75,-0.75,-0.704,-0.697,0.697]
-
-    
-        self.wall = { 'R' : R, 'Z' : Z }
+        self.wall = None
         if with_bfield: self.calc_bfield()
 
 
@@ -726,7 +735,9 @@ class equilibrium(object):
                 self.load_JET(self._shot,time)
             elif self.machine == 'TCV':
                 self.load_TCV(self._shot,time,port=self._mdsport)
-
+            elif self.machine == 'AUG':
+                self.load_AUG(self._shot,time)
+            
 
 
     def plot_flux(self,col_levels=None,Nlines=20,axes=None,show=True,title=None,colorbar=True):
@@ -762,7 +773,10 @@ class equilibrium(object):
                     axes.plot(self.xpoints[xpoint].r,self.xpoints[xpoint].z,'rx')
             if self.axis is not None:
                 axes.plot(self.axis.r,self.axis.z,'ro')
-
+            if self.machine == 'AUG':
+                rg, zg = map_equ.get_gc()
+                for key in rg.iterkeys():
+                    axes.plot(rg[key], zg[key], 'k')
             axes.set_xlabel('R (m)')
             axes.set_ylabel('Z (m)')
             if title is not None: axes.set_title(title)
