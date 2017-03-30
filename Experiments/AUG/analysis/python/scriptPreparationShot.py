@@ -15,9 +15,9 @@ mpl.rc('font',**{'family':'sans-serif','sans-serif':['Tahoma']})
 shotList = (30269, 29311, 29309, 29315)
 colorL = ('#82A17E', '#1E4682', '#DD6D3D', '#69675E')
 fig, ax  = mpl.pyplot.subplots(figsize=(18, 14), nrows = 4, ncols = 2)
-fig.subplots_adjust(wspace=0.3, right=0.65, top=0.95, bottom=0.12, left=0.1)
+fig.subplots_adjust(wspace=0.3, right=0.6, top=0.95, bottom=0.12, left=0.1)
 _xlim = [0, 7]
-axE = fig.add_axes([0.67, 0.3, 0.3, 0.3])
+axE = fig.add_axes([0.6, 0.3, 0.4, 0.4])
 for shot, col, i in zip(shotList, colorL, range(len(shotList))):
     diag = dd.shotfile('MAG', shot)
     iP = diag('Ipa')
@@ -88,7 +88,7 @@ for shot, col, i in zip(shotList, colorL, range(len(shotList))):
 
     ax[1, 1].plot(nG.time, nG.data, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
     ax[1, 1].axes.get_xaxis().set_visible(False)
-    ax[1, 1].set_ylabel(r'n/n$_G$ [T]')
+    ax[1, 1].set_ylabel(r'n/n$_G$')
     ax[1, 1].set_xlim(_xlim)
     ax[1, 1].set_ylim([0, 1])
 
