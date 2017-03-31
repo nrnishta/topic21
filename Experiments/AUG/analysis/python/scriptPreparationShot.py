@@ -185,7 +185,7 @@ for shot, col, i in zip(shotL, colorL, range(len(shotL))):
     ax[1].set_xlabel(r't[s]')
     ax[1].set_ylabel(r'q$_{95}$')
     ax[1].set_xlim(_xlim)
-    ax[1].set_ylim([2, 6])
+    ax[1].set_ylim([2, 8])
     # ora plottiamo l'equilibrio in un asse a parte
     if i ==0:
         rg, zg = map_equ.get_gc()
@@ -199,3 +199,114 @@ for shot, col, i in zip(shotL, colorL, range(len(shotL))):
     axE.set_aspect('equal')
 ax[0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
 mpl.pylab.savefig('../pdfbox/CurrentScanConstantBT.pdf', bbox_to_inches='tight')
+
+# reference H-Mode
+shot = 33478
+fig, ax  = mpl.pyplot.subplots(figsize=(18, 12), nrows = 4, ncols = 2)
+fig.subplots_adjust(wspace=0.3, hspace=0.07, right=0.6, top=0.95, bottom=0.12, left=0.1)
+_xlim = [0, 7]
+axE = fig.add_axes([0.61, 0.3, 0.4, 0.4])
+
+diag = dd.shotfile('MAG', shot)
+iP = diag('Ipa')
+diag.close()
+# load the toroidal field
+diag = dd.shotfile('MAI', shot)
+bT = diag('BTF')
+diag.close()
+# load the edge density
+diag = dd.shotfile('DCN', shot)
+enE = diag('H-5')
+diag.close()
+# greenwald fraction
+diag = dd.shotfile('TOT', shot)
+nG = diag('n/nGW')
+diag.close()    
+# load the Prad
+diag = dd.shotfile('BPD', shot)
+pRad = diag('Pradtot')
+diag.close()
+# load the total fueling
+diag = dd.shotfile('UVS', shot)
+iD2 = diag('D_tot')
+iN2 = diag('N_tot')
+diag.close()
+# load the equilibrium
+Eq = equilibrium(device='AUG', shot=shot, time=2.9)
+
+# load the current
+
+col = '#0F2D40'
+col2 = '#FF530D'
+ax[0, 0].plot(iP.time, iP.data/1e6, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+ax[0, 0].axes.get_xaxis().set_visible(False)
+ax[0, 0].set_ylabel(r'I$_p$ [MA]')
+ax[0, 0].set_xlim(_xlim)
+
+
+ax[1, 0].plot(bT.time, bT.data, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+ax[1, 0].axes.get_xaxis().set_visible(False)
+ax[1, 0].set_ylabel(r'B$_t$ [T]')
+ax[1, 0].set_xlim(_xlim)
+
+ax[2, 0].plot(iD2.time, iD2.data/1e21, col, ls='-', lw=1.7, label=r'D$_2$' )
+ax[2, 0].plot(iN2.time, iN2.data/1e21, col2, ls='-', lw=1.7, label=r'N$_2$')
+ax[2, 0].axes.get_xaxis().set_visible(False)
+ax[2, 0].set_ylabel(r'[$10^{21}$s$^{-1}$]')
+ax[2, 0].set_xlim(_xlim)
+ax[2, 0].set_ylim([2.5, 30])
+diag = dd.shotfile('ECS', shot)
+pEch = diag('PECRH')
+diag.close()
+diag = dd.shotfile('TOT', shot)
+pNbi = diag('PNBI_TOT')
+diag.close()
+ax[3, 0].plot(pEch.time, pEch.data/1e6, col, ls='-', lw=1.7, label=r'ECRH')
+ax[3, 0].plot(pNbi.time, pNbi.data/1e6, col2, ls='-', lw=1.7, label=r'NBI')
+ax[3, 0].set_xlabel(r't [s]')
+ax[3, 0].set_ylabel(r'[MW]')
+ax[3, 0].set_xlim(_xlim)
+
+ax[0, 1].plot(enE.time, enE.data/1e19, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+ax[0, 1].axes.get_xaxis().set_visible(False)
+ax[0, 1].set_ylabel(r'n$_e [10^{19}$m$^{-2}]$ Edge')
+ax[0, 1].set_xlim(_xlim)
+
+ax[1, 1].plot(nG.time, nG.data, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+ax[1, 1].axes.get_xaxis().set_visible(False)
+ax[1, 1].set_ylabel(r'n/n$_G$')
+ax[1, 1].set_xlim(_xlim)
+ax[1, 1].set_ylim([0, 1])
+
+ax[2, 1].plot(pRad.time, pRad.data/1e6, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+ax[2, 1].axes.get_xaxis().set_visible(False)
+ax[2, 1].set_ylabel(r'P$_{rad}$ tot [MW]')
+ax[2, 1].set_xlim(_xlim)
+ax[2, 1].set_ylim([0, 4])
+
+diag = dd.shotfile('FPG', shot)
+q95 = diag('q95')
+k = diag('k')
+diag.close()
+
+ax[3, 1].plot(q95.time,np.abs(q95.data), col, ls='-', lw=1.7, label=r'q$_{95}$')
+ax[3, 1].plot(k.time,np.abs(k.data), col2, ls='-', lw=1.7, label=r'$k$')
+ax[3, 1].set_xlabel(r't [s]')
+ax[3, 1].set_xlim(_xlim)
+ax[3, 1].set_ylim([0, 8])
+# ora plottiamo l'equilibrio in un asse a parte
+rg, zg = map_equ.get_gc()
+for key in rg.iterkeys():
+    axE.plot(rg[key], zg[key], 'k')
+axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(0, 1, 5), colors=col)
+axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(1, 1.09, 3),
+            colors=col, linestyles='--')
+axE.set_xlabel('R')
+axE.set_ylabel('Z')
+axE.set_aspect('equal')
+
+ax[0, 0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+ax[2, 0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+ax[3, 0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+ax[3, 1].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+mpl.pylab.savefig('../pdfbox/ReferenceHMode.pdf', bbox_to_inches='tight')
