@@ -119,7 +119,7 @@ ax[0, 0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
 mpl.pylab.savefig('../pdfbox/ComparisonCurrentQScan.pdf', bbox_to_inches='tight')
 
 # check current scan at constant q95
-shotL = (29311, 30276, 29315)
+shotL = (29311, 30269, 29315)
 colorL = ('#1E4682', '#DD6D3D', '#69675E')
 fig, ax  = mpl.pyplot.subplots(figsize=(13, 8), nrows = 2, ncols = 1)
 fig.subplots_adjust(wspace=0.3, left=0.6, top=0.95, bottom=0.12, right=0.98)
@@ -160,7 +160,7 @@ ax[0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
 mpl.pylab.savefig('../pdfbox/CurrentScanConstantQ95.pdf', bbox_to_inches='tight')
 
 # constant scan at constant Bt
-shotL = (29302, 30276, 28738)
+shotL = (29302, 30269, 28738)
 colorL = ('#1E4682', '#DD6D3D', '#69675E')
 fig, ax  = mpl.pyplot.subplots(figsize=(13, 8), nrows = 2, ncols = 1)
 fig.subplots_adjust(wspace=0.3, left=0.6, top=0.95, bottom=0.12, right=0.98)
