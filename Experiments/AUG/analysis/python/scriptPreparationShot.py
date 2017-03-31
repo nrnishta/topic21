@@ -109,10 +109,93 @@ for shot, col, i in zip(shotList, colorL, range(len(shotList))):
         for key in rg.iterkeys():
             axE.plot(rg[key], zg[key], 'k')
     axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(0, 1, 5), colors=col)
-    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(1, 1.09, 3), colors=col, linestyles='--')
+    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(1, 1.09, 3),
+                colors=col, linestyles='--')
     axE.set_xlabel('R')
     axE.set_ylabel('Z')
     axE.set_aspect('equal')
 
 ax[0, 0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
 mpl.pylab.savefig('../pdfbox/ComparisonCurrentQScan.pdf', bbox_to_inches='tight')
+
+# check current scan at constant q95
+shotL = (29311, 30276, 29315)
+colorL = ('#1E4682', '#DD6D3D', '#69675E')
+fig, ax  = mpl.pyplot.subplots(figsize=(13, 8), nrows = 2, ncols = 1)
+fig.subplots_adjust(wspace=0.3, left=0.6, top=0.95, bottom=0.12, right=0.98)
+_xlim = [0, 7]
+axE = fig.add_axes([0.05, 0.3, 0.5, 0.5])
+for shot, col, i in zip(shotL, colorL, range(len(shotL))):
+    diag = dd.shotfile('MAG', shot)
+    iP = diag('Ipa')
+    diag.close()
+    # load the toroidal field
+    diag = dd.shotfile('MAI', shot)
+    bT = diag('BTF')
+    diag.close()
+    # load the equilibrium
+    Eq = equilibrium(device='AUG', shot=shot, time=2.9)
+    ax[0].plot(iP.time, iP.data/1e6, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+    ax[0].axes.get_xaxis().set_visible(False)
+    ax[0].set_ylabel(r'I$_p$ [MA]')
+    ax[0].set_xlim(_xlim)
+
+
+    ax[1].plot(bT.time, bT.data, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+    ax[1].set_xlabel(r't[s]')
+    ax[1].set_ylabel(r'B$_t$ [T]')
+    ax[1].set_xlim(_xlim)
+    # ora plottiamo l'equilibrio in un asse a parte
+    if i ==0:
+        rg, zg = map_equ.get_gc()
+        for key in rg.iterkeys():
+            axE.plot(rg[key], zg[key], 'k')
+    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(0, 1, 5), colors=col)
+    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(1, 1.09, 3),
+                colors=col, linestyles='--')
+    axE.set_xlabel('R')
+    axE.set_ylabel('Z')
+    axE.set_aspect('equal')
+ax[0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+mpl.pylab.savefig('../pdfbox/CurrentScanConstantQ95.pdf', bbox_to_inches='tight')
+
+# constant scan at constant Bt
+shotL = (29302, 30276, 28738)
+colorL = ('#1E4682', '#DD6D3D', '#69675E')
+fig, ax  = mpl.pyplot.subplots(figsize=(13, 8), nrows = 2, ncols = 1)
+fig.subplots_adjust(wspace=0.3, left=0.6, top=0.95, bottom=0.12, right=0.98)
+_xlim = [0, 7]
+axE = fig.add_axes([0.05, 0.3, 0.5, 0.5])
+for shot, col, i in zip(shotL, colorL, range(len(shotL))):
+    diag = dd.shotfile('MAG', shot)
+    iP = diag('Ipa')
+    diag.close()
+    diag = dd.shotfile('FPG', shot)
+    q95 = diag('q95')
+    diag.close()
+    # load the equilibrium
+    Eq = equilibrium(device='AUG', shot=shot, time=2.9)
+    ax[0].plot(iP.time, iP.data/1e6, col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+    ax[0].axes.get_xaxis().set_visible(False)
+    ax[0].set_ylabel(r'I$_p$ [MA]')
+    ax[0].set_xlim(_xlim)
+
+
+    ax[1].plot(q95.time, np.abs(q95.data), col, ls='-', lw=1.7, label=r'Shot # %5i' % shot)
+    ax[1].set_xlabel(r't[s]')
+    ax[1].set_ylabel(r'q$_{95}$')
+    ax[1].set_xlim(_xlim)
+    ax[1].set_ylim([2, 6])
+    # ora plottiamo l'equilibrio in un asse a parte
+    if i ==0:
+        rg, zg = map_equ.get_gc()
+        for key in rg.iterkeys():
+            axE.plot(rg[key], zg[key], 'k')
+    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(0, 1, 5), colors=col)
+    axE.contour(Eq.R, Eq.Z, Eq.psiN(Eq.R, Eq.Z), np.linspace(1, 1.09, 3),
+                colors=col, linestyles='--')
+    axE.set_xlabel('R')
+    axE.set_ylabel('Z')
+    axE.set_aspect('equal')
+ax[0].legend(loc='best', numpoints=1, fontsize=10, frameon=False)
+mpl.pylab.savefig('../pdfbox/CurrentScanConstantBT.pdf', bbox_to_inches='tight')
