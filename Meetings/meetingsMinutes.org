@@ -108,3 +108,42 @@
       
       
       
+*** AUG Preparation meeting 11.04.2017
+    *Participants* : N. Vianello (NV),  D. Carralero (DC),  M. Bernert (MB), A. Hakola (AH)
+**** Agenda:  
+     1. Issue on shape at different current. We can match the shape from the reference and keep
+	  constant during the discharge adusting current/field/heating?
+     2. Issue on central heating. How broad is the profile? We do not need /central heating/ in the
+	  sense inside the q=1
+     3. Constant Bt or constant Ip scan?
+     4. Multichannel reflectometer would prefer 1.9 T even though 1.8  is reasonable
+**** Discussion and To Do
+     - ECRH is not feasible at all the toroidal field proposed since even at lower frequency
+       the cut-off is outside of the plasma
+     - We propose to use NBI (500 kW) for all the discharge in order to ensure a more comparable
+       heating throughout the q95 and Bt scan
+     - We decide not to use the reference from G. Birkenmeir paper since they didn't keep
+       inner and outer gap constant during the discharge. We prefer to use *EOC* shape and adjust current
+       and toroidal field
+     - The new L-Mode scan proposed is the following: I propose to keep the strike point sweeping
+       at the end of the discharge for Divertor Profile resolution
+       1) Reference shot 0.8 MA (as #30269, Bt = -2.5T) with 0.5 MW of NBI starting
+	  at the beginning of the fueling ramp
+       2) Shot at q_{95}=4.95 as #1, toroidal field 1.9T current to be determined with the same
+	  NBI program. Reduce the fueling rate (order 20/%)
+       3) Shot at q_{95}=4.95 I_p=1.1MA toroidal field accordingly chosen (approximately 3.5T). Still
+	  500 kW NBI, increase the fueling rate
+       4) Shot with B_t=2.5T, I_p as #3
+       5) Shot with B_t=2.5T, I_p as #2
+     - The H-Mode proposed plan is the following:
+       1. Repeat # 33478 with P_{NBI} = 4MW with D_2 puffing from 4s reaching value of 40 10^{21}s^{-1}
+	  @ 6s (/are the number correct according to the suggestion of Mathias?/)
+       2. Repeat #1 adding the N seeding in feed-forward. Adjust the power according to ELM frequency
+	  and probe behavior in #1
+     - List of thigns to be done [0/4]
+       - [ ] Determine the current for Shot #2 of L-Mode scan (DC)
+       - [ ] Ask for TRANSP analysis of reference shot and eventually interpretative analysis
+	 at smaller and larger current (NV/DC)
+       - [ ] Insert experimental plan in EUROfusion Wiki (NV)
+       - [ ] Insert the shot request in AUG system (DC)
+       

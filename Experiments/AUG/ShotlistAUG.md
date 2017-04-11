@@ -10,24 +10,26 @@ With the present proposal there should be room for including additional investig
 in particular in L-Mode (less demanding scenario development)
 
 ## Week 15
-### L-Mode: Ip/q95 scan
+### L-Mode: Bt/q95 scan
 
-1.  Reference Shot @ 0.8 MA (e.g. #30269) with 300 kW ECRH.
-Keeping the same Bt and adjusting the Fueling rate in
-order to ensure long enough pulse perform a similar shot @ 0.6MA. 
-2.  Repeat Shot #1 by keeping the same q<sub>95</sub> as reference
-3.  Repeat Shot #30276 @ 1MA with the same toroidal field
-4.  Repeat #3 by keeping the same q<sub>95</sub> as the reference
+1.  Reference Shot @ 0.8 MA (e.g. #30269 **EOC shape**) with 0.5 MW NBI starting at
+    the same time of fueling ramp
+2.  Shot at q<sub>95</sub>=4.95 as #1, toroidal field B<sub>t</sub>=1.9T current to
+    be determined
+3.  Shot at q<sub>95</sub>=4.95 I<sub>p</sub>=1.1MA toroidal field accordingly chosen (approximately 3.5T). Still
+    500 kW NBI, increase the fueling rate
+4.  Shot with B<sub>t</sub>=2.5T, I<sub>p</sub> as #3
+5.  Shot with B<sub>t</sub>=2.5T, I<sub>p</sub> as #2
 
 ### H-Mode: Scenario development
 The reference shot is 33478 (AUG15-2.2-3) with the aim to reach the condition found in 31607 (Sun PPCF 2015)
 
-1.  Scenario development. Start from succesful shot 33478 but with increased power (6MW). Adjust
-    fueling rate from reference but increase by a factor of 30%. 1 Plunge of probe head
+1.  Repeat # 33478 with P<sub>NBI</sub> = 4MW with D<sub>2</sub> puffing from 4s
+    reaching value of 40 10<sup>21</sup>s<sup>-1</sup> @ 6s.
+    1 Plunge of probe head
 	in a safe position. Monitoring with Infrared probe head
-2.  Repeat #1 eventually adjusting the Fueling rate. Start N seeding in feedword still starting from
-    reference 
-3.  Trade off between 1 and 2. 1 Plunge late in the discharge
+2.  Repeat #1 adding the N seeding in feed-forward. Adjust the power according to ELM frequency
+    and probe behavior in #1
 
 ## Week 17
 ### H-Mode investigation: Foreseen number 9
