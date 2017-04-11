@@ -9,7 +9,7 @@ topic proposed:
 With the present proposal there should be room for including additional investigation 
 in particular in L-Mode (less demanding scenario development)
 
-## Week 15
+## Week 17
 ### L-Mode: Bt/q95 scan
 
 1.  Reference Shot @ 0.8 MA (e.g. #30269 **EOC shape**) with 0.5 MW NBI starting at
