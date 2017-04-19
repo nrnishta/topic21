@@ -4,92 +4,151 @@ __data__ = '19.04.2017'
 
 import numpy as np
 import scipy 
-import wav
+import pycwt as wav
 import lmfit
 
 
 class Timeseries:
     """
     Python class for turbulent signal analysis
-    Inputs:
-    sig = signal to be analyzed
-    dt  = time resolution
-    fr  = Corresponding Fourier frequency for the analysis
-    wavelet = String considering the type of wavelet to be used.  Default is 'Mexican',  other choices
-    could be 'DOG1', 'Morlet'
-    Methods: 
-       # Statistics
-       cwt: Compute the CWT
 
-       lim: Compute the Local Intermittency Measurement
-            [M. Onorato, R. Camussi, and G. Iuso, Phys. Rev. E 61, 1447 (2000)]
+    The class implement standard and non standard
+    methods for turbulent signal analysis
 
-       flatness: Compute the flatness at a given scale
-       # ---------- 
-       # structures
-       strTime:  Compute the time occurrence of the Intermittent structure defined in
-                 M. Onorato, R. Camussi, and G. Iuso, Phys. Rev. E 61, 1447 (2000)
+    Parameters
+    ----------
+    signal : :obj:`ndarray`
+      signal to be analyzed
+    time  : :obj:`ndarray`
+      time basis
 
-       threshold:Define the time occurrence of structure above a threshold,
-                 where threshold can be defined by the
-                 user or is the one defined
-                 in G. Boffetta et al, Phys. Rev. Lett. 83, 4662 (1999)
+    Attributes
+    ----------
+    dt : Floating. Sampling rate of the signal
+    nsamp : :obj:`int`. Size of the signal
 
-       cas: Compute the Conditional average sampling of the signal.
-            Condition can be the
-            occurrence of intermittent structure according
-            to the LIM method, or the threshold method.  It also gives all the amplitude of each structures
-       casMultiple: Compute the conditional average sampling on an array of signal using
-            as condition the occurrence of intermittent structure (LIM) or the threshold method
-            on the classes function.  It also gives all the amplitude of each structures
-
-
-
-       # ------------ 
-       # Distribution
-
-       waitingTimes: Waiting and activity times computed using
-            one of the above method (LIM or threshold)
-
-       pdf: Probability density function of the normalized fluctuation
-
-       castaingFit: Fit of the PDF according to the modified Castaing function
-
-       strFun: Compute the structure function up to a given order
-               (Default is nMax = 7)
-
-       pdfAll: Compute the Probability Distribution Function of the entire signal.
-               Eventually can
-               be normalized (mean subtracted and std deviation divided)
-
-       twoGammaFit: Perform the fit with two gamma function as described in
-               F. Sattin et al, Plasma Phys. Contr. Fus. 48, 1033 (2006).
-
-       levyFit: Perform a fit on the Waiting time distribution
-                according to the Levy function introduced in Lepreti
-                et al,  ApJ 55: L133
-       powerCutFit: Perform a fit on the Waiting time distribution according to
-                a power law sacling with an exponential cutoff (T_c) as done
-                in R. D'Amicis, Ann. Geophysics vol 24,  p 2735, 2006
-
-
-    Attributes:
-
-
-    Usage:
-
-
-    Dependences:
-       numpy:
-       scipy:
-       pycwt: https://github.com/regeirk/pycwt.git
-       lmfit: http://lmfit.github.io/lmfit-py/index.html
-       future: Used by lmfit
+    Dependences
+    -----------
+    numpy
+    scipy
+    pycwt https://github.com/regeirk/pycwt.git
+    lmfit http://lmfit.github.io/lmfit-py/index.html
+    future Used by lmfit
     """
 
-    def __init__(self, sig, dt, fr, wavelet='Mexican'):
+    def __init__(self, signal, time):
 
-        # inizializza l'opportuna wavelet definita in wavelet
+        self.sig = signal
+        self.time = time
+        self.dt = (self.time.max()-self.time.min())/(self.time.size-1)
+        self.nsamp = self.time.size
+        # since the moments of the signal are
+        # foundamental quantities we compute them
+        # at the initial
+        self.moments()
+
+    def moments(self):
+        """
+        Compute moments of the signal
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+
+        Attribute
+        ---------
+        Define the following attributes
+        mean : mean
+        skewness : skewness
+        kurtosis : Kurtosis
+        flatness : Flatnes
+        variance : Variance with ddof = 0
+        act : autocorrelation time
+        """
+        from scipy.stats import describe
+        try:
+            nobs, minmax, mean, var, skew, kurt = describe(
+                self.sig, nan_policy='omit')
+            self.mean = mean
+            self.skewness = skew
+            self.kurtosis = kurt
+            self.flatness = self.kurtosis + 3
+            self.variance = var
+            return True
+        except:
+            return False
+
+    def identify_bursts(self, thresh, analysis=True):
+        """
+        Identify the windows in the time series where the signal
+        is above a given threshold
+
+        Parameters
+        ----------
+        thresh: :obj: `float`
+            Threshold value
+
+        Returns
+        -------
+        nbursts: :obj: `int`
+            Number of bursts identified
+        ratio: :obj: `float`
+            Ratio between number of samples and number of bursts
+        avwin: :obj: `float`
+            mean window size of the burst
+        windows: :obj: `tuple`
+            a list of tuples that contains indices that
+            bracket each of the burst detected
+        """
+    
+        crossings = np.where(np.diff(np.signbit(self.sig-thresh)))[0]
+        windows = list(zip(crossings[::2], crossings[1::2]+1))
+        nbursts = len(windows)
+        ratio = len(list(x))/nbursts
+        avwin = np.mean([y - x for x,y in windows])
+        return nbursts, ratio, avwin, windows
+
+    def limStructure(self, frequency, mother='Mexican',
+                     peaks=False, valley=False):
+        """
+        Determination of the time location of the intermittent
+        structure accordingly to the method defined in 
+        *M. Onorato et al Phys. Rev. E 61, 1447 (2000)*
+
+        Parameters
+        ----------
+        frequency : :obj: `float`
+            Fourier frequency considered for the analysis
+        mother : :obj: `string`
+            Mother wavelet for the continuous wavelet analysis
+            possibilityes are *Mexican [default]*,  *DOG1* or
+            *Morlet*
+        peak : :obj: `Boolean`
+            if set it computes the structure only for the peaks
+            Default is False
+        valley : :obj: `Boolean`
+            if set it computes the structure only for the valleys
+            Default is False
+
+        Returns
+        -------
+        maxima : :obj: `ndarray`
+           A binary array equal to 1 at the identification of
+           the structure (local maxima)
+        allmax : :obj: `ndarray` 
+            A binary array equal to 1 in all the region where the
+            signal is above the threshold        
+
+        Attributes
+        ----------
+        scale : :obj: `float`
+            Corresponding scale for the chosen wavelet
+
+        """
         if wavelet == 'Mexican':
             self.mother = wav.Mexican_hat()
         elif wavelet == 'DOG1':
@@ -99,62 +158,20 @@ class Timeseries:
         else:
             print 'Not a valid wavelet using Mexican'
             self.mother = wav.Mexican_hat()
-        # inizializza l'opportuna scala
-        self.fr = fr
+        
+        self.freq = frequency
         self.scale = 1. / self.mother.flambda() / self.fr
-        self.sig = sig
-        self.dt = dt
 
-    def cwt(self):
+        # compute the continuous wavelet transform
         wt, sc, freqs, coi, fft, fftfreqs = wav.cwt(
             self.sig, self.dt, 0.25, self.scale, 0, self.mother)
-        # keep only the real part
-        return np.real(np.squeeze(wt))
-
-    def lim(self):
-        """
-        Computation of Local Intermittency Measurements
-
-        """
-        wt = self.cwt()
-        # normalization
-        wt = (wt - wt.mean()) / wt.std()
-        lim = np.abs(wt ** 2) / np.mean(wt ** 2)
-        return np.squeeze(lim)
-
-    def flatness(self):
-        """
-        Computation of the flatness
-
-        """
-        wt = self.cwt()
-        # normalization
-        wt = (wt - wt.mean()) / wt.std()
-        flatness = np.mean(wt ** 4) / np.mean(wt ** 2) ** 2
-        return flatness
-
-    def strTime(self, **kwargs):
-        """
-        Determination of the time location of the structure identified accordingly to the LIM method
-        described in M. Onorato, R. Camussi, and G. Iuso, Phys. Rev. E 61, 1447 (2000).
-        Keywords:
-            peak   = Boolean, if set True it computes the CAS only when the structure is a peak.
-                     Default is False
-            valley = Boolean, if set True it computes the CAS onlye when the structure is a valley.
-                     Default is False
-        Output:
-            maxima = A binary array equal to 1 at the identification of the structure (local maxima)
-            allmax = A binary array equal to 1 in all the region where the signal is above the threshold
-        
-        """
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-
-        wt = self.cwt()
+        wt = np.real(np.squeeze(wt))
         wtOr = wt.copy()
-        wt = (wt - wt.mean()) / (wt.std())
-        lim = np.abs(wt ** 2) / np.mean(wt ** 2)  # compute the LIM
-        flatness = self.flatness()                # compute the flatness
+        # normalization
+        wt = (wt - wt.mean()) / wt.std()
+        self.lim = np.squeeze(
+            np.abs(wt ** 2) / np.mean(wt ** 2))
+        flatness = self.flatness
         newflat = flatness.copy()
         threshold = 20.
         while newflat >= 3.05 and threshold > 0:
@@ -189,227 +206,281 @@ class Timeseries:
         if self.valley:
             ddPeak = ((maxima == 1) & (wtOr < 0))
             maxima[~ddPeak] = 0
-
         return maxima, allmax
 
-    def cas(self, **kwargs):
+    def cas(self, Type='LIM', nw=None, detrend=True, **kwargs):
         """
-        Conditional average sampling over the computed intermittent structure location
-        There are two keywords which can be used
-        input:
-        iwin   = dimension of the window for the CAS.  If it not given the amplitude
-                 of the window is chosen to be
-                 equal to 6 times the scale. It is in number of points.
-                 If not given it is two times 1 / fr / dt
-        peak   = Boolean, if set True it computes the CAS only when the structure is a peak.
-                 Default is False.  Valid only when
-        the computation is done with the LIM
-        valley = Boolean, if set True it computes the CAS onlye when the structure is a valley.
-                 Default is False. Valid only when compuation is done using the LIM
-        b99 = Boolean. If set it computes the CAS using a threshold method based on Boffetta PRL (1999)
-        thr = Threshold.  If set it computes the CAS using the given threshold
-        resolution = see the definition of resolution in the threshold method
-        factor = see the definition of factor in the threshold method
-        iterM = see the definition of iterM in the threshold method
+        Conditional Average Sampling 
 
-        output:
-        cs  = conditional sampled structure
-        tau = corresponding time basis
+        Parameters
+        ----------
+        Type :obj: `str`
+            String indicating the method used to identify the structure.
+            Can be the 'LIM' method or the standard 'THRESHOLD' method
+        nw : :obj: `int`
+            dimension of the window for the CAS. Can be optional if type
+            is LIM. In this case it is assumed 6 times the corresponding
+            wavelet structure
+        detrend: :obj: `Boolean`
+            Boolean to implement linear detrend in each of the time window
+            before computing the average. Default is True
+        normalize : :obj: `Boolean`
+            Boolean to implement normalization (signal-<signal>)/sigma in
+            each of the time window before normalization. Otherwise
+            in each time window the signal is only mean subtracted.
+            Default is False
+        **kwargs
+           These are the same as defined in the *limStructure* method or
+           *identify_bursts* method according to the method used
 
+        Results
+        -------
+        cs : :obj: `ndarray`
+            Conditional Sampled Structure. **In case normalize is True it is
+            not in physical unit**
+        tau : :obj: `ndarray` 
+            Appropriate time basis for the CAS
+        err : :obj: `ndarray`
+            Standard error
+
+        Attributes
+        ----------
+        location : :obj: 'ndarray'
+            Time location where the structure are determined
+        
         """
-        iwin = kwargs.get('iwin', np.round(1. / self.fr / self.dt))
-        iwin *= 2
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        # these is the resolution in the coars - graining
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() - self.sig.min()) / 100.)
-        # this is a factor used in the b99 method.  Default = 2
-        factor = kwargs.get('factor', 2)
-        iterM = kwargs.get('iterM', 40)
-        if b99 or thr is not None:
-            print('CAS using threshold method')
-            maxima, allmax = self.threshold(
-                b99=b99,
-                thr=thr,
-                resolution=resolution,
-                factor=factor,
-                iterM=iterM)
-        else:
-            print('CAS using the LIM')
-            # determine location of the structures
-            maxima, allmax = self.strTime(peak=self.peak, valley=self.valley)
-        # zeros in a iwin region
-        maxima[0: iwin - 1] = 0
-        maxima[- iwin:] = 0
-        print 'Number of structures mediated ' + str(maxima.sum())
-        csTot = np.ones((2 * iwin + 1, maxima.sum()))
-        d_ev = np.asarray(np.where(maxima >= 1))
-        for i in range(d_ev.size):
-            csTot[
-                :,
-                i] = sp.signal.detrend(
-                self.sig[
-                    d_ev[0][i] -
-                    iwin: d_ev[0][i] +
-                    iwin +
-                    1])
+        
+        if Type == 'LIM':
+            peak = kwargs.get('peak', False)
+            valley = kwargs.get('valley', False)
+            maxima, allmax = self.limStructure(
+                kwargs.get('frequency', 100e3),
+                mother=kwargs.get('mother', 'Mexican'),
+                peak=peak, valley=valley)
+            self.location = self.time[maxima == 1]
+            self.__locationindex = (maxima == 1)
+            self.__allmaxima = allmax
+            if nw is None:
+                nw = np.round(1./self.frequency/self.dt)
+                if nw % 2 == 0:
+                    iwin = nw/2
+                    nw += 1
+                else:
+                    iwin = (nw-1)/2
 
+            maxima[0: iwin - 1] = 0
+            maxima[- iwin:] = 0
+            print 'Number of structures mediated ' + str(maxima.sum())
+            csTot = np.ones((nw, maxima.sum()))
+            d_ev = np.asarray(np.where(maxima >= 1))
+            for i in range(d_ev.size):
+                if detrend is True:
+                    _dummy = scipy.signal.detrend(
+                        self.sig[
+                            d_ev[0][i] -
+                            iwin: d_ev[0][i] +
+                            iwin +
+                            1], type='linear')
+                else:
+                    _dummy = self.sig[
+                            d_ev[0][i] -
+                            iwin: d_ev[0][i] +
+                            iwin +
+                            1]
+                _dummy -= _dummy.mean()
+                if normalize is True:
+                    _dummy /= _dummy.std()
+                    
+                csTot[:,i] = _dummy
+
+        else: 
+            thresh = kwargs.get('thresh', sqrt(self.variance)*2.5)
+            if nw is None:
+                print('Window length not set assumed 501 points')
+                nw = 501
+            if nw%2 == 0:
+                nw+=1
+            windows,Nbursts,ratio,av_width = identify_bursts2(
+                self.sig,thresh)
+            csTot = np.ones((nw, len(windows))
+            inds = []
+            self.__allmaxima = np.zeros(self.nsamp)
+            for window, i in zip(windows, range(len(windows))):
+                self.__allmaxima[window[0]:window[1]] = 1
+                ind_max = np.where(
+                    self.sig[window[0]:window[1]] ==
+                    np.max(self.sig[window[0]:window[1]]))[0][0]
+
+                _dummy = self.sig[window[0] + ind_max - (nw-1)/2 :
+                                       window[0] + ind_max + (nw-1)/2 + 1]
+                if detrend is True:
+                            _dummy = scipy.signal.detrend(
+                                _dummy, type='linear')
+                _dummy -= _dummy.mean()
+                if normalize is True:
+                            _dummy /= _dummy.std()
+                csTot[:, i] = _dummy
+                inds.append(window[0]+ind_max)
+            self.location = self.time[inds]
+            self.__locationindex = inds
         # now compute the cas
         cs = np.mean(csTot, axis=1)
         tau = np.linspace(- iwin, iwin, 2 * iwin + 1) * self.dt
-        err = sp.stats.sem(csTot, axis=1)
+        err = scipy.stats.sem(csTot, axis=1)
+        self.nw = nw
+        self.iwin = (nw-1)/2
+                            
         return cs, tau, err
 
-    def casMultiple(self,inputS, **kwargs):
+    def casMultiple(self,inputS, type='LIM', nw=None, detrend=True, **kwargs):
+
         """
-        Conditional average sampling on multiple signals over the computed  structure location
-        There are two keywords which can be used
-        input: 
-        inputS = Array of signals to be analyzed (not the one already used) in the form (#sign, #sample)
-        iwin   = dimension of the window for the CAS.  If it not given the amplitude of the window is chosen to be
-                 equal to 6 times the scale. It is in number of points.  If not given it is two times 1 / fr / dt
-        peak   = Boolean, if set True it computes the CAS only when the structure is a peak.
-                 Default is False.  Valid only when
-                 the computation is done with the LIM
-        valley = Boolean, if set True it computes the CAS onlye when the structure is a valley.
-                 Default is False. Valid
-                 only when compuation is done using the LIM
-        b99 = Boolean. If set it computes the CAS using a threshold method based on Boffetta PRL (1999)
-        thr = Threshold.  If set it computes the CAS using the given threshold
-        resolution = see the definition of resolution in the threshold method
-        factor = see the definition of factor in the threshold method
-        iterM = see the definition of iterM in the threshold method
+        Conditional average sampling on multiple signals 
+
+        Parameters
+        ----------
+        inputS : :obj: `ndarray` 
+            Array of signals to be analyzed (not the one already used)
+            in the form (#sign, #sample)
+        All the other parameters coincide with the ones defined in the
+        *cas* method 
+        Type :obj: `str`
+            String indicating the method used to identify the structure.
+            Can be the 'LIM' method or the standard 'THRESHOLD' method
+        nw : :obj: `int`
+            dimension of the window for the CAS. Can be optional if type
+            is LIM. In this case it is assumed 6 times the corresponding
+            wavelet structure
+        detrend: :obj: `Boolean`
+            Boolean to implement linear detrend in each of the time window
+            before computing the average. Default is True
+        normalize : :obj: `Boolean`
+            Boolean to implement normalization (signal-<signal>)/sigma in
+            each of the time window before normalization. Otherwise
+            in each time window the signal is only mean subtracted.
+            Default is False
+        **kwargs
+           These are the same as defined in the *limStructure* method or
+           *identify_bursts* method according to the method used
         
-        output:
-        cs  = conditional sampled structure on all the signals
-        tau = corresponding time basis 
-        
+        Results
+        -------
+        cs : :obj: `ndarray`
+            Conditional Sampled Structures (nw, #signal).
+            **In case normalize is True it is
+            not in physical unit**
+        tau : :obj: `ndarray` 
+            Appropriate time basis for the CAS
+        err : :obj: `ndarray`
+            Standard error
+        ampTot :obj: `ndarray`
+            Array of the form (#signal, #events) where the amplitude
+            with respect to the mean of each of the signal in the time
+            window around the event are given
         """
         Shape = inputS.shape
         nSig = Shape[0]
+        if Type == 'LIM':
+            peak = kwargs.get('peak', False)
+            valley = kwargs.get('valley', False)
+            csO, tau, errO = self.cas(
+                Type='LIM',
+                kwargs.get('frequency', 100e3),
+                mother=kwargs.get('mother', 'Mexican'),
+                peak=peak, valley=valley,
+                detrend=kwargs.get('detrend', True),
+                normalize=kwargs.get('normalize', True))
+        else:
+            csO, tau, errO = self.cas(
+                Type='THRESHOLD',
+                nw=kwargs.get('nw', 501),
+                thrs=kwargs.get('thresh', sqrt(self.variance)*2.5)
+                normalize=kwargs.get('normalize', False),
+                detrend=kwargs.get('detrend'), False)                  
 
-        iwin = kwargs.get('iwin', np.round(1./ self.fr / self.dt))
-        iwin *= 2
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        resolution = kwargs.get('resolution',
-                                     (self.sig.max() - self.sig.min()) / 100.) # these is the resolution in the coars - graining
-        factor = kwargs.get('factor', 2) # this is a factor used in the b99 method.  Default = 2
-        iterM = kwargs.get('iterM', 40)
-        if b99 == True or thr != None:
-            print('CAS using threshold method')
-            maxima, allmax = self.threshold(b99 = b99, thr = thr,
-                                    resolution = resolution, factor = factor, iterM = iterM)
-        else: 
-            print('CAS using the LIM')
-            # determine location of the structures
-            maxima, allmax = self.strTime(peak = self.peak, valley = self.valley)
-        # zeros in a iwin region
-        maxima[0: iwin - 1] = 0
-        maxima[ - iwin: ]   = 0
-        print 'Number of structures mediated ' + str(maxima.sum())
-        csTot = np.ones((nSig + 1, 2 * iwin + 1, maxima.sum()))
+        maxima = np.zeros(self.nsamp)
+        maxima[self.__locationindex] = 1                
+        csTot = np.ones((nSig + 1, self.nw, maxima.sum()))
         d_ev = np.asarray(np.where(maxima >= 1))
         ampTot = np.zeros((nSig + 1, maxima.sum()))
-        
         for i in range(d_ev.size):
-                dummy = sp.signal.detrend(self.sig[d_ev[0][i] - iwin: d_ev[0][i] + iwin + 1])
-                csTot[0, : , i] = dummy
-                # compute also the amplitude as max - min in the interval iwin / 2
-                ampTot[0, i] = dummy[iwin / 2: 3 * iwin / 2].max() - dummy[iwin / 2: 3 * iwin / 2].min()
                 for n in range(nSig):
-                    dummy = sp.signal.detrend(inputS[n, d_ev[0][i] - iwin: d_ev[0][i] + iwin + 1])
+                    dummy = scipy.signal.detrend(
+                        inputS[n, d_ev[0][i] - iwin: d_ev[0][i] + iwin + 1])
+                    if detrend is True:
+                        dummy = scipy.signal.detrend(dummy, type='linear')
+                    dummy -= dummy.mean()
+                    ampTot[n + 1, i] = dummy[
+                        self.iwin / 2: 3 * self.iwin / 2].max() -
+                            dummy[self.iwin / 2:
+                                  3 * self.iwin / 2].min()
+                    if normalize:
+                            dummy -= dummy.std()
                     csTot[n + 1,: , i] = dummy
-                    ampTot[n + 1, i] = dummy[iwin / 2: 3 * iwin / 2].max() - dummy[iwin / 2: 3 * iwin / 2].min()
-
+                    # add also the amplitude of the reference signal
+                    dummy = scipy.signal.detrend(
+                        self.sig[d_ev[0][i] - iwin: d_ev[0][i] + iwin + 1])
+                    if detrend is True:
+                        dummy = scipy.signal.detrend(dummy, type='linear')
+                    ampTot[0, i] = dummy[
+                        self.iwin / 2: 3 * self.iwin / 2].max() -
+                            dummy[self.iwin / 2:
+                                  3 * self.iwin / 2].min()
         # now compute the cas
         cs = np.mean(csTot, axis = 2)
-        tau = np.linspace( - iwin, iwin, 2 * iwin + 1) * self.dt
-        err = sp.stats.sem(csTot, axis = 2)
+        cs[0, :] = csO
+        err = scipy.stats.sem(csTot, axis = 2)
+        err[0, :] = errO
         return cs, tau, err, ampTot
 
-    def pdf(self, **kwargs):
-        """
-        Computation of the Probability Density function of the increments (normalizing them).
-        The PDF is calculated as Density (i.e.) normalized and provide appropriate estimate of
-        the errors according to
-        a Poisson distribution.  If xrange keyword is not set it computes the increments in
-        a xrange [ - 4.5, 4.5] \sigma
-        The number of bins can be given with keyword nbins.  Otherwise it is 41.
-        pdf, xpdf, err = intermittency.pdf(intermittency.cwt(s, dt, scale)[, xrange = xrange, nbins = nbins])
 
+    def waitingTimes(self, Type='LIM', detrend=True, **kwargs):
         """
-        self.xrange = kwargs.get('xrange', [- 4.5, 4.5])
-        self.nbins = kwargs.get('nbins', 41)
-        s = self.cwt()
-        # normalization of the wavelet increments
-        sNorm = (s - s.mean()) / (s.std())
-        # pdf normalized within the range
-        pdf, binE = np.histogram(
-            sNorm, bins=self.nbins, density=True, range=self.xrange)
-        # center of the bins
-        xpdf = (binE[:-1] + binE[1:]) / 2.
-        # error assuming a Poissonian deviation and propagated in a normalized
-        # pdf
-        err = np.sqrt(pdf / (np.count_nonzero(((sNorm >=
-                                                self.xrange[0]) &
-                                               (sNorm <= self.xrange[1]))) * (binE[1] - binE[0])))
-        return pdf, xpdf, err
+        Waiting time distribution for events identified with different
+        methods
 
-    def waitingTimes(self, **kwargs):
-        """
-        Waiting time distribution:
-        Keywords:
-            peak   = Boolean, default is False.  If set it computes the intermittent structure WT
-            using only the peak
-            valley = Boolean, default is False.  If set it computes the intermittent structure WT
-            using only the valley
-            b99 = Boolean, default is False.  If set it computes the WT distribution using the B99 method
-            thr = Threshold for the computation of the WT distribution. This is the case where we
-            use the threshold method for the
-            identification of blobs
-            resolution = see the definition of resolution in the threshold method
-            factor = see the definition of factor in the threshold method
-            iterM = see the definition of iterM in the threshold method
-        Output:
-            waiting times and quiescent time. The quiescent time is computed differently according to
+        Parameters
+        ----------
+        Type :obj: `str`
+            String indicating the method used to identify the structure.
+            Can be the 'LIM' method or the standard 'THRESHOLD' method
+        **kwargs
+           These are the same as defined in the *limStructure* method or
+           *identify_bursts* method according to the method used
+
+        Results
+        -------
+        wt : :obj: `ndarray`
+            Waiting times 
+        qt : :obj: `ndarray`
+            Quiescent time. The quiescent time is computed
+            differently according to
             the definition of Sanchez. 
 
         """
 
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        # these is the resolution in the coars - graining
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() - self.sig.min()) / 100.)
-        # this is a factor used in the b99 method.  Default = 2
-        factor = kwargs.get('factor', 2)
-        iterM = kwargs.get('iterM', 40)
-
-        if b99 or thr is not None:
-            # determine location of the structures
-            print('Waiting times distribution using threshold method')
-            maxima, allmax = self.threshold(
-                b99=b99,
-                thr=thr,
-                resolution=resolution,
-                factor=factor,
-                iterM=iterM)
-            # we need also to create a maxima which is 1 above all the
-            # threshold to be used for the quiescent time
+        if Type == 'LIM':
+            peak = kwargs.get('peak', False)
+            valley = kwargs.get('valley', False)
+            csO, tau, errO = self.cas(
+                Type='LIM',
+                kwargs.get('frequency', 100e3),
+                mother=kwargs.get('mother', 'Mexican'),
+                peak=peak, valley=valley,
+                detrend=kwargs.get('detrend', True),
+                normalize=kwargs.get('normalize', True))
         else:
-            print('Waiting times distribution on Intermittent structure')
-            maxima, allmax = self.strTime(peak=self.peak, valley=self.valley)
+            csO, tau, errO = self.cas(
+                Type='THRESHOLD',
+                nw=kwargs.get('nw', 501),
+                thrs=kwargs.get('thresh', sqrt(self.variance)*2.5)
+                normalize=kwargs.get('normalize', False),
+                detrend=kwargs.get('detrend'), False)                  
 
         # in this case
         # calcolo la derivata del maxima
+        maxima = np.zeros(self.nsamp)
+        maxima[self.__locationindex] = 1                
         dEv = np.diff(maxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
@@ -427,7 +498,7 @@ class Timeseries:
                 waiting_times = ti[:] - te[:]
 
          # repeat for the computation of the quiescent_times       
-        dEv = np.diff(allmax)
+        dEv = np.diff(self.__allmaxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
         te = np.asarray(np.where(dEv < 0))[0][:]
@@ -511,7 +582,7 @@ class Timeseries:
         s0 = kwargs.get('s0', 0.1)
         l = kwargs.get('l', 1)
         am = kwargs.get('am', 10)
-        sk = kwargs.get('sk', sp.stats.skew(self.cwt()))
+        sk = kwargs.get('sk', scipy.stats.skew(self.cwt()))
         self.xrange = kwargs.get('xrange', [- 4.5, 4.5])
         self.nbins = kwargs.get('nbins', 41)
         # build the appropriateModel
@@ -529,78 +600,6 @@ class Timeseries:
         fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2)
         return fit
 
-    def threshold(self, **kwargs):
-        """
-        Given the signal initialized by the class it computes the location of the point above the threshold and
-        creates a nd.array equal to 1 at the maximum above the given threshold.  The threshold can be given
-        (let's say three times rms) or it can be automatically determined using the method described in
-        G. Boffetta, V. Carbone, P. Giuliani, P. Veltri, and A. Vulpiani, Phys. Rev. Lett. 83, 4662 (1999).
-
-        Keywords:
-            b99 = Boolean default is True. Compute the threshold according to Boffetta paper
-            thr = Floating. If set it gives directly the threshold. If set automatically exclude the B99 method
-            resolution = resolution in coars-graining for the loop in determining the threshold
-            factor = Default is 2. It is used for the method
-            iterM = Maximum possible iteration
-        Output:
-            maxima = A binary array equal to 1 at the identification of the structure (local maxima)
-            allmax = A binary array equal to 1 in all the region where the signal is above the threshold
-
-        Example:
-        >>> turbo = intermittency.Intermittency(signal, dt, fr)
-        >>> maxima = turbo.threshold() # compute the maxima using the method of Boffetta
-        >>> maxima = turbo.threshold(thr = xxx) # compute the threshold using xxx and automatically
-        exclude the b99 keyword
-
-        """
-
-        self.b99 = kwargs.get('b99', True)
-        self.thr = kwargs.get('thr', None)
-        self.resolution = kwargs.get(
-            'resolution',
-            (self.sig.max() -
-             self.sig.min()) /
-            100.)  # these is the resolution in the coars - graining
-        # this is a factor used in the b99 method.  Default = 2
-        self.factor = kwargs.get('factor', 2)
-        self.iterM = kwargs.get('iterM', 40)
-        if self.thr is not None:
-            self.b99 = False
-        # this will be the output
-        maxima = np.zeros(self.sig.size)
-        allmax = np.zeros(self.sig.size)
-        # method with Boffetta 99 method
-        if self.b99:
-            delta = self.sig.max() - self.sig.min()
-            n_bin = np.long(delta / self.resolution)
-            h, bE = np.histogram(self.sig, bins=n_bin)
-            xh = (bE[:-1] + bE[1:]) / 2.
-            while True:
-                mean = np.sum(xh * h) / h.sum()
-                sd = np.sqrt(np.sum(xh * xh * h) / h.sum() - mean ** 2)
-                self.thr = mean + self.factor * sd
-                iThr = np.long((self.thr - self.sig.min()) / self.resolution)
-                r = np.sum(h[iThr + 1:])
-                h[iThr + 1:] = 0
-                if (r == 0 or iter == self.iterM):
-                    break
-
-        allmax[(self.sig>self.thr)] = 1
-        # now we have or build the threshold using B99 or we have already the
-        # threshold given
-        imin = 0
-        for i in range(maxima.size - 1):
-            i += 1
-            if self.sig[i] >= self.thr and self.sig[i - 1] < self.thr:
-                imin = i
-            if self.sig[i] < self.thr and self.sig[i - 1] >= self.thr:
-                imax = i - 1
-                if imax == imin:
-                    d = 0
-                else:
-                    d = self.sig[imin: imax].argmax()
-                maxima[imin + d] = 1
-        return maxima, allmax
 
     def strFun(self, nMax=7):
         """
@@ -625,7 +624,7 @@ class Timeseries:
 
     def oneGamma(self, x, c1, n1, b1):
 
-        return c1 * (n1 * b1) ** (n1) / sp.special.gamma(n1) * \
+        return c1 * (n1 * b1) ** (n1) / scipy.special.gamma(n1) * \
             x ** (n1 - 1) * np.exp(- b1 * n1 * x)
 
     def twoGammaFit(self, normed=False, density=False, **kwargs):
@@ -656,12 +655,12 @@ class Timeseries:
 #        from scipy import stats
         area = pdfT.sum() * (xpdfT[1] - xpdfT[0])
         m1 = dummy.mean()
-        m2 = sp.var(dummy)
+        m2 = scipy.var(dummy)
 #        m3 = stats.skew(dummy)
 #        m4 = stats.kurtosis(dummy, fisher=True)
         b1 = 1. / m1
         n1 = 1. / (b1 ** 2 * m2)
-        c1 = area * b1 * (n1 ** n1) / sp.special.gamma(n1)
+        c1 = area * b1 * (n1 ** n1) / scipy.special.gamma(n1)
         c2 = 1
         n2 = 0.5
         b2 = 2
@@ -839,3 +838,164 @@ class Timeseries:
                             x=bins[1:] * 1e6,
                             weights=1. / (err / 1e6)**2)
         return fit, pdf / 1e6, bins * 1e6, err / 1e6
+
+
+    #     fr : Corresponding Fourier frequency for the Wavelet analysis
+    # wavelet = String considering the type of wavelet to be used.  Default is 'Mexican',  other choices
+    # could be 'DOG1', 'Morlet'
+    # Methods: 
+    #    # Statistics
+    #    cwt: Compute the CWT
+
+    #    lim: Compute the Local Intermittency Measurement
+    #         [M. Onorato, R. Camussi, and G. Iuso, Phys. Rev. E 61, 1447 (2000)]
+
+    #    flatness: Compute the flatness at a given scale
+    #    # ---------- 
+    #    # structures
+    #    strTime:  Compute the time occurrence of the Intermittent structure defined in
+    #              
+
+    #    threshold:Define the time occurrence of structure above a threshold,
+    #              where threshold can be defined by the
+    #              user or is the one defined
+    #              in G. Boffetta et al, Phys. Rev. Lett. 83, 4662 (1999)
+
+    #    cas: Compute the Conditional average sampling of the signal.
+    #         Condition can be the
+    #         occurrence of intermittent structure according
+    #         to the LIM method, or the threshold method.  It also gives all the amplitude of each structures
+    #    casMultiple: Compute the conditional average sampling on an array of signal using
+    #         as condition the occurrence of intermittent structure (LIM) or the threshold method
+    #         on the classes function.  It also gives all the amplitude of each structures
+
+
+
+    #    # ------------ 
+    #    # Distribution
+
+    #    waitingTimes: Waiting and activity times computed using
+    #         one of the above method (LIM or threshold)
+
+    #    pdf: Probability density function of the normalized fluctuation
+
+    #    castaingFit: Fit of the PDF according to the modified Castaing function
+
+    #    strFun: Compute the structure function up to a given order
+    #            (Default is nMax = 7)
+
+    #    pdfAll: Compute the Probability Distribution Function of the entire signal.
+    #            Eventually can
+    #            be normalized (mean subtracted and std deviation divided)
+
+    #    twoGammaFit: Perform the fit with two gamma function as described in
+    #            F. Sattin et al, Plasma Phys. Contr. Fus. 48, 1033 (2006).
+
+    #    levyFit: Perform a fit on the Waiting time distribution
+    #             according to the Levy function introduced in Lepreti
+    #             et al,  ApJ 55: L133
+    #    powerCutFit: Perform a fit on the Waiting time distribution according to
+    #             a power law sacling with an exponential cutoff (T_c) as done
+    #             in R. D'Amicis, Ann. Geophysics vol 24,  p 2735, 2006
+
+    # def pdf(self, **kwargs):
+    #     """
+    #     Computation of the Probability Density function of the increments (normalizing them).
+    #     The PDF is calculated as Density (i.e.) normalized and provide appropriate estimate of
+    #     the errors according to
+    #     a Poisson distribution.  If xrange keyword is not set it computes the increments in
+    #     a xrange [ - 4.5, 4.5] \sigma
+    #     The number of bins can be given with keyword nbins.  Otherwise it is 41.
+    #     pdf, xpdf, err = intermittency.pdf(intermittency.cwt(s, dt, scale)[, xrange = xrange, nbins = nbins])
+
+    #     """
+    #     self.xrange = kwargs.get('xrange', [- 4.5, 4.5])
+    #     self.nbins = kwargs.get('nbins', 41)
+    #     s = self.cwt()
+    #     # normalization of the wavelet increments
+    #     sNorm = (s - s.mean()) / (s.std())
+    #     # pdf normalized within the range
+    #     pdf, binE = np.histogram(
+    #         sNorm, bins=self.nbins, density=True, range=self.xrange)
+    #     # center of the bins
+    #     xpdf = (binE[:-1] + binE[1:]) / 2.
+    #     # error assuming a Poissonian deviation and propagated in a normalized
+    #     # pdf
+    #     err = np.sqrt(pdf / (np.count_nonzero(((sNorm >=
+    #                                             self.xrange[0]) &
+    #                                            (sNorm <= self.xrange[1]))) * (binE[1] - binE[0])))
+    #     return pdf, xpdf, err
+
+    # def threshold(self, **kwargs):
+    #     """
+    #     Given the signal initialized by the class it computes the location of the point above the threshold and
+    #     creates a nd.array equal to 1 at the maximum above the given threshold.  The threshold can be given
+    #     (let's say three times rms) or it can be automatically determined using the method described in
+    #     G. Boffetta, V. Carbone, P. Giuliani, P. Veltri, and A. Vulpiani, Phys. Rev. Lett. 83, 4662 (1999).
+
+    #     Keywords:
+    #         b99 = Boolean default is True. Compute the threshold according to Boffetta paper
+    #         thr = Floating. If set it gives directly the threshold. If set automatically exclude the B99 method
+    #         resolution = resolution in coars-graining for the loop in determining the threshold
+    #         factor = Default is 2. It is used for the method
+    #         iterM = Maximum possible iteration
+    #     Output:
+    #         maxima = A binary array equal to 1 at the identification of the structure (local maxima)
+    #         allmax = A binary array equal to 1 in all the region where the signal is above the threshold
+
+    #     Example:
+    #     >>> turbo = intermittency.Intermittency(signal, dt, fr)
+    #     >>> maxima = turbo.threshold() # compute the maxima using the method of Boffetta
+    #     >>> maxima = turbo.threshold(thr = xxx) # compute the threshold using xxx and automatically
+    #     exclude the b99 keyword
+
+    #     """
+
+    #     self.b99 = kwargs.get('b99', True)
+    #     self.thr = kwargs.get('thr', None)
+    #     self.resolution = kwargs.get(
+    #         'resolution',
+    #         (self.sig.max() -
+    #          self.sig.min()) /
+    #         100.)  # these is the resolution in the coars - graining
+    #     # this is a factor used in the b99 method.  Default = 2
+    #     self.factor = kwargs.get('factor', 2)
+    #     self.iterM = kwargs.get('iterM', 40)
+    #     if self.thr is not None:
+    #         self.b99 = False
+    #     # this will be the output
+    #     maxima = np.zeros(self.sig.size)
+    #     allmax = np.zeros(self.sig.size)
+    #     # method with Boffetta 99 method
+    #     if self.b99:
+    #         delta = self.sig.max() - self.sig.min()
+    #         n_bin = np.long(delta / self.resolution)
+    #         h, bE = np.histogram(self.sig, bins=n_bin)
+    #         xh = (bE[:-1] + bE[1:]) / 2.
+    #         while True:
+    #             mean = np.sum(xh * h) / h.sum()
+    #             sd = np.sqrt(np.sum(xh * xh * h) / h.sum() - mean ** 2)
+    #             self.thr = mean + self.factor * sd
+    #             iThr = np.long((self.thr - self.sig.min()) / self.resolution)
+    #             r = np.sum(h[iThr + 1:])
+    #             h[iThr + 1:] = 0
+    #             if (r == 0 or iter == self.iterM):
+    #                 break
+
+    #     allmax[(self.sig>self.thr)] = 1
+    #     # now we have or build the threshold using B99 or we have already the
+    #     # threshold given
+    #     imin = 0
+    #     for i in range(maxima.size - 1):
+    #         i += 1
+    #         if self.sig[i] >= self.thr and self.sig[i - 1] < self.thr:
+    #             imin = i
+    #         if self.sig[i] < self.thr and self.sig[i - 1] >= self.thr:
+    #             imax = i - 1
+    #             if imax == imin:
+    #                 d = 0
+    #             else:
+    #                 d = self.sig[imin: imax].argmax()
+    #             maxima[imin + d] = 1
+    #     return maxima, allmax
+                            
