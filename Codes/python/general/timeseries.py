@@ -6,9 +6,9 @@ import numpy as np
 import scipy 
 import pycwt as wav
 import lmfit
+import astropy.stats as Astats
 
-
-class Timeseries:
+class Timeseries(object):
     """
     Python class for turbulent signal analysis
 
@@ -26,14 +26,15 @@ class Timeseries:
     ----------
     dt : Floating. Sampling rate of the signal
     nsamp : :obj:`int`. Size of the signal
-
+    signorm : :obj: `ndarray`
+        Normalized copy of the signal (signal-<signal>)/std(signal)
     Dependences
     -----------
     numpy
     scipy
     pycwt https://github.com/regeirk/pycwt.git
     lmfit http://lmfit.github.io/lmfit-py/index.html
-    future Used by lmfit
+    astropy for better histogram function
     """
 
     def __init__(self, signal, time):
@@ -42,6 +43,7 @@ class Timeseries:
         self.time = time
         self.dt = (self.time.max()-self.time.min())/(self.time.size-1)
         self.nsamp = self.time.size
+        self.signorm = (sig-sig.mean())/sig.std()
         # since the moments of the signal are
         # foundamental quantities we compute them
         # at the initial
@@ -67,6 +69,7 @@ class Timeseries:
         kurtosis : Kurtosis
         flatness : Flatnes
         variance : Variance with ddof = 0
+        # TODO
         act : autocorrelation time
         """
         from scipy.stats import describe
@@ -478,7 +481,7 @@ class Timeseries:
                 detrend=kwargs.get('detrend'), False)                  
 
         # in this case
-        # calcolo la derivata del maxima
+        # compute maxima derivative
         maxima = np.zeros(self.nsamp)
         maxima[self.__locationindex] = 1                
         dEv = np.diff(maxima)
@@ -516,118 +519,163 @@ class Timeseries:
                     
         return waiting_times * self.dt, quiescent_times * self.dt
 
-    def castaing(self, x, s0, l, sk, am):
+    def pdf(self, bins=10, range=None, weights=None, **kwargs):
         """
-        Define the castaing - like function to fit the Probability
-        density function of normalized fluctuations.  The function is intoduced in
-        B. Castaing et ak, Physica D: Nonlinear Phenomena 46, 177 (1990) and further developed in
-        order to take into account possible asymmetric function in
-        L. Sorriso-Valvo, R. Marino, L. Lijoi, S. Perri, and V. Carbone, Astrophys J 807, 86 (2015).
+        Computation of the Probability Density function of the signal
 
-        P(\delta v) =  am / \sqrt(2\pi)\int G_{\lambda}(\sigma)\exp( - \delta v^2 / 2\sigma^2) * (1 +
-        a_s\frac{dv / sigma}{np.sqrt{1 + dv^2 / sigma^2}})d\sigma / sigma
-        G_{\lambda}(\sigma) =  \frac{1}{\sqrt{2}\lambda}\exp( - \ln^2(\sigma / sigma_0) / 2\lambda)
+        Wrapper around histogram function from astropy.stats package.
+        
+        Parameters
+        ----------
+        bins : :obj: `int` or `list` or `str` (optional)
+            If bins is a string, then it must be one of:
 
-        Parameters:
-           x  =  these are the increments which represents the bins of the PDF of the increments
-           s0 =  2.  Is \sigma_0
-           l  =  \lambda
-           sk = skewness
-           am = Amplitude for proper normalization
-        out:  the computed function
+            - 'blocks' : use bayesian blocks for dynamic bin widths
 
+            - 'knuth' : use Knuth's rule to determine bins
+
+            - 'scott' : use Scott's rule to determine bins
+
+            - 'freedman' : use the Freedman-Diaconis rule to determine bins
+
+        range : tuple or None (optional)
+            the minimum and maximum range for the histogram.  If not specified,
+            it will be (x.min(), x.max())
+
+        weights : array_like, optional
+            Not Implemented
+
+        other keyword arguments are described in numpy.histogram().
+
+        Returns
+        -------
+        hist : array
+            The values of the histogram. See ``normed`` and ``weights`` for a
+            description of the possible semantics.
+        bin_edges : array of dtype float
+            Return the bin edges ``(length(hist)+1)``.
+
+        See Also
+        --------
+        numpy.histogram
+        astropy.stats.histogram
         """
-        # we need this for a proper definition of the integral
-        def integrand(sigma, s, lamb, dv, skw):
-            return 1. / 2 * np.pi / lamb * np.exp(
-                -np.log(sigma / s) ** 2 / 2 / lamb ** 2) * 1. / sigma * np.exp(
-                    - dv ** 2 / 2 / sigma ** 2 * (1 + skw * ((dv / sigma) /
-                                                             np.sqrt(1. + dv ** 2 / sigma ** 2))))
 
-        # for proper integration in \sigma define
-        from scipy.integrate import quad
-        cst = np.asarray([ am / np.sqrt(2 * np.pi) *
-                           quad(integrand, 0, np.inf,
-                                args=(s0, l, x[i], sk))[0] for i in range(x.size)])
-        return cst
+        hist, bins_e = Astats.histogram(self.sig, bins=bins, range=range,
+                                        weigths=weigths, **kwargs)
+        return pdf, bins_e
+                            
+    def _twoGamma(self, x, c1, n1, b1, c2, n2, b2):
+        """
+        
+        Define the sum of two gamma function 
+        according to Eq (1) of 
+        F Sattin et al 2006 Plasma Phys. Control. Fusion 48 1033
 
-    def castaingFit(self, **kwargs):
-        """
-        Perform a fit of the Probability Distribution function based on the Castaing model.
-        It has four keyword which can
-        can be used and are defined in the function model castaing:
-        Input:
-        s0 = Sigma_0 in the model, default value is 0.1
-        l  = Lambda parameter of the model, default values is 0.1
-        am = Amplitude for the correct scaling, default value is 10
-        sk = Skewness in the model, default values is the Skewness of the increments of the
-        signal computed at given frequency
-        Output:
-        fit = This method is based on the lmfit package (http://lmfit.github.io/lmfit-py/index.html).
-        The result is what is a
-        ModelFit class (see http://lmfit.github.io/lmfit-py/model.html#the-modelfit-class).
-        To get the parameters of the fit:
-        turbo = intermittency.Intermittency(s, dt, 100e3)
-        fit = castaingFit()
-        s0 = fit.params['s0'].value
-        l  = fit.params['l'].value
-        am = fit.params['am'].value
-        sk = fit.params['sk'].value
-        To plot the resulf of the fit
-        pdf, x, err = turbo.pdf()
-        fit = turbo.castaingFit()
-        semilogy(x, pdf, 'o--')
-        plot(x, fit.best_fit, ' - ', linewidth = 2)
-        """
-        s0 = kwargs.get('s0', 0.1)
-        l = kwargs.get('l', 1)
-        am = kwargs.get('am', 10)
-        sk = kwargs.get('sk', scipy.stats.skew(self.cwt()))
-        self.xrange = kwargs.get('xrange', [- 4.5, 4.5])
-        self.nbins = kwargs.get('nbins', 41)
-        # build the appropriateModel
-        csMod = lmfit.models.Model(
-            self.castaing,
-            independent_vars='x',
-            param_names=(
-                's0',
-                'l',
-                'sk',
-                'am'))
-        # initialize the parameters
-        pars = csMod.make_params(s0=s0, l=l, sk=sk, am=am)
-        pdf, x, err = self.pdf(xrange=self.xrange, nbins=self.nbins)
-        fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2)
-        return fit
+        Parameters
+        ----------
+        x : :obj: `ndarray`
+          These are the center of the bins of the PDF
+        C1 : :obj: `float`
+          See the definition of _oneGamma
+        N1 : :obj: `float`
+          See the definition of _oneGamma
+        beta1 : :obj: `float`
+          See the definition of _oneGamma
+        C2 : :obj: `float`
+          See the definition of _oneGamma
+        N2 : :obj: `float`
+          See the definition of _oneGamma
+        beta2 : :obj: `float`
+          See the definition of _oneGamma
 
+        Return
+        ------
+        The function obtained from the sum of two Gammas defind in _oneGamma
 
-    def strFun(self, nMax=7):
-        """
-        Compute the structure function the given frequency up to a maximum nMax order.  As a default
-        the nMax is equal to 7. This would be useful for the ESS analysis introduced in
-        R. Benzi et al.  , Phys. Rev. E 48, R29 (1993).
-        """
-        return np.asarray([np.mean(self.cwt() ** (k + 1))
-                           for k in range(nMax)])
-
-    def twoGamma(self, x, c1, n1, b1, c2, n2, b2):
-        """
-        Define the sum of two gamma function which will be further used for the fit according to the formula
-        suggested in F. Sattin et al. PPCF 2006.  It will be depend basically on one single parameter a which
-        will contain the variables (C, n, beta, C, n, beta) of the two gamma function (see reference)
-        x = these are the bins of the PDF
-        a = varabiles of the form (C, N, beta, C, n, beta)
+        Example
+        -------
+        F = self._twoGamma(x, C1, N1, beta1, C2, N2, beta2)
         """
 
         twoG = self.oneGamma(x, c1, n1, b1) + self.oneGamma(x, c2, n2, b2)
         return twoG
 
-    def oneGamma(self, x, c1, n1, b1):
+    def _oneGamma(self, x, c1, n1, b1):
+        """
+        Define one gamma function according to the definition in
+        Eq (1) of F Sattin et al 2006
+        Plasma Phys. Control. Fusion 48 1033
+        F = C*(N*beta)^n / Gamma(N)* x^(N-1)*exp(-beta*N*x)
 
+        Parameters
+        ----------
+        x : :obj: `ndarray`
+          These are the center of the bins of the PDF
+        C : :obj: `float`
+          See above equation
+        N : :obj: `float`
+          See above equation
+        beta : :obj: `float`
+          See above equation
+
+        Returns
+        -------
+        The function F
+        
+        Example
+        -------
+        F = self._oneGamma(x, C, N, beta)
+        """
         return c1 * (n1 * b1) ** (n1) / scipy.special.gamma(n1) * \
             x ** (n1 - 1) * np.exp(- b1 * n1 * x)
 
-    def twoGammaFit(self, normed=False, density=False, **kwargs):
+    def twoGammaFit(self, normed=False, **kwargs):
+        """
+        Perform a Fit of the Probability Density Function of the
+        signal according to Eq (1) of paper 
+        F Sattin et al 2006
+        Plasma Phys. Control. Fusion 48 1033        
+
+        F = C1*(N*beta1)^N1 / Gamma(N1)* x^(N1-1)*exp(-beta1*N1*x) + 
+            C2*(N2*beta2)^N2 / Gamma(N2)* x^(N2-1)*exp(-beta2*N2*x)
+
+
+        Parameters
+        ----------
+        normed : :obj: `boolean'
+            If set compute the fit on the PDF of normalized signal
+            (signal-<signal>)/sigma
+        C1 : :obj: `float`, optional
+          Initial value for the parameter C1 [See above equation]
+        N1 : :obj: `float`, optional
+          Initial value for the parameter N1 [See above equation]
+        beta1 : :obj: `float`, optional
+          Initial value for the parameter beta1 [See above equation]
+        C2 : :obj: `float`, optional
+          Initial value for the parameter C1 [See above equation]
+        N2 : :obj: `float`, optional
+          Initial value for the parameter N1 [See above equation]
+        beta2 : :obj: `float`, optional
+          Initial value for the parameter beta1 [See above equation]
+
+        Returns
+        -------
+        fit : :obj: 
+            This is the output from lmfit referring to the 2Gamma fit
+        xpdf : :obj: `ndarray`
+            These are the center of the bins
+        pdf : :obj: `ndarray`
+            PDF of the signal which has been fitted
+        fitO : :obj:
+            This is the output from lmfit referring to a 1 Gamma fit
+
+        Example
+        -------
+        fit, x, pdf, fit1 = self.twoGammaFit(normed=True, density=True,
+           bins='freedman', C1=C1, N1=N1, beta1=beta1)
+        """
+                            
         # first of all compute the pdf with the keyword used
         if normed is True:
             dummy = (self.sig - self.sig.mean()) / self.sig.std()
@@ -664,12 +712,12 @@ class Timeseries:
         c2 = 1
         n2 = 0.5
         b2 = 2
-        c1 = kwargs.get('c1', c1)
-        n1 = kwargs.get('n1', n1)
-        b1 = kwargs.get('b1', b1)
-        c2 = kwargs.get('c2', c2)
-        n2 = kwargs.get('n2', n2)
-        b2 = kwargs.get('b2', b2)
+        c1 = kwargs.get('C1', c1)
+        n1 = kwargs.get('N1', n1)
+        b1 = kwargs.get('beta1', b1)
+        c2 = kwargs.get('C2', c2)
+        n2 = kwargs.get('N2', n2)
+        b2 = kwargs.get('beta2', b2)
         # first of all we build the model for the one gamma function and fi
         oneGMod = lmfit.models.Model(
             self.oneGamma,
@@ -692,310 +740,83 @@ class Timeseries:
         fit = twoGMod.fit(pdfT, pars, x=xpdfT, weights=1 / err ** 2)
         return fit, xpdfT, pdfT, fitO
 
-    def levyFunction(self, x, a, mu, norm):
-        """
-        For the definition of the appropriate levy Function used for
-        the fit consider the article F.Lepreti, ApJ
-        """
-        def integrandI(z, xd, amp, m):
-            return 1. / np.pi * np.cos(z * xd) * np.exp(- amp * np.abs(z) ** m)
-        from scipy.integrate import quad
-        levF = norm * np.asarray([quad(integrandI, 0,
-                                       np.inf, args=(x[i], a, mu))[0] for i in range(x.size)])
-        return levF
 
-    def levyFit(self, **kwargs):
-
+    def coarse_grain(self, factor,dx=None,integrate=False):
         """
-        Fit the Waiting times (or eventually the quiescent time) distribution with a
-        Levy type function as defined in Lepreti et al,  ApJ 55: L133
+        # TODO: Insert documentation
+        """
+                            
+        if not integrate:
+            new_sig = self.sig[::factor]
+        else:
+            if factor % 2 == 0: nx = factor + 1
+            else: nx = factor
+            new_sig = np.zeros(signal[::factor].shape)
+            if dx is None:
+                dx = np.ones(self.sig.shape)/(factor + 1*(nx%2))
+            new_sig += (self.sig*dx)[::factor]
+            for i in np.int32(np.arange((nx-1)/2) + 1):
+                new_sig += np.roll(self.sig*dx,i)[::factor]
+                new_sig += np.roll(self.sig*dx,-i)[::factor]
 
+        return new_sig
+
+    def signed_diff(self, window):
+        """
+        # TODO: Insert documentation
+        """
+
+        snf = np.zeros(self.signorm.shape[0])
+        for i in np.arange(window):
+            snf -= np.roll(self.signorm,i) + np.roll(self.signorm,-i)
+        snf /= 2*window
+        snf += self.signorm
+        return snf
+
+    def significance(self, window):
+        """
+        # TODO: Insert documentation
+        """
+
+        prevnegs = np.zeros(self.nsamp)
+        prevposs = np.zeros(self.nsamp)
+        snf = np.zeros(self.nsamp)
+        for i in np.arange(1,window):
+            negs = self.signorm - np.roll(self.signorm,i)
+            poss = self.signorm - np.roll(self.signorm,-i)
+            prevnegs[np.where(negs>prevnegs)] = negs[np.where(negs>prevnegs)]
+            prevposs[np.where(poss>prevposs)] = poss[np.where(poss>prevposs)]
+        snf = 0.5*(prevnegs + prevposs)
+        return snf
+
+
+    def acf(self):
+        """
+        Compute the autocorrelation function according to 
+        http://stackoverflow.com/q/14297012/190597
+        http://en.wikipedia.org/wiki/Autocorrelation#Estimation
+        
         Parameters
         ----------
-        None. Method working on the defined function
+        None
 
-        Keywords
-        ----------
-        amp = amplitude for the fit. Default is 100
-        mu  = See the defintion of the Function. Default is 1
-        norm = See the definition of the function. Default is 1e6
-        peak = Boolean (default is false). In this way you use the peak in the
-               determination of the structure where the waiting times are computed
-        valley = Boolean (default is false).In this way you use the peak in the
-               determination of the structure where the waiting times are computed
-        b99 = Boolean default is True. Compute the threshold according to Boffetta paper
-        thr = Floating. If set it gives directly the threshold. If set automatically exclude the B99 method
-        resolution = resolution in coars-graining for the loop in determining the threshold
-        factor = Default is 2. It is used for the method
-        iterM = Maximum possible iteration
-        quiet = Boolean. Default is false. If it is True compute the fit on quiescent time
-        Returns
+        Results
         -------
-        fit (as output from lmfit),  pdf, bins, err
+        Autocorrelation function
+        
+        Attributes
+        ----------
+        Define the autocorrelation time as attribute to the class (self.act)
+        computed as the time where the correlation is 1/e the maximum
+        value
 
-        Examples
-        --------
         """
-
-
-
-        amp = kwargs.get('amp', 100.)
-        mu = kwargs.get('mu', 1.)
-        norm = kwargs.get('norm', 1e6)
-        # insert a boolean label so that we can use the levyFit on
-        # quiescent_times
-        quiet = kwargs.get('qt', False)
-        # now we need to perform the Waiting time distribution
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        # these is the resolution in the coars - graining
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() - self.sig.min()) / 100.)
-        # this is a factor used in the b99 method.  Default = 2
-        factor = kwargs.get('factor', 2)
-        iterM = kwargs.get('iterM', 40)
-        wt, at = self.waitingTimes(peak=self.peak, valley=self.valley, b99=b99,
-                                   thr=thr, resolution=resolution,
-                                   factor=factor, iterM=iterM)
-
-        # this is where you use the boolean
-        if quiet:
-            print('Levy fit on quiescent times')
-            us = at.copy()
-        else:
-            print('Levy fit on waiting times')
-            us = wt.copy()
-        # now build the pdf based on a logarithmic scale
-        xmin = kwargs.get('xmin', us.min())
-        xmax = kwargs.get('xmax', us.max())
-        nb = kwargs.get('nbins', 30)
-        bb = np.logspace(np.log10(xmin), np.log10(xmax), nb)
-        pdf, bins = np.histogram(us, bins=bb, density=True)
-        err = np.sqrt(pdf / (us.size * (bins[1] - bins[0])))
-        # and now perform the real fit
-        levyMod = lmfit.models.Model(self.levyFunction,
-                                     independent_vars='x',
-                                     param_names=('a', 'mu', 'norm'))
-        pars = levyMod.make_params(a=amp, mu=mu, norm=norm)
-        pars['mu'].set(min=0, max=2)
-        fit = levyMod.fit(pdf / 1e6,
-                          pars,
-                          x=bins[1:] * 1e6,
-                          weights=1 / (err / 1e6)**2)
-        return fit, pdf / 1e6, bins * 1e6, err / 1e6
-
-    def powerCutFit(self, **kwargs):
-        # now we need to perform the Waiting time distribution
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() -
-                                 self.sig.min()) / 100.)  # these is the
-        # resolution in the coars - graining
-        # this is a factor used in the b99 method.
-        factor = kwargs.get('factor', 2)
-        # Default = 2
-        iterM = kwargs.get('iterM', 40)
-        quiet = kwargs.get('quiet', False)
-
-
-        wt, at = self.waitingTimes(peak=self.peak, valley=self.valley, b99=b99,
-                                   thr=thr, resolution=resolution,
-                                   factor=factor, iterM=iterM)
-        if quiet:
-            print('Levy fit on quiescent times')
-            us = at.copy()
-        else:
-            print('Levy fit on waiting times')
-            us = wt.copy()
-        # now build the pdf based on a logarithmic scale
-        xmin = kwargs.get('xmin', us.min())
-        xmax = kwargs.get('xmax', us.max())
-        nb = kwargs.get('nbins', 30)
-        bb = np.logspace(np.log10(xmin), np.log10(xmax), nb)
-        pdf, bins = np.histogram(us, bins=bb, density=True)
-        err = np.sqrt(
-            pdf / (np.count_nonzero(((us >= xmin) & (us <= max))) * (bins[1] - bins[0])))
-        # now we define the appropriate fitting function
-
-        def powerCut(x, amp, a, tc):
-            a *= -1
-            return amp * x**a * np.exp(-x / tc)
-        # and now we define the appropriate model
-        powCutMod = lmfit.models.Model(powerCut, indepentent_vars='x',
-                                       param_names=('amp', 'a', 'tc'))
-        # now the default parameter choice
-        amp = kwargs.get('amp', 1e-2)
-        a = kwargs.get('a', 1.5)
-        tc = kwargs.get('tc', 200)
-        pars = powCutMod.make_params(amp=amp, a=a, tc=tc)
-        fit = powCutMod.fit(pdf / 1e6,
-                            pars,
-                            x=bins[1:] * 1e6,
-                            weights=1. / (err / 1e6)**2)
-        return fit, pdf / 1e6, bins * 1e6, err / 1e6
-
-
-    #     fr : Corresponding Fourier frequency for the Wavelet analysis
-    # wavelet = String considering the type of wavelet to be used.  Default is 'Mexican',  other choices
-    # could be 'DOG1', 'Morlet'
-    # Methods: 
-    #    # Statistics
-    #    cwt: Compute the CWT
-
-    #    lim: Compute the Local Intermittency Measurement
-    #         [M. Onorato, R. Camussi, and G. Iuso, Phys. Rev. E 61, 1447 (2000)]
-
-    #    flatness: Compute the flatness at a given scale
-    #    # ---------- 
-    #    # structures
-    #    strTime:  Compute the time occurrence of the Intermittent structure defined in
-    #              
-
-    #    threshold:Define the time occurrence of structure above a threshold,
-    #              where threshold can be defined by the
-    #              user or is the one defined
-    #              in G. Boffetta et al, Phys. Rev. Lett. 83, 4662 (1999)
-
-    #    cas: Compute the Conditional average sampling of the signal.
-    #         Condition can be the
-    #         occurrence of intermittent structure according
-    #         to the LIM method, or the threshold method.  It also gives all the amplitude of each structures
-    #    casMultiple: Compute the conditional average sampling on an array of signal using
-    #         as condition the occurrence of intermittent structure (LIM) or the threshold method
-    #         on the classes function.  It also gives all the amplitude of each structures
-
-
-
-    #    # ------------ 
-    #    # Distribution
-
-    #    waitingTimes: Waiting and activity times computed using
-    #         one of the above method (LIM or threshold)
-
-    #    pdf: Probability density function of the normalized fluctuation
-
-    #    castaingFit: Fit of the PDF according to the modified Castaing function
-
-    #    strFun: Compute the structure function up to a given order
-    #            (Default is nMax = 7)
-
-    #    pdfAll: Compute the Probability Distribution Function of the entire signal.
-    #            Eventually can
-    #            be normalized (mean subtracted and std deviation divided)
-
-    #    twoGammaFit: Perform the fit with two gamma function as described in
-    #            F. Sattin et al, Plasma Phys. Contr. Fus. 48, 1033 (2006).
-
-    #    levyFit: Perform a fit on the Waiting time distribution
-    #             according to the Levy function introduced in Lepreti
-    #             et al,  ApJ 55: L133
-    #    powerCutFit: Perform a fit on the Waiting time distribution according to
-    #             a power law sacling with an exponential cutoff (T_c) as done
-    #             in R. D'Amicis, Ann. Geophysics vol 24,  p 2735, 2006
-
-    # def pdf(self, **kwargs):
-    #     """
-    #     Computation of the Probability Density function of the increments (normalizing them).
-    #     The PDF is calculated as Density (i.e.) normalized and provide appropriate estimate of
-    #     the errors according to
-    #     a Poisson distribution.  If xrange keyword is not set it computes the increments in
-    #     a xrange [ - 4.5, 4.5] \sigma
-    #     The number of bins can be given with keyword nbins.  Otherwise it is 41.
-    #     pdf, xpdf, err = intermittency.pdf(intermittency.cwt(s, dt, scale)[, xrange = xrange, nbins = nbins])
-
-    #     """
-    #     self.xrange = kwargs.get('xrange', [- 4.5, 4.5])
-    #     self.nbins = kwargs.get('nbins', 41)
-    #     s = self.cwt()
-    #     # normalization of the wavelet increments
-    #     sNorm = (s - s.mean()) / (s.std())
-    #     # pdf normalized within the range
-    #     pdf, binE = np.histogram(
-    #         sNorm, bins=self.nbins, density=True, range=self.xrange)
-    #     # center of the bins
-    #     xpdf = (binE[:-1] + binE[1:]) / 2.
-    #     # error assuming a Poissonian deviation and propagated in a normalized
-    #     # pdf
-    #     err = np.sqrt(pdf / (np.count_nonzero(((sNorm >=
-    #                                             self.xrange[0]) &
-    #                                            (sNorm <= self.xrange[1]))) * (binE[1] - binE[0])))
-    #     return pdf, xpdf, err
-
-    # def threshold(self, **kwargs):
-    #     """
-    #     Given the signal initialized by the class it computes the location of the point above the threshold and
-    #     creates a nd.array equal to 1 at the maximum above the given threshold.  The threshold can be given
-    #     (let's say three times rms) or it can be automatically determined using the method described in
-    #     G. Boffetta, V. Carbone, P. Giuliani, P. Veltri, and A. Vulpiani, Phys. Rev. Lett. 83, 4662 (1999).
-
-    #     Keywords:
-    #         b99 = Boolean default is True. Compute the threshold according to Boffetta paper
-    #         thr = Floating. If set it gives directly the threshold. If set automatically exclude the B99 method
-    #         resolution = resolution in coars-graining for the loop in determining the threshold
-    #         factor = Default is 2. It is used for the method
-    #         iterM = Maximum possible iteration
-    #     Output:
-    #         maxima = A binary array equal to 1 at the identification of the structure (local maxima)
-    #         allmax = A binary array equal to 1 in all the region where the signal is above the threshold
-
-    #     Example:
-    #     >>> turbo = intermittency.Intermittency(signal, dt, fr)
-    #     >>> maxima = turbo.threshold() # compute the maxima using the method of Boffetta
-    #     >>> maxima = turbo.threshold(thr = xxx) # compute the threshold using xxx and automatically
-    #     exclude the b99 keyword
-
-    #     """
-
-    #     self.b99 = kwargs.get('b99', True)
-    #     self.thr = kwargs.get('thr', None)
-    #     self.resolution = kwargs.get(
-    #         'resolution',
-    #         (self.sig.max() -
-    #          self.sig.min()) /
-    #         100.)  # these is the resolution in the coars - graining
-    #     # this is a factor used in the b99 method.  Default = 2
-    #     self.factor = kwargs.get('factor', 2)
-    #     self.iterM = kwargs.get('iterM', 40)
-    #     if self.thr is not None:
-    #         self.b99 = False
-    #     # this will be the output
-    #     maxima = np.zeros(self.sig.size)
-    #     allmax = np.zeros(self.sig.size)
-    #     # method with Boffetta 99 method
-    #     if self.b99:
-    #         delta = self.sig.max() - self.sig.min()
-    #         n_bin = np.long(delta / self.resolution)
-    #         h, bE = np.histogram(self.sig, bins=n_bin)
-    #         xh = (bE[:-1] + bE[1:]) / 2.
-    #         while True:
-    #             mean = np.sum(xh * h) / h.sum()
-    #             sd = np.sqrt(np.sum(xh * xh * h) / h.sum() - mean ** 2)
-    #             self.thr = mean + self.factor * sd
-    #             iThr = np.long((self.thr - self.sig.min()) / self.resolution)
-    #             r = np.sum(h[iThr + 1:])
-    #             h[iThr + 1:] = 0
-    #             if (r == 0 or iter == self.iterM):
-    #                 break
-
-    #     allmax[(self.sig>self.thr)] = 1
-    #     # now we have or build the threshold using B99 or we have already the
-    #     # threshold given
-    #     imin = 0
-    #     for i in range(maxima.size - 1):
-    #         i += 1
-    #         if self.sig[i] >= self.thr and self.sig[i - 1] < self.thr:
-    #             imin = i
-    #         if self.sig[i] < self.thr and self.sig[i - 1] >= self.thr:
-    #             imax = i - 1
-    #             if imax == imin:
-    #                 d = 0
-    #             else:
-    #                 d = self.sig[imin: imax].argmax()
-    #             maxima[imin + d] = 1
-    #     return maxima, allmax
+        n = len(x)
+        variance = x.var()
+        xx = x-x.mean()
+        r = np.correlate(xx, xx, mode = 'full')[-n:]
+        result = r/(variance*(np.arange(n, 0, -1)))
+        # define the lag
+        self.act = None                    
+        return result
                             
