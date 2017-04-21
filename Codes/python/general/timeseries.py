@@ -3,11 +3,11 @@ __version__ = '0.2'
 __data__ = '19.04.2017'
 
 import numpy as np
-import scipy 
+import scipy
 import pycwt as wav
-import lmfit
 import astropy.stats as Astats
 from scipy.interpolate import UnivariateSpline
+
 
 class Timeseries(object):
     """
@@ -35,7 +35,6 @@ class Timeseries(object):
     numpy
     scipy
     pycwt https://github.com/regeirk/pycwt.git
-    lmfit http://lmfit.github.io/lmfit-py/index.html
     astropy for better histogram function
     """
 
@@ -43,9 +42,9 @@ class Timeseries(object):
 
         self.sig = signal
         self.time = time
-        self.dt = (self.time.max()-self.time.min())/(self.time.size-1)
+        self.dt = (self.time.max() - self.time.min()) / (self.time.size - 1)
         self.nsamp = self.time.size
-        self.signorm = (self.sig-self.sig.mean())/self.sig.std()
+        self.signorm = (self.sig - self.sig.mean()) / self.sig.std()
         # since the moments of the signal are
         # foundamental quantities we compute them
         # at the initial
@@ -71,7 +70,6 @@ class Timeseries(object):
         kurtosis : Kurtosis
         flatness : Flatnes
         variance : Variance with ddof = 0
-        # TODO
         act : autocorrelation time
         """
         from scipy.stats import describe
@@ -83,8 +81,9 @@ class Timeseries(object):
             self.kurtosis = kurt
             self.flatness = self.kurtosis + 3
             self.variance = var
+            self.acf()
             return True
-        except:
+        except BaseException:
             return False
 
     def identify_bursts(self, thresh, analysis=True):
@@ -109,19 +108,19 @@ class Timeseries(object):
             a list of tuples that contains indices that
             bracket each of the burst detected
         """
-    
-        crossings = np.where(np.diff(np.signbit(self.sig-thresh)))[0]
-        windows = list(zip(crossings[::2], crossings[1::2]+1))
+
+        crossings = np.where(np.diff(np.signbit(self.sig - thresh)))[0]
+        windows = list(zip(crossings[::2], crossings[1::2] + 1))
         nbursts = len(windows)
-        ratio = float(self.nsamp)/nbursts
-        avwin = np.mean([y - x for x,y in windows])
+        ratio = float(self.nsamp) / nbursts
+        avwin = np.mean([y - x for x, y in windows])
         return nbursts, ratio, avwin, windows
 
     def limStructure(self, frequency, wavelet='Mexican',
                      peaks=False, valleys=False):
         """
         Determination of the time location of the intermittent
-        structure accordingly to the method defined in 
+        structure accordingly to the method defined in
         *M. Onorato et al Phys. Rev. E 61, 1447 (2000)*
 
         Parameters
@@ -144,9 +143,9 @@ class Timeseries(object):
         maxima : :obj: `ndarray`
            A binary array equal to 1 at the identification of
            the structure (local maxima)
-        allmax : :obj: `ndarray` 
+        allmax : :obj: `ndarray`
             A binary array equal to 1 in all the region where the
-            signal is above the threshold        
+            signal is above the threshold
 
         Attributes
         ----------
@@ -163,7 +162,7 @@ class Timeseries(object):
         else:
             print 'Not a valid wavelet using Mexican'
             self.mother = wav.Mexican_hat()
-        
+
         self.freq = frequency
         self.scale = 1. / self.mother.flambda() / self.freq
 
@@ -213,9 +212,15 @@ class Timeseries(object):
             maxima[~ddPeak] = 0
         return maxima, allmax
 
-    def cas(self, Type='LIM', nw=None, detrend=True, normalize=False, **kwargs):
+    def cas(
+            self,
+            Type='LIM',
+            nw=None,
+            detrend=True,
+            normalize=False,
+            **kwargs):
         """
-        Conditional Average Sampling 
+        Conditional Average Sampling
 
         Parameters
         ----------
@@ -243,7 +248,7 @@ class Timeseries(object):
         cs : :obj: `ndarray`
             Conditional Sampled Structure. **In case normalize is True it is
             not in physical unit**
-        tau : :obj: `ndarray` 
+        tau : :obj: `ndarray`
             Appropriate time basis for the CAS
         err : :obj: `ndarray`
             Standard error
@@ -252,7 +257,7 @@ class Timeseries(object):
         ----------
         location : :obj: 'ndarray'
             Time location where the structure are determined
-        
+
         """
         cut = False
         if Type == 'LIM':
@@ -266,12 +271,12 @@ class Timeseries(object):
             self.__locationindex = (maxima == 1)
             self.__allmaxima = allmax
             if nw is None:
-                nw = np.round(1./self.freq/self.dt)
+                nw = np.round(1. / self.freq / self.dt)
             if nw % 2 == 0:
-                iwin = nw/2
+                iwin = nw / 2
                 nw += 1
             else:
-                iwin = (nw-1)/2
+                iwin = (nw - 1) / 2
 
             maxima[0: iwin - 1] = 0
             maxima[- iwin:] = 0
@@ -288,24 +293,24 @@ class Timeseries(object):
                             1], type='linear')
                 else:
                     _dummy = self.sig[
-                            d_ev[0][i] -
-                            iwin: d_ev[0][i] +
-                            iwin +
-                            1]
+                        d_ev[0][i] -
+                        iwin: d_ev[0][i] +
+                        iwin +
+                        1]
                 _dummy -= _dummy.mean()
                 if normalize is True:
                     _dummy /= _dummy.std()
-                    
-                csTot[:,i] = _dummy
 
-        else: 
-            thresh = kwargs.get('thresh', np.sqrt(self.variance)*2.5)
+                csTot[:, i] = _dummy
+
+        else:
+            thresh = kwargs.get('thresh', np.sqrt(self.variance) * 2.5)
             if nw is None:
                 print('Window length not set assumed 501 points')
                 nw = 501
-            if nw%2 == 0:
-                nw+=1
-            Nbursts,ratio,av_width, windows = self.identify_bursts(thresh)
+            if nw % 2 == 0:
+                nw += 1
+            Nbursts, ratio, av_width, windows = self.identify_bursts(thresh)
             csTot = np.ones((nw, len(windows)))
             inds = []
             self.__allmaxima = np.zeros(self.nsamp)
@@ -314,45 +319,50 @@ class Timeseries(object):
                 ind_max = np.where(
                     self.sig[window[0]:window[1]] ==
                     np.max(self.sig[window[0]:window[1]]))[0][0]
-                if (window[0] + ind_max +(nw-1)/2 + 1) <= self.nsamp:
-                    _dummy = self.sig[window[0] + ind_max - (nw-1)/2 :
-                                          window[0] + ind_max + (nw-1)/2 + 1]
+                if (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
+                    _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
+                                      window[0] + ind_max + (nw - 1) / 2 + 1]
                     if detrend is True:
-                                _dummy = scipy.signal.detrend(
-                                    _dummy, type='linear')
+                        _dummy = scipy.signal.detrend(
+                            _dummy, type='linear')
                     _dummy -= _dummy.mean()
                     if normalize is True:
-                                _dummy /= _dummy.std()
+                        _dummy /= _dummy.std()
                     csTot[:, i] = _dummy
-                    inds.append(window[0]+ind_max)
+                    inds.append(window[0] + ind_max)
                 else:
-                    cut = True 
+                    cut = True
             self.location = self.time[inds]
             self.__locationindex = inds
         # now compute the cas
         if cut:
             csTot = csTot[:, :-1]
         self.nw = nw
-        self.iwin = (nw-1)/2
+        self.iwin = (nw - 1) / 2
         cs = np.mean(csTot, axis=1)
         tau = np.linspace(- self.iwin, self.iwin, self.nw) * self.dt
         err = scipy.stats.sem(csTot, axis=1)
 
-                            
         return cs, tau, err
 
-    def casMultiple(self,inputS, Type='LIM', nw=None, detrend=True, normalize=False, **kwargs):
-
+    def casMultiple(
+            self,
+            inputS,
+            Type='LIM',
+            nw=None,
+            detrend=True,
+            normalize=False,
+            **kwargs):
         """
-        Conditional average sampling on multiple signals 
+        Conditional average sampling on multiple signals
 
         Parameters
         ----------
-        inputS : :obj: `ndarray` 
+        inputS : :obj: `ndarray`
             Array of signals to be analyzed (not the one already used)
             in the form (#sign, #sample)
         All the other parameters coincide with the ones defined in the
-        *cas* method 
+        *cas* method
         Type :obj: `str`
             String indicating the method used to identify the structure.
             Can be the 'LIM' method or the standard 'THRESHOLD' method
@@ -371,14 +381,14 @@ class Timeseries(object):
         **kwargs
            These are the same as defined in the *limStructure* method or
            *identify_bursts* method according to the method used
-        
+
         Results
         -------
         cs : :obj: `ndarray`
             Conditional Sampled Structures (nw, #signal).
             **In case normalize is True it is
             not in physical unit**
-        tau : :obj: `ndarray` 
+        tau : :obj: `ndarray`
             Appropriate time basis for the CAS
         err : :obj: `ndarray`
             Standard error
@@ -403,45 +413,44 @@ class Timeseries(object):
             csO, tau, errO = self.cas(
                 Type='THRESHOLD',
                 nw=kwargs.get('nw', 501),
-                thrs=kwargs.get('thresh', np.sqrt(self.variance)*2.5), 
+                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 2.5),
                 normalize=normalize,
-                detrend=detrend)                 
+                detrend=detrend)
 
         maxima = np.zeros(self.nsamp)
-        maxima[self.__locationindex] = 1                
+        maxima[self.__locationindex] = 1
         csTot = np.ones((nSig + 1, self.nw, maxima.sum()))
         d_ev = np.asarray(np.where(maxima >= 1))
         ampTot = np.zeros((nSig + 1, int(maxima.sum())))
         for i in range(d_ev.size):
-                for n in range(nSig):
-                    dummy = scipy.signal.detrend(
-                        inputS[n, d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
-                    if detrend is True:
-                        dummy = scipy.signal.detrend(dummy, type='linear')
-                    dummy -= dummy.mean()
-                    ampTot[n + 1, i] = dummy[
-                        int(self.iwin/2.) : int(3. * self.iwin/2.)].max() - \
-                            dummy[int(self.iwin/2):
-                                  int(3 * self.iwin/2)].min()
-                    if normalize:
-                            dummy /= dummy.std()
-                    csTot[n + 1,: , i] = dummy
-                    # add also the amplitude of the reference signal
-                    dummy = scipy.signal.detrend(
-                        self.sig[d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
-                    if detrend is True:
-                        dummy = scipy.signal.detrend(dummy, type='linear')
-                    ampTot[0, i] = dummy[
-                        int(self.iwin/2) : 3 * int(self.iwin/2)].max() - \
-                            dummy[int(self.iwin/2):
-                                  int(3 * self.iwin/2)].min()
+            for n in range(nSig):
+                dummy = scipy.signal.detrend(
+                    inputS[n, d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
+                if detrend is True:
+                    dummy = scipy.signal.detrend(dummy, type='linear')
+                dummy -= dummy.mean()
+                ampTot[n + 1, i] = dummy[
+                    int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
+                    dummy[int(self.iwin / 2):
+                          int(3 * self.iwin / 2)].min()
+                if normalize:
+                    dummy /= dummy.std()
+                csTot[n + 1, :, i] = dummy
+                # add also the amplitude of the reference signal
+                dummy = scipy.signal.detrend(
+                    self.sig[d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
+                if detrend is True:
+                    dummy = scipy.signal.detrend(dummy, type='linear')
+                ampTot[0, i] = dummy[
+                    int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
+                    dummy[int(self.iwin / 2):
+                          int(3 * self.iwin / 2)].min()
         # now compute the cas
-        cs = np.mean(csTot, axis = 2)
+        cs = np.mean(csTot, axis=2)
         cs[0, :] = csO
-        err = scipy.stats.sem(csTot, axis = 2)
+        err = scipy.stats.sem(csTot, axis=2)
         err[0, :] = errO
         return cs, tau, err, ampTot
-
 
     def waitingTimes(self, Type='LIM', detrend=True, **kwargs):
         """
@@ -460,11 +469,11 @@ class Timeseries(object):
         Results
         -------
         wt : :obj: `ndarray`
-            Waiting times 
+            Waiting times
         qt : :obj: `ndarray`
             Quiescent time. The quiescent time is computed
             differently according to
-            the definition of Sanchez. 
+            the definition of Sanchez.
 
         """
 
@@ -482,14 +491,14 @@ class Timeseries(object):
             csO, tau, errO = self.cas(
                 Type='THRESHOLD',
                 nw=kwargs.get('nw', 501),
-                thrs=kwargs.get('thresh', np.sqrt(self.variance)*2.5), 
+                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 2.5),
                 normalize=kwargs.get('normalize', False),
                 detrend=kwargs.get('detrend', True))
 
         # in this case
         # compute maxima derivative
         maxima = np.zeros(self.nsamp)
-        maxima[self.__locationindex] = 1                
+        maxima[self.__locationindex] = 1
         dEv = np.diff(maxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
@@ -506,7 +515,7 @@ class Timeseries(object):
             else:
                 waiting_times = ti[:] - te[:]
 
-         # repeat for the computation of the quiescent_times       
+         # repeat for the computation of the quiescent_times
         dEv = np.diff(self.__allmaxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
@@ -522,7 +531,7 @@ class Timeseries(object):
                 quiescent_times = ti[1:] - te[0:- 1]
             else:
                 quiescent_times = ti[:] - te[:]
-                    
+
         return waiting_times * self.dt, quiescent_times * self.dt
 
     def pdf(self, bins=10, range=None, weights=None, normed=False, **kwargs):
@@ -530,7 +539,7 @@ class Timeseries(object):
         Computation of the Probability Density function of the signal
 
         Wrapper around histogram function from astropy.stats package.
-        
+
         Parameters
         ----------
         normed :obj: `bool`
@@ -570,210 +579,34 @@ class Timeseries(object):
         astropy.stats.histogram
         """
         if normed:
-            hist, bins_e = Astats.histogram(self.signorm, bins=bins, range=range,
-                                            weights=weights, **kwargs)
+            hist, bins_e = Astats.histogram(
+                self.signorm, bins=bins, range=range,
+                weights=weights, **kwargs)
         else:
-            hist, bins_e = Astats.histogram(self.sig, bins=bins, range=range,
-                                            weights=weights, **kwargs)
+            hist, bins_e = Astats.histogram(
+                self.sig, bins=bins, range=range,
+                weights=weights, **kwargs)
         return hist, bins_e
-                            
-    def _twoGamma(self, x, c1, n1, b1, c2, n2, b2):
-        """
-        
-        Define the sum of two gamma function 
-        according to Eq (1) of 
-        F Sattin et al 2006 Plasma Phys. Control. Fusion 48 1033
 
-        Parameters
-        ----------
-        x : :obj: `ndarray`
-          These are the center of the bins of the PDF
-        C1 : :obj: `float`
-          See the definition of _oneGamma
-        N1 : :obj: `float`
-          See the definition of _oneGamma
-        beta1 : :obj: `float`
-          See the definition of _oneGamma
-        C2 : :obj: `float`
-          See the definition of _oneGamma
-        N2 : :obj: `float`
-          See the definition of _oneGamma
-        beta2 : :obj: `float`
-          See the definition of _oneGamma
-
-        Return
-        ------
-        The function obtained from the sum of two Gammas defind in _oneGamma
-
-        Example
-        -------
-        F = self._twoGamma(x, C1, N1, beta1, C2, N2, beta2)
-        """
-
-        twoG = self._oneGamma(x, c1, n1, b1) + self._oneGamma(x, c2, n2, b2)
-        return twoG
-
-    def _oneGamma(self, x, c1, n1, b1):
-        """
-        Define one gamma function according to the definition in
-        Eq (1) of F Sattin et al 2006
-        Plasma Phys. Control. Fusion 48 1033
-        F = C*(N*beta)^n / Gamma(N)* x^(N-1)*exp(-beta*N*x)
-
-        Parameters
-        ----------
-        x : :obj: `ndarray`
-          These are the center of the bins of the PDF
-        C : :obj: `float`
-          See above equation
-        N : :obj: `float`
-          See above equation
-        beta : :obj: `float`
-          See above equation
-
-        Returns
-        -------
-        The function F
-        
-        Example
-        -------
-        F = self._oneGamma(x, C, N, beta)
-        """
-        return c1 * (n1 * b1) ** (n1) / scipy.special.gamma(n1) * \
-            x ** (n1 - 1) * np.exp(- b1 * n1 * x)
-
-    def twoGammaFit(self, normed=False, **kwargs):
-        """
-        Perform a Fit of the Probability Density Function of the
-        signal according to Eq (1) of paper 
-        F Sattin et al 2006
-        Plasma Phys. Control. Fusion 48 1033        
-
-        F = C1*(N*beta1)^N1 / Gamma(N1)* x^(N1-1)*exp(-beta1*N1*x) + 
-            C2*(N2*beta2)^N2 / Gamma(N2)* x^(N2-1)*exp(-beta2*N2*x)
-
-
-        Parameters
-        ----------
-        normed : :obj: `boolean'
-            If set compute the fit on the PDF of normalized signal
-            (signal-<signal>)/sigma
-        C1 : :obj: `float`, optional
-          Initial value for the parameter C1 [See above equation]
-        N1 : :obj: `float`, optional
-          Initial value for the parameter N1 [See above equation]
-        beta1 : :obj: `float`, optional
-          Initial value for the parameter beta1 [See above equation]
-        C2 : :obj: `float`, optional
-          Initial value for the parameter C1 [See above equation]
-        N2 : :obj: `float`, optional
-          Initial value for the parameter N1 [See above equation]
-        beta2 : :obj: `float`, optional
-          Initial value for the parameter beta1 [See above equation]
-        **kwargs
-          These are the keywords accepted by pdf method
-        Returns
-        -------
-        fit : :obj: 
-            This is the output from lmfit referring to the 2Gamma fit
-        xpdf : :obj: `ndarray`
-            These are the center of the bins
-        pdf : :obj: `ndarray`
-            PDF of the signal which has been fitted
-        fitO : :obj:
-            This is the output from lmfit referring to a 1 Gamma fit
-
-        Example
-        -------
-        fit, x, pdf, fit1 = self.twoGammaFit(normed=True, density=True,
-           bins='freedman', C1=C1, N1=N1, beta1=beta1)
-        """
-                            
-        # first of all compute the pdf with the keyword used
-        if normed:
-            dummy = self.signorm
-            rMax = 6
-        else:
-            dummy = self.sig
-            rMax = dummy.mean() + 6 * dummy.std()
-        # compute the PDF limiting to the equivalent of 6 std
-        pdfT, binT = self.pdf(range=[dummy.min(), rMax], **kwargs)
-
-        xpdfT = (binT[:- 1] + binT[1:]) / 2
-        # eliminate the 0 in pdfT
-        xpdfT = xpdfT[pdfT != 0]
-        pdfT = pdfT[pdfT != 0]
-        # build also the weigths
-        err = np.sqrt(pdfT / (np.count_nonzero((dummy <= rMax)))
-                      * (xpdfT[1] - xpdfT[0]))
-        print('Number of NaN on pdf', np.count_nonzero(np.isnan(pdfT)))
-        print('Number of NaN on x', np.count_nonzero(np.isnan(xpdfT)))
-        print('Number of NaN on err', np.count_nonzero(np.isnan(err)))
-#        from scipy import stats
-        area = pdfT.sum() * (xpdfT[1] - xpdfT[0])
-        m1 = dummy.mean()
-        m2 = scipy.var(dummy)
-#        m3 = stats.skew(dummy)
-#        m4 = stats.kurtosis(dummy, fisher=True)
-        b1 = 1. / m1
-        n1 = 1. / (b1 ** 2 * m2)
-        c1 = area * b1 * (n1 ** n1) / scipy.special.gamma(n1)
-        c2 = 1
-        n2 = 0.5
-        b2 = 2
-        c1 = kwargs.get('C1', c1)
-        n1 = kwargs.get('N1', n1)
-        b1 = kwargs.get('beta1', b1)
-        c2 = kwargs.get('C2', c2)
-        n2 = kwargs.get('N2', n2)
-        b2 = kwargs.get('beta2', b2)
-        print('c1', c1)
-        print('n1', n1)
-        print('b1', b1)
-        print('c2', c2)
-        print('n2', n2)
-        print('b2', b2)
-        
-        # first of all we build the model for the one gamma function and fi
-        oneGMod = lmfit.models.Model(
-            self._oneGamma,
-            independent_vars='x',
-            param_names=(
-                'c1',
-                'n1',
-                'b1'))
-        parsOne = oneGMod.make_params(c1=c1, n1=n1, b1=b1)
-        fitO = oneGMod.fit(pdfT, parsOne, x=xpdfT, weights=1 / err ** 2)
-
-        # now we can build the model
-        twoGMod = lmfit.models.Model(
-            self._twoGamma, independent_vars='x',
-            param_names=('c1', 'n1', 'b1', 'c2', 'n2', 'b2'))
-        pars = twoGMod.make_params(c1=fitO.params['c1'].value,
-                                   n1=fitO.params['n1'].value,
-                                   b1=fitO.params['b1'].value,
-                                   c2=c2, n2=n2, b2=b2)
-        fit = twoGMod.fit(pdfT, pars, x=xpdfT, weights=1 / err ** 2)
-        return fit, xpdfT, pdfT, fitO
-
-
-    def coarse_grain(self, factor,dx=None,integrate=False):
+    def coarse_grain(self, factor, dx=None, integrate=False):
         """
         # TODO: Insert documentation
         """
-                            
+
         if not integrate:
             new_sig = self.sig[::factor]
         else:
-            if factor % 2 == 0: nx = factor + 1
-            else: nx = factor
+            if factor % 2 == 0:
+                nx = factor + 1
+            else:
+                nx = factor
             new_sig = np.zeros(signal[::factor].shape)
             if dx is None:
-                dx = np.ones(self.sig.shape)/(factor + 1*(nx%2))
-            new_sig += (self.sig*dx)[::factor]
-            for i in np.int32(np.arange((nx-1)/2) + 1):
-                new_sig += np.roll(self.sig*dx,i)[::factor]
-                new_sig += np.roll(self.sig*dx,-i)[::factor]
+                dx = np.ones(self.sig.shape) / (factor + 1 * (nx % 2))
+            new_sig += (self.sig * dx)[::factor]
+            for i in np.int32(np.arange((nx - 1) / 2) + 1):
+                new_sig += np.roll(self.sig * dx, i)[::factor]
+                new_sig += np.roll(self.sig * dx, -i)[::factor]
 
         return new_sig
 
@@ -784,8 +617,8 @@ class Timeseries(object):
 
         snf = np.zeros(self.signorm.shape[0])
         for i in np.arange(window):
-            snf -= np.roll(self.signorm,i) + np.roll(self.signorm,-i)
-        snf /= 2*window
+            snf -= np.roll(self.signorm, i) + np.roll(self.signorm, -i)
+        snf /= 2 * window
         snf += self.signorm
         return snf
 
@@ -797,21 +630,22 @@ class Timeseries(object):
         prevnegs = np.zeros(self.nsamp)
         prevposs = np.zeros(self.nsamp)
         snf = np.zeros(self.nsamp)
-        for i in np.arange(1,window):
-            negs = self.signorm - np.roll(self.signorm,i)
-            poss = self.signorm - np.roll(self.signorm,-i)
-            prevnegs[np.where(negs>prevnegs)] = negs[np.where(negs>prevnegs)]
-            prevposs[np.where(poss>prevposs)] = poss[np.where(poss>prevposs)]
-        snf = 0.5*(prevnegs + prevposs)
+        for i in np.arange(1, window):
+            negs = self.signorm - np.roll(self.signorm, i)
+            poss = self.signorm - np.roll(self.signorm, -i)
+            prevnegs[np.where(negs > prevnegs)
+                     ] = negs[np.where(negs > prevnegs)]
+            prevposs[np.where(poss > prevposs)
+                     ] = poss[np.where(poss > prevposs)]
+        snf = 0.5 * (prevnegs + prevposs)
         return snf
-
 
     def acf(self):
         """
-        Compute the autocorrelation function according to 
+        Compute the autocorrelation function according to
         http://stackoverflow.com/q/14297012/190597
         http://en.wikipedia.org/wiki/Autocorrelation#Estimation
-        
+
         Parameters
         ----------
         None
@@ -819,7 +653,7 @@ class Timeseries(object):
         Results
         -------
         Autocorrelation function
-        
+
         Attributes
         ----------
         Define the autocorrelation time as attribute to the class (self.act)
@@ -829,13 +663,12 @@ class Timeseries(object):
         """
         n = self.nsamp
         variance = self.variance
-        xx = self.sig-self.mean
-        r = np.correlate(xx, xx, mode = 'full')[-n:]
-        result = r/(variance*(np.arange(n, 0, -1)))
+        xx = self.sig - self.mean
+        r = np.correlate(xx, xx, mode='full')[-n:]
+        result = r / (variance * (np.arange(n, 0, -1)))
         # define the lag
-        lag = np.arange(result.size, dtype='float')*self.dt
+        lag = np.arange(result.size, dtype='float') * self.dt
         # interpolate
-        S = UnivariateSpline(lag, result-1./np.exp(1), s=0)
-        self.act = S.roots()[0]                    
+        S = UnivariateSpline(lag, result - 1. / np.exp(1), s=0)
+        self.act = S.roots()[0]
         return result
-                            
