@@ -7,6 +7,7 @@ import scipy
 import pycwt as wav
 import lmfit
 import astropy.stats as Astats
+from scipy.interpolate import UnivariateSpline
 
 class Timeseries(object):
     """
@@ -21,6 +22,7 @@ class Timeseries(object):
       signal to be analyzed
     time  : :obj:`ndarray`
       time basis
+
 
     Attributes
     ----------
@@ -608,7 +610,7 @@ class Timeseries(object):
         F = self._twoGamma(x, C1, N1, beta1, C2, N2, beta2)
         """
 
-        twoG = self.oneGamma(x, c1, n1, b1) + self.oneGamma(x, c2, n2, b2)
+        twoG = self._oneGamma(x, c1, n1, b1) + self._oneGamma(x, c2, n2, b2)
         return twoG
 
     def _oneGamma(self, x, c1, n1, b1):
@@ -698,10 +700,15 @@ class Timeseries(object):
         pdfT, binT = self.pdf(range=[dummy.min(), rMax], **kwargs)
 
         xpdfT = (binT[:- 1] + binT[1:]) / 2
+        # eliminate the 0 in pdfT
+        xpdfT = xpdfT[pdfT != 0]
+        pdfT = pdfT[pdfT != 0]
         # build also the weigths
         err = np.sqrt(pdfT / (np.count_nonzero((dummy <= rMax)))
                       * (xpdfT[1] - xpdfT[0]))
-
+        print('Number of NaN on pdf', np.count_nonzero(np.isnan(pdfT)))
+        print('Number of NaN on x', np.count_nonzero(np.isnan(xpdfT)))
+        print('Number of NaN on err', np.count_nonzero(np.isnan(err)))
 #        from scipy import stats
         area = pdfT.sum() * (xpdfT[1] - xpdfT[0])
         m1 = dummy.mean()
@@ -720,6 +727,13 @@ class Timeseries(object):
         c2 = kwargs.get('C2', c2)
         n2 = kwargs.get('N2', n2)
         b2 = kwargs.get('beta2', b2)
+        print('c1', c1)
+        print('n1', n1)
+        print('b1', b1)
+        print('c2', c2)
+        print('n2', n2)
+        print('b2', b2)
+        
         # first of all we build the model for the one gamma function and fi
         oneGMod = lmfit.models.Model(
             self._oneGamma,
@@ -813,12 +827,15 @@ class Timeseries(object):
         value
 
         """
-        n = len(x)
-        variance = x.var()
-        xx = x-x.mean()
+        n = self.nsamp
+        variance = self.variance
+        xx = self.sig-self.mean
         r = np.correlate(xx, xx, mode = 'full')[-n:]
         result = r/(variance*(np.arange(n, 0, -1)))
         # define the lag
-        self.act = None                    
+        lag = np.arange(result.size, dtype='float')*self.dt
+        # interpolate
+        S = UnivariateSpline(lag, result-1./np.exp(1), s=0)
+        self.act = S.roots()[0]                    
         return result
                             
