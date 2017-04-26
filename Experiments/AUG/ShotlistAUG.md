@@ -13,11 +13,12 @@ in particular in L-Mode (less demanding scenario development)
 ### L-Mode: Bt/q95 scan
 
 1.  Reference Shot @ 0.8 MA (e.g. #30269 **EOC shape**) with 0.5 MW NBI starting at
-    the same time of fueling ramp
-2.  Shot at q<sub>95</sub>=4.95 as #1, toroidal field B<sub>t</sub>=1.9T current to
-    be determined
-3.  Shot at q<sub>95</sub>=4.95 I<sub>p</sub>=1.1MA toroidal field accordingly chosen (approximately 3.5T). Still
-    500 kW NBI, increase the fueling rate
+    1.5s of fueling ramp (D2 from 0.1 10<sup>22</sup> @ 2s till 4 @ 5s).
+    Strokes times at 1.9, 2.5, 3.1, 3.7, 4.3
+2.  Shot at q<sub>95</sub>=4.95 as #1, toroidal field B<sub>t</sub>=1.9T I<sub>p</sub> = 610 kA
+    same density ramp same strokes time
+3.  Shot at q<sub>95</sub>=4.95 I<sub>p</sub>=0.91MA toroidal field accordingly
+    chosen (approximately 3.5T). Still 500 kW NBI, increase the fueling rate
 4.  Shot with B<sub>t</sub>=2.5T, I<sub>p</sub> as #3
 5.  Shot with B<sub>t</sub>=2.5T, I<sub>p</sub> as #2
 
