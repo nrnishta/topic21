@@ -4,7 +4,7 @@ import eqtools
 import numpy as np
 import matplotlib as mpl
 import copy
-
+from scipy.signal import savgol_filter
 
 class Filaments(object):
     """
@@ -34,7 +34,10 @@ class Filaments(object):
     def __init__(self, shot, Probe='HFF', Xprobe=None):
         self.shot = shot
         # load the equilibria
-        self.Eq = eqtools.AUGDDData(self.shot)
+        try:
+            self.Eq = eqtools.AUGDDData(self.shot)
+        else:
+            print('Equilibrium not loaded')
         self.Xprobe = Xprobe
         # open the shot file
         self.Probe = Probe
@@ -160,7 +163,8 @@ class Filaments(object):
             else:
                 col='black'
 
-            tip = mpl.pyplot.Circle((self.RZgrid[probe]['x'], self.RZgrid[probe]['z']-self.Zmem), 2, fc=col)
+            tip = mpl.pyplot.Circle((self.RZgrid[probe]['x'],
+                                     self.RZgrid[probe]['z']-self.Zmem), 2, fc=col)
             ax.add_artist(tip)
             ax.text(self.RZgrid[probe]['x']-10, self.RZgrid[probe]['z']-2-self.Zmem, probe,
                     fontsize=8)
@@ -225,6 +229,10 @@ class Filaments(object):
 
         # firs of all limit the isAt and vfFloat to the desired time interval
         isSignal, vfSignal = self._defineTime(trange=trange)
+        if interELM:
+            self._interElmMask = self._interElm()
+
+
         self.blockmin=block[0]
         self.blockmax=block[1]
         if Probe is not self.isName + self.vfName:
@@ -239,11 +247,12 @@ class Filaments(object):
 
         if Probe[:4] == 'Isat':
             # for the ion saturation current
-            # we need to mask for the
-            # 
-            _idx = ((isSignal[Probe]['data'] > self.blockmin) &
+            # we need to mask for the arcless system
+            # and propagate the mask for 
+            self._idx = ((isSignal[Probe]['data'] > self.blockmin) &
                     (isSignal[Probe]['data'] < self.blockmax))
-            dt  = (isSignal[Probe]['t'].max()-isSignal[Probe]['t'].min())/(isSignal[Probe]['t'].size-1)
+            dt  = (isSignal[Probe]['t'].max()-isSignal[Probe]['t'].min())/(
+                isSignal[Probe]['t'].size-1)
             # we need to generate a dummy time basis
             tDummy = np.arange(np.count_nonzero(_idx))*dt + trange[0]
             
@@ -252,6 +261,7 @@ class Filaments(object):
         else:
             self.blob = timeseries.Timeseries(vfSignal[Probe]['data'], isSignal[Probe]['t'])
             self.refSignal = Probe
+            self._idx = None
 
     def _defineTime(self, trange=[2, 3]):
         """
@@ -293,3 +303,40 @@ class Filaments(object):
         qx = np.cos(angle) * px - py *np.sin(angle)
         qy = np.sin(angle) * px + np.cos(angle) * py
         return qx, qy
+
+    def _maskElm(self, usedda=False):
+        """
+        Provide an appropriate mask where we identify
+        both the ELM and inter-ELM regime
+        
+        Parameters
+        ----------
+        usedda : :obj: `bool`
+            Boolean, if True use the default ELM
+            diagnostic ELM in the shotfile
+
+        Returns
+        -------
+        None
+
+        Attributes
+        ----------
+        Define the class hidden attributes 
+        self._elm
+        self._interelm
+        which are the indexes of the ELM and inter
+        ELM intervals
+        """
+
+        if usedda:
+            ELM = dd.shotfile("ELM", self.shot, experiment='AUG')
+            elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
+            t_endELM = elmd.data
+            t_begELM = elmd.time
+            ELM.close()            
+        else:
+            Mac = dd.shotfile("MAC", self.shot, experiment='AUG')
+            Ipol = Mac('Ipolsoli')
+            # now create an appropriate savgolfile
+            Ipol = savgol_filter(Ipol.data, 501, 3)
+            # on these we 

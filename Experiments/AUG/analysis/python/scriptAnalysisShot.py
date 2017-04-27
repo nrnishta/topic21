@@ -1,6 +1,6 @@
 # script in order to compare heating fueling and equilibria
 # for shot at different current/bt/q95 for the proper scan
-from __future__ import print_function
+#from __future__ import print_function
 import numpy as np
 import sys
 import dd
@@ -148,8 +148,9 @@ while loop:
 
     elif selection == 3:
         shotList = (34108, 34115)
-        fig, ax = mpl.pylab.subplots(figsize=(8, 14), nrows=2, ncols=1, sharex=True)
-        for shot, i in zip(shotlist, range(len(shotList))):
+        fig, ax = mpl.pylab.subplots(figsize=(8, 10),
+                                     nrows=2, ncols=1, sharex=True)
+        for shot, i in zip(shotList, range(len(shotList))):
             FPG = dd.shotfile('FPG', shot)
             Wmhd = FPG('Wmhd')
             FPG.close()
@@ -159,12 +160,15 @@ while loop:
             # interpolate h5 on the same time basis of Wmh
             S = UnivariateSpline(h5.time, h5.data/1e19, s=0)
             _id=np.where(((Wmhd.time >= 3) & (Wmhd.time <= 6.3)))[0]
-            ax[i].plot(S(Wmhd.time[_id]), Wmhd[_id]/1e5)
+            ax[i].plot(S(Wmhd.time[_id]), Wmhd.data[_id]/1e5)
+            ax[i].text(0.7, 0.9, 'Shot # %5i' %shot,
+                       transform=ax[i].transAxes)
         ax[0].axes.get_xaxis().set_visible(False)
         ax[0].set_ylabel(r'W$_{mhd}[10^5$ J]')
         ax[1].set_ylabel(r'W$_{mhd}[10^5$ J]')
-        ax[1].set_xlabel(r'$\overbar{n_e}$ H-5 [10$^$19$m$^{-3}$]')
-        ax[1].set_xlim([1, 8])
+        ax[1].set_xlabel(r'$\overline{n_e}$ H-5 [10$^{19}$m$^{-3}$]')
+        ax[1].set_xlim([2, 7])
+        
         mpl.pylab.savefig('../pdfbox/DegradedHMode.pdf', bbox_to_inches='tight')
     elif selection == 99:
         loop = False
