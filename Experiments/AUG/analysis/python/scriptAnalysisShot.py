@@ -148,9 +148,12 @@ while loop:
 
     elif selection == 3:
         shotList = (34108, 34115)
+        tmaxL=(6.33, 6.26)
         fig, ax = mpl.pylab.subplots(figsize=(8, 10),
                                      nrows=2, ncols=1, sharex=True)
-        for shot, i in zip(shotList, range(len(shotList))):
+        for shot, i, tm in zip(shotList,
+                               range(len(shotList)),
+                               tmaxL):
             FPG = dd.shotfile('FPG', shot)
             Wmhd = FPG('Wmhd')
             FPG.close()
@@ -159,7 +162,7 @@ while loop:
             dcn.close
             # interpolate h5 on the same time basis of Wmh
             S = UnivariateSpline(h5.time, h5.data/1e19, s=0)
-            _id=np.where(((Wmhd.time >= 3) & (Wmhd.time <= 6.3)))[0]
+            _id=np.where(((Wmhd.time >= 3) & (Wmhd.time <= tm)))[0]
             ax[i].plot(S(Wmhd.time[_id]), Wmhd.data[_id]/1e5)
             ax[i].text(0.7, 0.9, 'Shot # %5i' %shot,
                        transform=ax[i].transAxes)
