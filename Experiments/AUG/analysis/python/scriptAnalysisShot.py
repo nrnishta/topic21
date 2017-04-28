@@ -7,6 +7,7 @@ import dd
 import itertools
 import matplotlib as mpl
 from scipy.interpolate import UnivariateSpline
+import pandas as pd
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font',**{'family':'sans-serif','sans-serif':['Tahoma']})
@@ -16,6 +17,7 @@ def print_menu():
     print "1. Li-Beam density profile Ip scan constant q95"
     print "2. Li-Beam density profile Ip scan constant Bt"
     print "3. Degraded H-Mode Wmhd vs Edge density"
+    print "4. Radiation profiles "
     print "99: End"
     print 67 * "-"
 loop = True
@@ -171,8 +173,41 @@ while loop:
         ax[1].set_ylabel(r'W$_{mhd}[10^5$ J]')
         ax[1].set_xlabel(r'$\overline{n_e}$ H-5 [10$^{19}$m$^{-3}$]')
         ax[1].set_xlim([2, 7])
-        
         mpl.pylab.savefig('../pdfbox/DegradedHMode.pdf', bbox_to_inches='tight')
+    elif selection == 4:
+        shotL = (34108, 34115)
+        diodsL = ['S2L3A00','S2L3A01','S2L3A02','S2L3A03', 
+         'S2L3A12','S2L3A13','S2L3A14','S2L3A15', 
+         'S2L3A08','S2L3A09','S2L3A10','S2L3A11', 
+         'S2L3A04','S2L3A05','S2L3A06','S2L3A07']
+        fig, ax = mpl.pylab.subplots(figsize=(8, 12),
+                                     nrows=2, ncols=1)
+        for shot, _is in zip(shotL, range(len(shotL))):
+            Xvs = dd.shotfile('XVS', shot)
+            t = Xvs(diodsL[0]).time
+            nsamp = t.size
+            diods = np.zeros((len(diodsL), nsamp))
+            for d, i in zip(diodsL, range(len(diodsL))):
+                _dummy = Xvs(d).data-Xvs(d).data[1000:50000].mean()
+                diods[i, :] = pd.rolling_mean(_dummy, 5000)
+                del _dummy
+            # now create the appropriate image
+            # limit to a smaller time intervals since
+            # we only need the end
+            _idx = np.where((t>= 5.5) & (t<= 6.3))[0]
+            ax[_is].imshow(diods[:, _idx],
+                      origin='lower', aspect='auto',
+                      extent=(5.5, 6.3, 1, 17), cmap=mpl.cm.jet,
+                      interpolation='bilinear')
+
+            ax[_is].text(0.2, 0.9, r'Shot # %5i' % shot,
+                         color='white',
+                         transform=ax[_is].transAxes)
+            del diods
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[1].set_xlabel(r't[s]')
+        mpl.pylab.savefig('../pdfbox/RadiationDegradedHmode.pdf',
+                          rasterize=True, bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:
