@@ -36,7 +36,7 @@ class Filaments(object):
         # load the equilibria
         try:
             self.Eq = eqtools.AUGDDData(self.shot)
-        else:
+        except:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
         # open the shot file
@@ -235,7 +235,7 @@ class Filaments(object):
 
         self.blockmin=block[0]
         self.blockmax=block[1]
-        if Probe is not self.isName + self.vfName:
+        if Probe not in self.isName + self.vfName:
             print('Available Ion saturation current signals are')
             for p in self.isName:
                 print p
@@ -254,9 +254,9 @@ class Filaments(object):
             dt  = (isSignal[Probe]['t'].max()-isSignal[Probe]['t'].min())/(
                 isSignal[Probe]['t'].size-1)
             # we need to generate a dummy time basis
-            tDummy = np.arange(np.count_nonzero(_idx))*dt + trange[0]
+            tDummy = np.arange(np.count_nonzero(self._idx))*dt + trange[0]
             
-            self.blob = timeseries.Timeseries(isSignal[Probe]['data'][_idx], tDummy)
+            self.blob = timeseries.Timeseries(isSignal[Probe]['data'][self._idx], tDummy)
             self.refSignal = Probe
         else:
             self.blob = timeseries.Timeseries(vfSignal[Probe]['data'], isSignal[Probe]['t'])
