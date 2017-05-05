@@ -558,14 +558,22 @@ while loop:
         colorL = ('#C90015', '#7B0Ce7', '#F0CA37')
         fig, ax = mpl.pylab.subplots(figsize=(14, 14), nrows=2, ncols=2)
         for shot, ip, _col in zip(shotQ95L, currentL, colorL):
+
             Probe = augFilaments.Filaments(shot)
             if shot == 34103:
-                trange = [3.5, 3.6]
+                trange = [3.48, 3.53]
             else:
                 trange = [3.7, 3.8]
+            dcn = dd.shotfile('DCN', shot)
+            h5 = dcn('H-5')           
+            en = h5.data[np.where(
+                    ((h5.time >= trange[0]) &
+                     (h5.time <= trange[1])))[0]].mean()/1e19
+            dcn.close()
             Probe.blobAnalysis(Probe='Isat_m06', trange=trange, block=[0.015, 0.5])
             h, b = Probe.blob.pdf(bins='freedman', density=True, normed=True)
-            ax[0, 0].plot((b[1:]+b[:-1])/2, h, color=_col, lw=3, label=r'I$_p$=%1.2f' % ip)
+            ax[0, 0].plot((b[1:]+b[:-1])/2, h, color=_col, lw=3, label=r'I$_p$=%1.2f' % ip +
+                          r' $\overline{n}_e$ = %2.1f' % en)
 
             ax[1, 0].plot(ip, Probe.blob.act*1e6, 's', color=_col, ms=15)
 
@@ -574,8 +582,9 @@ while loop:
         ax[0, 0].set_title(r'Constant q$_{95}$')
         ax[1, 0].set_xlabel(r'I$_p$ [MA]')
         ax[1, 0].set_ylabel(r'$\tau_{ac} [\mu$s]')
-        ax[1, 0].set_ylim([20, 150])
+        ax[1, 0].set_ylim([5, 120])
         ax[1, 0].set_xlim([0.5, 1.1])
+        ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
         # repeat the same for constant Bt
         shotBtL = (34105, 34102, 34106)
         currentL = (0.6, 0.8, 0.99)
@@ -586,9 +595,16 @@ while loop:
                 trange = [3.1, 3.2]
             else:
                 trange = [3.7, 3.8]
+            dcn = dd.shotfile('DCN', shot)
+            h5 = dcn('H-5')
+            en = h5.data[np.where(
+                    ((h5.time >= trange[0]) &
+                     (h5.time <= trange[1])))[0]].mean()/1e19
+            dcn.close()
             Probe.blobAnalysis(Probe='Isat_m06', trange=trange, block=[0.015, 0.5])
             h, b = Probe.blob.pdf(bins='freedman', density=True, normed=True)
-            ax[0, 1].plot((b[1:]+b[:-1])/2, h, color=_col, lw=3, label=r'I$_p$=%1.2f' % ip)
+            ax[0, 1].plot((b[1:]+b[:-1])/2, h, color=_col, lw=3, label=r'I$_p$=%1.2f' % ip +
+                          r' $\overline{n}_e$ = %2.1f' % en)
 
             ax[1, 1].plot(ip, Probe.blob.act*1e6, 's', color=_col, ms=15)
 
@@ -597,7 +613,8 @@ while loop:
         ax[0, 1].set_title(r'Constant B$_t$')
         ax[1, 1].set_xlabel(r'I$_p$ [MA]')
         ax[1, 1].set_ylabel(r'$\tau_{ac} [\mu$s]')
-        ax[1, 1].set_ylim([20, 150])
+        ax[0, 1].legend(loc='best', numpoints=1, frameon=False)
+        ax[1, 1].set_ylim([5, 120])
         ax[1, 1].set_xlim([0.5, 1.1])
         mpl.pylab.savefig('../pdfbox/ScalingAutoCorrelation.pdf',
                           bbox_to_inches='tight')
@@ -628,6 +645,30 @@ while loop:
         ax[1].set_xlabel(r'$\overline{n_e}$ H-5 [10$^{19}$m$^{-3}$]')
         ax[1].set_xlim([2, 7])
         mpl.pylab.savefig('../pdfbox/DegradedHMode.pdf', bbox_to_inches='tight')
+
+        # Create a plot also for each of the figure
+        for shot, i, tm in zip(shotList,
+                               range(len(shotList)),
+                               tmaxL):
+            fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+            fig.subplots_adjust(bottom=0.15)
+            FPG = dd.shotfile('FPG', shot)
+            Wmhd = FPG('Wmhd')
+            FPG.close()
+            dcn = dd.shotfile('DCN', shot)
+            h5 = dcn('H-5')
+            dcn.close
+            # interpolate h5 on the same time basis of Wmh
+            S = UnivariateSpline(h5.time, h5.data/1e19, s=0)
+            _id=np.where(((Wmhd.time >= 3) & (Wmhd.time <= tm)))[0]
+            ax.plot(S(Wmhd.time[_id]), Wmhd.data[_id]/1e5)
+            ax.text(0.6, 0.9, 'Shot # %5i' %shot,
+                    transform=ax.transAxes)
+            ax.set_ylabel(r'W$_{mhd}[10^5$ J]')
+            ax.set_ylabel(r'W$_{mhd}[10^5$ J]')
+            ax.set_xlabel(r'$\overline{n_e}$ H-5 [10$^{19}$m$^{-3}$]')
+            ax.set_xlim([2, 7])
+            mpl.pylab.savefig('../pdfbox/DegradedHModeShot'+str(int(shot))+'.pdf', bbox_to_inches='tight')
 
     elif selection == 11:
         shotL = (34108, 34115)
