@@ -1,17 +1,241 @@
 import numpy as np
-import scipy 
-import pycwt as wav
 import lmfit
+import astropy.stats as Astats
+import pint
+
 
 class wtFit(object):
     """
     Class to provide different possible fit of
     waiting times and quiescent times
+    fit
 
-    def __init__(self, )"""
+    Requirements
+    ------------
+    - Astropy for better histogram function
+    - lmfit for fitting procedure
+    - pint: to handle proper conversion between time
+
+    """
+
+    def __init__(self, wt, qt=None, units=None):
+        """
+        Parameters
+        ----------
+        wt : :obj: `ndarray`
+            Computed waiting times whose distribution needs to
+            be analyzed
+
+        qt : :obj: `ndarray` Optional
+            If provided execute the analysis and fit also on the
+            quiescent time as defined in Sanchez R, Newman D E
+            and Carreras B A 2002 Phys. Rev. Lett. 88 068302
+
+        units : :obj: `string`
+            measurements units of the waiting times input. Can be
+            `seconds`, `milliseconds`, `microseconds`
+
+        Attributes
+        ----------
+        units : :obj: 'units'
+            Unit values for the waiting and eventually quiescent time
+            see. Pint documentation
+
+        Beware by default conversion of waiting times to microseconds is
+        performed
+        """
+
+        if units is None:
+            units = 'seconds'
+        ureg = pint.UnitRegistry()
+        # naturally convert to microseconds
+        self.Wt = wt.copy()*ureg(units).to('microseconds')
+        if qt is not None:
+            self.At = qt.copy()*ureg(units).to('microseconds')
+            self.at = self.At.magnitude
+        self.wt = self.Wt.magnitude
+        self.units = self.Wt.units
+
+    def pdf(self, x, bins=10, range=None, weights=None,
+            log=False, **kwargs):
+        """
+        Computation of the Probability Density function of the signal
+
+        Wrapper around histogram function from astropy.stats package.
+
+        Parameters
+        ----------
+
+        x : :obj: `ndarray`
+            Variable for the computation of the probability density
+            function
+
+        bins : :obj: `int` or `list` or `str` (optional)
+            If bins is a string, then it must be one of:
+
+            - 'blocks' : use bayesian blocks for dynamic bin widths
+
+            - 'knuth' : use Knuth's rule to determine bins
+
+            - 'scott' : use Scott's rule to determine bins
+
+            - 'freedman' : use the Freedman-Diaconis rule to determine bins
+
+        range : tuple or None (optional)
+            the minimum and maximum range for the histogram.  If not specified,
+            it will be (x.min(), x.max())
+
+        log : :obj: `bool`
+            Default is False. If True and used with integer bins
+            compute logarithmically spaced bins
+
+        weights : array_like, optional
+            Not Implemented
+
+        other keyword arguments are described in numpy.histogram().
+
+        Returns
+        -------
+        hist : array
+            The values of the histogram. See ``normed`` and ``weights`` for a
+            description of the possible semantics.
+        bin_edges : array of dtype float
+            Return the bin edges ``(length(hist)+1)``.
+
+        See Also
+        --------
+        numpy.histogram
+        astropy.stats.histogram
+        """
+        if log:
+            if range is None:
+                range = [x.min(), x.max()]
+            if not isinstance(bins, int):
+                print('Warning log bins only with nbins as int')
+                print('Assuming 20 bins')
+                nb = 20
+            else:
+                nb = bins
+            bins = np.logspace(np.log10(range[0]), np.log10(range[1]), nb)
+        hist, bins_e = Astats.histogram(
+            x, bins=bins, range=range,
+            weights=weights, **kwargs)
+        return hist, bins_e
+
+    def levyFit(self, amp=100., mu=1., norm=1e6, quiet=False,
+                **kwargs):
+        """
+        Fit the Waiting times (or eventually the quiescent time)
+        distribution with a
+        Levy type function as defined in Lepreti et al,  ApJ 55: L133 eq. 6
+        .. math::
+        P(\Delta t ) =
+            \frac{1}{\pi}\int_0^{\infty}\cos(z\Delta t)\exp(-a|z|^{\mu})dz.
 
 
-    def levyFunction(self, x, a, mu, norm):
+        Parameters
+        ----------
+        amp : :obj: `Float`
+            amplitude for the fit. Default is 100
+
+        mu : :obj: `Float`
+            See the defintion of the Function. Default is 1
+
+        norm : :obj: Float`
+            See the definition of the function. Default is 1e6
+
+        quiet : :obj: `Boolean`
+            Default is false. If it is True compute the fit on quiescent time
+
+        other keyword arguments are described in self.pdf() or in the
+        lmfit.Model.model.fit()
+
+        Returns
+        -------
+        fit (as output from lmfit),  pdf, bins, err
+
+        """
+        if quiet:
+            print('Levy fit on quiescent times')
+            us = self.at.copy()
+        else:
+            print('Levy fit on waiting times')
+            us = self.wt.copy()
+
+        pdf, bins = self.pdf(us, **kwargs)
+        err = np.sqrt(pdf / (us.size * (bins[1] - bins[0])))
+        # and now perform the real fit
+        levyMod = lmfit.models.Model(self._levyFunction,
+                                     independent_vars='x',
+                                     param_names=('a', 'mu', 'norm'),
+                                     missing='drop')
+        pars = levyMod.make_params(a=amp, mu=mu, norm=norm)
+        pars['mu'].set(min=0, max=2)
+        fit = levyMod.fit(pdf,
+                          pars,
+                          x=(bins[1:]+bins[:-1])/2.,
+                          weights=1 / (err)**2, **kwargs)
+        return fit, pdf, bins, err
+
+    def powerCutFit(self, amp=1e-2, a=1.5, tc=200, quiet=False,
+                    **kwargs):
+        """
+        Fit the Waiting times (or eventually the quiescent time)
+        distribution with a
+        Truncated power law as done in R. D'Amicis et al,
+        Ann. Geophysics **24** 2735 (2006)
+        .. math::
+        P(\Delta t ) =
+            A\Delta t^{-\alpha} \exp(-\Delta t/T_c).
+
+
+        Parameters
+        ----------
+        amp : :obj: `Float`
+            amplitude for the fit. Default is 1e-2
+
+        a : :obj: `Float`
+            Scaling of the power law. Default is 1.5
+
+        tc : :obj: `Float`
+            Exponential cut
+
+        quiet : :obj: `Boolean`
+            Default is false. If it is True compute the fit on quiescent time
+
+        other keyword arguments are described in self.pdf()
+
+        Returns
+        -------
+        other keyword arguments are described in self.pdf() or in the
+        lmfit.Model.model.fit()
+
+        Examples
+        --------
+        """
+
+        if quiet:
+            print('Levy fit on quiescent times')
+            us = self.at.copy()
+        else:
+            print('Levy fit on waiting times')
+            us = self.wt.copy()
+
+        pdf, bins = self.pdf(us, **kwargs)
+        err = np.sqrt(pdf / (us.size * (bins[1] - bins[0])))
+        # and now we define the appropriate model
+        powCutMod = lmfit.models.Model(self._powerCut, independent_vars='x',
+                                       param_names=('amp', 'a', 'tc'),
+                                       missing='drop')
+        # now the default parameter choice
+        pars = powCutMod.make_params(amp=amp, a=a, tc=tc)
+        fit = powCutMod.fit(pdf,
+                            pars,
+                            x=(bins[1:]+bins[:-1])/2.,
+                            weights=1./(err)**2, **kwargs)
+        return fit, pdf, bins, err
+
+    def _levyFunction(self, x, a, mu, norm):
         """
         For the definition of the appropriate levy Function used for
         the fit consider the article F.Lepreti, ApJ
@@ -20,141 +244,10 @@ class wtFit(object):
             return 1. / np.pi * np.cos(z * xd) * np.exp(- amp * np.abs(z) ** m)
         from scipy.integrate import quad
         levF = norm * np.asarray([quad(integrandI, 0,
-                                       np.inf, args=(x[i], a, mu))[0] for i in range(x.size)])
+                                       np.inf, args=(x[i], a, mu))[0]
+                                  for i in range(x.size)])
         return levF
 
-    def levyFit(self, **kwargs):
-
-        """
-        Fit the Waiting times (or eventually the quiescent time) distribution with a
-        Levy type function as defined in Lepreti et al,  ApJ 55: L133
-
-        Parameters
-        ----------
-        None. Method working on the defined function
-
-        Keywords
-        ----------
-        amp = amplitude for the fit. Default is 100
-        mu  = See the defintion of the Function. Default is 1
-        norm = See the definition of the function. Default is 1e6
-        peak = Boolean (default is false). In this way you use the peak in the
-               determination of the structure where the waiting times are computed
-        valley = Boolean (default is false).In this way you use the peak in the
-               determination of the structure where the waiting times are computed
-        b99 = Boolean default is True. Compute the threshold according to Boffetta paper
-        thr = Floating. If set it gives directly the threshold. If set automatically exclude the B99 method
-        resolution = resolution in coars-graining for the loop in determining the threshold
-        factor = Default is 2. It is used for the method
-        iterM = Maximum possible iteration
-        quiet = Boolean. Default is false. If it is True compute the fit on quiescent time
-        Returns
-        -------
-        fit (as output from lmfit),  pdf, bins, err
-
-        Examples
-        --------
-        """
-
-
-
-        amp = kwargs.get('amp', 100.)
-        mu = kwargs.get('mu', 1.)
-        norm = kwargs.get('norm', 1e6)
-        # insert a boolean label so that we can use the levyFit on
-        # quiescent_times
-        quiet = kwargs.get('qt', False)
-        # now we need to perform the Waiting time distribution
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        # these is the resolution in the coars - graining
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() - self.sig.min()) / 100.)
-        # this is a factor used in the b99 method.  Default = 2
-        factor = kwargs.get('factor', 2)
-        iterM = kwargs.get('iterM', 40)
-        wt, at = self.waitingTimes(peak=self.peak, valley=self.valley, b99=b99,
-                                   thr=thr, resolution=resolution,
-                                   factor=factor, iterM=iterM)
-
-        # this is where you use the boolean
-        if quiet:
-            print('Levy fit on quiescent times')
-            us = at.copy()
-        else:
-            print('Levy fit on waiting times')
-            us = wt.copy()
-        # now build the pdf based on a logarithmic scale
-        xmin = kwargs.get('xmin', us.min())
-        xmax = kwargs.get('xmax', us.max())
-        nb = kwargs.get('nbins', 30)
-        bb = np.logspace(np.log10(xmin), np.log10(xmax), nb)
-        pdf, bins = np.histogram(us, bins=bb, density=True)
-        err = np.sqrt(pdf / (us.size * (bins[1] - bins[0])))
-        # and now perform the real fit
-        levyMod = lmfit.models.Model(self.levyFunction,
-                                     independent_vars='x',
-                                     param_names=('a', 'mu', 'norm'))
-        pars = levyMod.make_params(a=amp, mu=mu, norm=norm)
-        pars['mu'].set(min=0, max=2)
-        fit = levyMod.fit(pdf / 1e6,
-                          pars,
-                          x=bins[1:] * 1e6,
-                          weights=1 / (err / 1e6)**2)
-        return fit, pdf / 1e6, bins * 1e6, err / 1e6
-
-    def powerCutFit(self, **kwargs):
-        # now we need to perform the Waiting time distribution
-        self.peak = kwargs.get('peak', False)
-        self.valley = kwargs.get('valley', False)
-        b99 = kwargs.get('b99', False)
-        thr = kwargs.get('thr', None)
-        resolution = kwargs.get('resolution',
-                                (self.sig.max() -
-                                 self.sig.min()) / 100.)  # these is the
-        # resolution in the coars - graining
-        # this is a factor used in the b99 method.
-        factor = kwargs.get('factor', 2)
-        # Default = 2
-        iterM = kwargs.get('iterM', 40)
-        quiet = kwargs.get('quiet', False)
-
-
-        wt, at = self.waitingTimes(peak=self.peak, valley=self.valley, b99=b99,
-                                   thr=thr, resolution=resolution,
-                                   factor=factor, iterM=iterM)
-        if quiet:
-            print('Levy fit on quiescent times')
-            us = at.copy()
-        else:
-            print('Levy fit on waiting times')
-            us = wt.copy()
-        # now build the pdf based on a logarithmic scale
-        xmin = kwargs.get('xmin', us.min())
-        xmax = kwargs.get('xmax', us.max())
-        nb = kwargs.get('nbins', 30)
-        bb = np.logspace(np.log10(xmin), np.log10(xmax), nb)
-        pdf, bins = np.histogram(us, bins=bb, density=True)
-        err = np.sqrt(
-            pdf / (np.count_nonzero(((us >= xmin) & (us <= max))) * (bins[1] - bins[0])))
-        # now we define the appropriate fitting function
-
-        def powerCut(x, amp, a, tc):
-            a *= -1
-            return amp * x**a * np.exp(-x / tc)
-        # and now we define the appropriate model
-        powCutMod = lmfit.models.Model(powerCut, indepentent_vars='x',
-                                       param_names=('amp', 'a', 'tc'))
-        # now the default parameter choice
-        amp = kwargs.get('amp', 1e-2)
-        a = kwargs.get('a', 1.5)
-        tc = kwargs.get('tc', 200)
-        pars = powCutMod.make_params(amp=amp, a=a, tc=tc)
-        fit = powCutMod.fit(pdf / 1e6,
-                            pars,
-                            x=bins[1:] * 1e6,
-                            weights=1. / (err / 1e6)**2)
-        return fit, pdf / 1e6, bins * 1e6, err / 1e6
-    
+    def _powerCut(self, x, amp, a, tc):
+        a *= -1
+        return amp * x**a * np.exp(-x / tc)
