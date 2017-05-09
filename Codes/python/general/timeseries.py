@@ -7,6 +7,7 @@ import scipy
 import pycwt as wav
 import astropy.stats as Astats
 from scipy.interpolate import UnivariateSpline
+import copy
 
 
 class Timeseries(object):
@@ -40,8 +41,8 @@ class Timeseries(object):
 
     def __init__(self, signal, time):
 
-        self.sig = signal
-        self.time = time
+        self.sig = copy.deepcopy(signal)
+        self.time = copy.deepcopy(time)
         self.dt = (self.time.max() - self.time.min()) / (self.time.size - 1)
         self.nsamp = self.time.size
         self.signorm = (self.sig - self.sig.mean()) / self.sig.std()
@@ -218,6 +219,7 @@ class Timeseries(object):
             nw=None,
             detrend=True,
             normalize=False,
+            thresh=None,
             **kwargs):
         """
         Conditional Average Sampling
@@ -271,17 +273,17 @@ class Timeseries(object):
             self.__locationindex = (maxima == 1)
             self.__allmaxima = allmax
             if nw is None:
-                nw = np.round(1. / self.freq / self.dt)
+                nw = np.int(np.round(2. / self.freq / self.dt))
             if nw % 2 == 0:
                 iwin = nw / 2
                 nw += 1
             else:
                 iwin = (nw - 1) / 2
-
+            iwin = np.int(iwin)
             maxima[0: iwin - 1] = 0
-            maxima[- iwin:] = 0
+            maxima[-iwin:] = 0
             print 'Number of structures mediated ' + str(maxima.sum())
-            csTot = np.ones((nw, maxima.sum()))
+            csTot = np.ones((int(nw), np.sum(maxima, dtype='int')))
             d_ev = np.asarray(np.where(maxima >= 1))
             for i in range(d_ev.size):
                 if detrend is True:
@@ -304,22 +306,24 @@ class Timeseries(object):
                 csTot[:, i] = _dummy
 
         else:
-            thresh = kwargs.get('thresh', np.sqrt(self.variance) * 2.5)
+            if thresh is None:
+                thresh = 3*np.sqrt(self.variance)+self.mean
             if nw is None:
                 print('Window length not set assumed 501 points')
                 nw = 501
             if nw % 2 == 0:
                 nw += 1
             Nbursts, ratio, av_width, windows = self.identify_bursts(thresh)
-            csTot = np.ones((nw, len(windows)))
+            csTot = np.ones((nw, Nbursts))
             inds = []
             self.__allmaxima = np.zeros(self.nsamp)
-            for window, i in zip(windows, range(len(windows))):
+            for window, i in zip(windows, range(Nbursts)):
                 self.__allmaxima[window[0]:window[1]] = 1
                 ind_max = np.where(
                     self.sig[window[0]:window[1]] ==
                     np.max(self.sig[window[0]:window[1]]))[0][0]
-                if (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
+                if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
+                   (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
                     _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
                                       window[0] + ind_max + (nw - 1) / 2 + 1]
                     if detrend is True:
@@ -425,7 +429,8 @@ class Timeseries(object):
         for i in range(d_ev.size):
             for n in range(nSig):
                 dummy = scipy.signal.detrend(
-                    inputS[n, d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
+                    inputS[n, d_ev[0][i] - self.iwin:
+                           d_ev[0][i] + self.iwin + 1])
                 if detrend is True:
                     dummy = scipy.signal.detrend(dummy, type='linear')
                 dummy -= dummy.mean()
@@ -438,7 +443,8 @@ class Timeseries(object):
                 csTot[n + 1, :, i] = dummy
                 # add also the amplitude of the reference signal
                 dummy = scipy.signal.detrend(
-                    self.sig[d_ev[0][i] - self.iwin: d_ev[0][i] + self.iwin + 1])
+                    self.sig[d_ev[0][i] -
+                             self.iwin: d_ev[0][i] + self.iwin + 1])
                 if detrend is True:
                     dummy = scipy.signal.detrend(dummy, type='linear')
                 ampTot[0, i] = dummy[
@@ -491,7 +497,8 @@ class Timeseries(object):
             csO, tau, errO = self.cas(
                 Type='THRESHOLD',
                 nw=kwargs.get('nw', 501),
-                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 2.5),
+                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 3 +
+                                self.mean),
                 normalize=kwargs.get('normalize', False),
                 detrend=kwargs.get('detrend', True))
 
@@ -515,7 +522,7 @@ class Timeseries(object):
             else:
                 waiting_times = ti[:] - te[:]
 
-         # repeat for the computation of the quiescent_times
+        # repeat for the computation of the quiescent_times
         dEv = np.diff(self.__allmaxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
