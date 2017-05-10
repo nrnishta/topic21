@@ -28,10 +28,14 @@ class Multifractal(object):
     lmfit http://lmfit.github.io/lmfit-py/index.html
     pycwt
     astropy
+
+    To Do
+    -----
+    - Add the stretched function fit
+    - Add the computation of fractal dimension
     """
 
     def __init__(self, signal, time, frequency=100e3, wavelet='Mexican'):
-
         """
 
         Parameters
@@ -63,8 +67,8 @@ class Multifractal(object):
         self.sig = signal.copy()
         self.nsamp = signal.size
         self.time = time.copy()
-        self.dt = (time.max()-time.min())/(self.nsamp-1)
-        self.Fs = 1./self.dt
+        self.dt = (time.max() - time.min()) / (self.nsamp - 1)
+        self.Fs = 1. / self.dt
         self.cwt()
 
     def cwt(self):
@@ -86,11 +90,11 @@ class Multifractal(object):
         """
         try:
             wt, sc, freqs, coi, fft, fftfreqs = wav.cwt(
-                    self.sig, self.dt, 0.25, self.scale, 0, self.mother)
+                self.sig, self.dt, 0.25, self.scale, 0, self.mother)
             self.wt = np.real(np.squeeze(wt))
-            self.wtN = (self.wt-self.wt.mean())/self.wt.std()
+            self.wtN = (self.wt - self.wt.mean()) / self.wt.std()
             return True
-        except:
+        except BaseException:
             return False
 
     def lim(self):
@@ -174,16 +178,16 @@ class Multifractal(object):
         """
 
         hist, bins_e = Astats.histogram(
-                self.wtN, bins=bins, range=xrange,
-                weights=weights, density=True, **kwargs)
-        xpdf = (bins_e[1:]+bins_e[:-1])/2.
+            self.wtN, bins=bins, range=xrange,
+            weights=weights, density=True, **kwargs)
+        xpdf = (bins_e[1:] + bins_e[:-1]) / 2.
         if xrange is None:
-                xrange = [self.wtN.min(), self.wtN.max()]
+            xrange = [self.wtN.min(), self.wtN.max()]
         err = np.sqrt(hist / (
-                np.count_nonzero(
-                        ((self.wtN >=
-                          xrange[0]) &
-                         (self.wtN <= xrange[1]))) * (bins_e[1] - bins_e[0])))
+            np.count_nonzero(
+                ((self.wtN >=
+                      xrange[0]) &
+                     (self.wtN <= xrange[1]))) * (bins_e[1] - bins_e[0])))
         return hist, xpdf, err
 
     def castaingFit(self, s0=0.1, l=1, am=10, xrange=[-4.5, 4.5],
@@ -298,9 +302,9 @@ class Multifractal(object):
         def integrand(sigma, s, lamb, dv, skw):
             return 1. / 2 * np.pi / lamb * np.exp(
                 -np.log(sigma / s) ** 2 / 2 / lamb ** 2) * 1. / sigma * np.exp(
-                        - dv ** 2 / 2 / sigma ** 2 *
-                        (1 + skw * ((dv / sigma) /
-                                    np.sqrt(1. + dv ** 2 / sigma ** 2))))
+                - dv ** 2 / 2 / sigma ** 2 *
+                (1 + skw * ((dv / sigma) /
+                            np.sqrt(1. + dv ** 2 / sigma ** 2))))
 
         # for proper integration in \sigma define
         from scipy.integrate import quad
