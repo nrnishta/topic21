@@ -3,6 +3,7 @@ import numpy as np
 import pycwt as wav
 import scipy
 import astropy.stats as Astats
+import copy
 
 
 class Multifractal(object):
@@ -53,20 +54,20 @@ class Multifractal(object):
         """
 
         if wavelet == 'Mexican':
-            self.mother = wav.Mexican_hat()
+            self.mother = wav.MexicanHat()
         elif wavelet == 'DOG1':
             self.mother = wav.DOG(m=1)
         elif wavelet == 'Morlet':
             self.mother = wav.Morlet()
         else:
             print 'Not a valid wavelet using Mexican'
-            self.mother = wav.Mexican_hat()
+            self.mother = wav.MexicanHat()
         # inizializza l'opportuna scala
-        self.fr = frequency.copy()
+        self.fr = frequency
         self.scale = 1. / self.mother.flambda() / self.fr
-        self.sig = signal.copy()
+        self.sig = copy.deepcopy(signal)
         self.nsamp = signal.size
-        self.time = time.copy()
+        self.time = copy.deepcopy(time)
         self.dt = (time.max() - time.min()) / (self.nsamp - 1)
         self.Fs = 1. / self.dt
         self.cwt()
@@ -228,15 +229,15 @@ class Multifractal(object):
             self._castaing,
             independent_vars='x',
             param_names=(
-                's0',
-                'l',
-                'sk',
-                'am'))
+                    's0',
+                    'l',
+                    'sk',
+                    'am'), missing='drop')
         # initialize the parameters
         pars = csMod.make_params(s0=s0, l=l, sk=sk, am=am)
         # compute the PDF
-        pdf, x, err = self.pdf(xrange=xrange, nbins=bins)
-        fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2)
+        pdf, x, err = self.pdf(xrange=xrange, bins=bins)
+        fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2, **kwargs)
         return fit
 
     def strFun(self, nMax=7):
@@ -259,7 +260,7 @@ class Multifractal(object):
         structure function
 
         """
-        return np.asarray([np.mean(self.cwt() ** (k + 1))
+        return np.asarray([np.mean(self.wt ** (k + 1))
                            for k in range(nMax)])
 
     def _castaing(self, x, s0, l, sk, am):
@@ -313,3 +314,7 @@ class Multifractal(object):
                                args=(s0, l, x[i], sk))[0]
                           for i in range(x.size)])
         return cst
+
+    def _stretchedExponential(self, amp=10, beta=0.5, gamma=0.5):
+            """"""
+
