@@ -32,15 +32,19 @@ The reference shot is 33478 (AUG15-2.2-3) with the aim to reach the condition fo
 2.  Repeat #1 adding the N seeding in feed-forward. Adjust the power according to ELM frequency
     and probe behavior in #1
 
-## Week 17
-### H-Mode investigation: Foreseen number 9
+## Week 21
+### H-Mode investigation: Foreseen number 7
 
-1.  Repeat best H-Mode shot found in Week 15 1st Radial position of probe
-2.  Repeat #1, different probe position
-3.  Repeat #1, different probe position
-4.  Repeat best H-Mode shot found in week 15 and reduce the cryopumps
-5.  Repeat best H-Mode shot found in week 15 and puff from midplane
-6.  Contingency
+1.  Reload Shot #35115. All power heating starting @ 2s **We do not need the L-mode phase**.
+    Anticipate start of fueling and N
+    @2.5 while keeping
+    the same end point (reducing the rate). **No cryopumps**
+2.  Repeat #1, different probe position for increasing statistics **No cryopumps**
+3.  Repeat #1, Puff with the same rate from the midplane **No cryompumps** keeping the same
+    insertion of probe head as #2
+4.  Repeat #1 as it is but **with cryopumps**
+5.  Repeat #3 as it is but **with cryompumps** 
+6.  Repeat #4 3-fold increase of puffing values keeping the same timing **with cryopums**
 7.  Contingency
 
 ## Notes
