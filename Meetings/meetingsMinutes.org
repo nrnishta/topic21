@@ -24,6 +24,30 @@
      - Diagnostic request
      - Experimental analysis request and identification of key persons
      - Identification of relevant SL to be contacted
+*** <2017-05-10 Wed>
+**** Agenda
+     - Make Volker aware of the AUG experimental plan
+       completed and to be done
+**** Minutes
+     - Discussed the obtained shots in W17. There are some
+       questions concerning the response of the divertor gauges to
+       increasing puffing.
+     - Discussed briefly foreseen shots for W21. Tentative schedule
+       1. Repeat Shot 34115 with more strokes in a more inserted position
+       2. Repeat #1 if further statistics is needed
+       3. Repeat #1 but with cryopumps to check dependence on divertor
+	  neutral density
+       4. Increase the fueling rate trying to match midplane density
+	  density profile evolution
+       5. Repet #4 for better probe statistics (second radial position)
+       6. Repeat #4 with midplane fueling
+       7. Contingency
+**** To-DO [0/3]
+     - [ ] Compute proper neutral compression using all available gauges
+     - [ ] Check for time delay in divertor neutral pressure to increasing
+           fueling
+     - [ ] Organize a meeting, tentative for Wednesday 16 for preparation of W21
+     
 ** Other Meetings
 *** Neutral measurement meetings
     <2016-12-01 Thu>
@@ -105,7 +129,6 @@
 	resources?/
       + ECE/SXR for particle accelleration are a required diagnostic. Routinely in operation but analysis
 	should be asked. /Can CCFE people take care of these analysis?/
-      
       
       
 *** AUG Preparation meeting 11.04.2017
