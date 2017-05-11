@@ -130,7 +130,6 @@
       + ECE/SXR for particle accelleration are a required diagnostic. Routinely in operation but analysis
 	should be asked. /Can CCFE people take care of these analysis?/
       
-      
 *** AUG Preparation meeting 11.04.2017
     *Participants* : N. Vianello (NV),  D. Carralero (DC),  M. Bernert (MB), A. Hakola (AH)
 **** Agenda:  
