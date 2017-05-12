@@ -40,12 +40,12 @@ The reference shot is 33478 (AUG15-2.2-3) with the aim to reach the condition fo
     @2.5 while keeping
     the same end point (reducing the rate). **No cryopumps**
 2.  Repeat #1, different probe position for increasing statistics **No cryopumps**
-3.  Repeat #1, Puff with the same rate from the midplane **No cryompumps** keeping the same
-    insertion of probe head as #2
+3.  Repeat #1, Puff with the same rate from the midplane **No cryompumps** . Probe insertion to be
+    chosen taking into account data quality from #1 and #2
 4.  Repeat #1 as it is but **with cryopumps**
-5.  Repeat #3 as it is but **with cryompumps** 
-6.  Repeat #4 3-fold increase of puffing values keeping the same timing **with cryopums**
-7.  Contingency
+5.  Repeat #4 3-fold increase of puffing values keeping the same timing **with cryopums**
+6.  Repeat #3 with 3-fold increase of puffing  **with cryompumps** 
+7.  Contingency. In case repeat #3 as it is
 
 ## Notes
 So far we have 2 shot of contingency which need to be allocated accordingly to week 15
