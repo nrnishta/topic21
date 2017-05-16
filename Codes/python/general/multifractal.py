@@ -209,6 +209,8 @@ class Multifractal(object):
         am : Float
             Amplitude for the correct scaling, default value is 10
 
+        Any of the keyword accepted by self.pdf
+
         Returns
         -------
         Fit : :obj: `Model fit`
@@ -235,6 +237,52 @@ class Multifractal(object):
                     'am'), missing='drop')
         # initialize the parameters
         pars = csMod.make_params(s0=s0, l=l, sk=sk, am=am)
+        # compute the PDF
+        pdf, x, err = self.pdf(xrange=xrange, bins=bins)
+        fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2, **kwargs)
+        return fit
+
+    def stretchedFit(self, amp=10, beta=0.5, gamma=0.5, xrange=[-4.5, 4.5],
+                     bins=41, **kwargs):
+        """
+        Perform a fit of the Probability Distribution function
+        based on the Stretched exponential fit used for example in
+        N. Vianello et al, PPCF 44 2513 (2002)
+        Parameters
+        ----------
+
+        amp : :obj: `float`
+            Normalization factor
+        beta: :obj: `float`
+            View definition of the function
+        gamma : :obj: `float`
+            Exponent of the stretched exponential
+
+        Any of the keyword accepted by self.pdf
+        Returns
+        -------
+        Fit : :obj: `Model fit`
+            Model fit output
+
+        Example
+        -------
+        >>> turbo = multifractal.Multifractal(s, time, frequency=100e3)
+        >>> pdf, x, err = turbo.pdf()
+        >>> fit = turbo.castaingFit()
+        >>> semilogy(x, pdf, 'o--')
+        >>> plot(x, fit.best_fit, ' - ', linewidth = 2)
+        """
+
+        # build the appropriateModel
+        csMod = lmfit.models.Model(
+            self._stretchedExponential,
+            independent_vars='x',
+            param_names=(
+                    'amp',
+                    'beta',
+                    'gamma'), missing='drop')
+        # initialize the parameters
+        pars = csMod.make_params(amp=amp, beta=beta, gamma=gamma)
         # compute the PDF
         pdf, x, err = self.pdf(xrange=xrange, bins=bins)
         fit = csMod.fit(pdf, pars, x=x, weights=1. / err ** 2, **kwargs)
@@ -315,6 +363,30 @@ class Multifractal(object):
                           for i in range(x.size)])
         return cst
 
-    def _stretchedExponential(self, amp=10, beta=0.5, gamma=0.5):
-            """"""
+    def _stretchedExponential(self, x, amp=10, beta=0.5, gamma=0.5):
+        """
+        Define the stretched exponential function used to provide a
+        different fit to the Probability Density Function of increments
 
+        ..math:
+        P(x) = A*exp(-beta|x|^gamma).
+
+        Parameters
+        ----------
+        x : :obj: `float`
+            The independent_vars which will be basically the
+            the center of the bins of the PdF
+        amp : :obj: `float`
+            Normalization factor
+        beta: :obj: `float`
+            View definition of the function
+        gamma : :obj: `float`
+            Exponent of the stretched exponential
+
+        Returns
+        -------
+        The computed function
+        """
+
+        P = amp * np.exp(-beta*np.power(np.abs(x), gamma))
+        return P
