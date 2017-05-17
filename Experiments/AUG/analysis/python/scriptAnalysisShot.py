@@ -36,6 +36,8 @@ def print_menu():
     print "10. Degraded H-Mode Wmhd vs Edge density"
     print "11. Radiation profiles "
     print "12. ELM frequency vs H-5 for H-mode shots"
+    print "13. Check Neutral response to Puffing in H-Mode"
+    print "14. Compare Neutral compression with reference 2016"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -739,6 +741,88 @@ while loop:
         mpl.pylab.savefig('../pdfbox/ELMfrequency.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 13:
+        shotL = (34107, 34108, 34115)
+        for shot in shotL:
+            Gas = neutrals.Neutrals(shot)
+            fig, ax = mpl.pylab.subplots(figsize=(6, 12), nrows=4, ncols=1, sharex=True)
+            fig.subplots_adjust(left=0.2)
+            ax[0].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e22, 'k-', lw=2.5,
+                       label=r'D$_2$')
+            ax[0].plot(Gas.gas['N2']['t'], Gas.gas['N2']['data']/1e22, '-',
+                       color='magenta', lw=2.5, label=r'N$_2$')
+            ax[0].legend(loc='best', numpoints=1, frameon=False)
+            ax[0].set_xlim([0, 7])
+            ax[0].axes.get_xaxis().set_visible(False)
+            ax[0].set_ylabel('[10$^{21}$]')
+
+            ax[1].plot(Gas.signal['F01']['t'],
+                          Gas.signal['F01']['data']/1e21, lw=2.5)
+            ax[1].set_xlabel(r't [s]')
+            ax[1].set_ylabel(r'[10$^{21}$m$^{-2}$s$^{-1}$]')
+            ax[1].text(0.1, 0.8, 'F01 Z=%3.2f' % Gas.signal['F01']['Z'],
+                       transform=ax[1].transAxes)
+            ax[1].axes.get_xaxis().set_visible(False)
+
+            ax[2].plot(Gas.signal['F14']['t'],
+                          Gas.signal['F14']['data']/1e21, lw=2.5)
+            ax[2].set_xlabel(r't [s]')
+            ax[2].set_ylabel(r'[10$^{21}$m$^{-2}$s$^{-1}$]')
+            ax[2].text(0.1, 0.8, 'Z=%3.2f' % Gas.signal['F14']['Z'],
+                       transform=ax[2].transAxes)
+            ax[2].set_ylim([0, 20])
+            ax[2].axes.get_xaxis().set_visible(False)
+
+            ax[3].plot(Gas.signal['F14']['t'], Gas.signal['F01']['data']/Gas.signal['F14']['data'])
+            ax[3].set_xlim([0, 7])
+            ax[3].text(0.1, 0.8, 'F01/F14 Compression', transform=ax[3].transAxes)
+            ax[3].set_ylim([0, 500])
+            ax[3].set_xlabel(r't[s]')
+            mpl.pylab.savefig('../pdfbox/NeutralCompressionShot' +
+                              str(int(shot))+'.pdf', bbox_to_inches='tight')
+            
+    elif selection == 14:
+        shotL = (33478, 34115)
+        colorL = ('black', 'red')
+        fig, ax = mpl.pylab.subplots(figsize=(6, 12), nrows=4, ncols=1, sharex=True)
+        fig.subplots_adjust(left=0.2)        
+        for shot, _col in zip(shotL, colorL):
+            Gas = neutrals.Neutrals(shot)
+            ax[0].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e22, '-', lw=2.5,
+                       label=r'#%5i' % shot, color=_col)
+            ax[0].set_xlim([0, 7])
+            ax[0].axes.get_xaxis().set_visible(False)
+            ax[0].set_ylabel('[10$^{21}$]')
+
+            ax[1].plot(Gas.signal['F01']['t'],
+                          Gas.signal['F01']['data']/1e21, lw=2.5, color=_col)
+            ax[1].set_xlabel(r't [s]')
+            ax[1].set_ylabel(r'[10$^{21}$m$^{-2}$s$^{-1}$]')
+            ax[1].axes.get_xaxis().set_visible(False)
+
+            ax[2].plot(Gas.signal['F14']['t'],
+                          Gas.signal['F14']['data']/1e21, lw=2.5, color=_col)
+            ax[2].set_xlabel(r't [s]')
+            ax[2].set_ylabel(r'[10$^{21}$m$^{-2}$s$^{-1}$]')
+            ax[2].set_ylim([0, 20])
+            ax[2].axes.get_xaxis().set_visible(False)
+
+            ax[3].plot(Gas.signal['F14']['t'],
+                       Gas.signal['F01']['data']/Gas.signal['F14']['data'],
+                       color=_col)
+            ax[3].set_xlim([0, 7])
+            ax[3].set_ylim([0, 1200])
+            ax[3].set_xlabel(r't[s]')       
+
+        ax[0].legend(loc='best', numpoints=1, frameon=False)
+        ax[1].text(0.1, 0.8, 'F01 Z=%3.2f' % Gas.signal['F01']['Z'],
+                   transform=ax[1].transAxes)
+        ax[2].text(0.1, 0.8, 'F14 Z=%3.2f' % Gas.signal['F14']['Z'],
+                   transform=ax[2].transAxes)
+        ax[3].text(0.1, 0.8, 'F01/F14 Compression', transform=ax[3].transAxes)
+
+        mpl.pylab.savefig('../pdfbox/CompareCompression33478_34115.pdf',
+                          bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:
