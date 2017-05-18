@@ -6,6 +6,7 @@ import matplotlib as mpl
 import copy
 from scipy.signal import savgol_filter
 
+
 class Filaments(object):
     """
     Class for analysis of Filaments from the HFF probe on the
@@ -19,7 +20,7 @@ class Filaments(object):
         Probe starting point decided on a shot to shot basis during
         the radial scan
     Probe: :obj: `string`
-        String indicating the probe head used. Possible values are 
+        String indicating the probe head used. Possible values are
         - `HFF`: for High Heat Flux probe for fluctuation measurements
         - 'IPP': Innsbruck-Padua probe head
 
@@ -36,7 +37,7 @@ class Filaments(object):
         # load the equilibria
         try:
             self.Eq = eqtools.AUGDDData(self.shot)
-        except:
+        except BaseException:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
         # open the shot file
@@ -54,27 +55,30 @@ class Filaments(object):
         """
         self.Zmem = 312
         self.Xlim = 1738
-        RZgrid = {'m01':{'x':10, 'z':16.5, 'r':4},
-                  'm02':{'x':3.5, 'z':16.5, 'r':4},
-                  'm03':{'x':-3.5, 'z':16.5, 'r':4}, 
-                  'm04':{'x':-10, 'z':16.5, 'r':4},
-                  'm05':{'x':10, 'z':5.5, 'r':0},
-                  'm06':{'x':3.5, 'z':5.5, 'r':0},
-                  'm07':{'x':-3.5, 'z':5.5, 'r':0},
-                  'm08':{'x':-10, 'z':5.5, 'r':0},
-                  'm09':{'x':10, 'z':-5.5, 'r':4},
-                  'm10':{'x':3.5, 'z':-5.5, 'r':2},
-                  'm11':{'x':-3.5, 'z':-5.5, 'r':2},
-                  'm12':{'x':-10, 'z':-5.5, 'r':2}, 
-                  'm13':{'x':10, 'z':-16.5, 'r':8},
-                  'm14':{'x':3.5, 'z':-16.5, 'r':8},
-                  'm15':{'x':-3.5, 'z':-16.5, 'r':8},
-                  'm16':{'x':-10, 'z':-16.5, 'r':8}}
+        RZgrid = {'m01': {'x': 10, 'z': 16.5, 'r': 4},
+                  'm02': {'x': 3.5, 'z': 16.5, 'r': 4},
+                  'm03': {'x': -3.5, 'z': 16.5, 'r': 4},
+                  'm04': {'x': -10, 'z': 16.5, 'r': 4},
+                  'm05': {'x': 10, 'z': 5.5, 'r': 0},
+                  'm06': {'x': 3.5, 'z': 5.5, 'r': 0},
+                  'm07': {'x': -3.5, 'z': 5.5, 'r': 0},
+                  'm08': {'x': -10, 'z': 5.5, 'r': 0},
+                  'm09': {'x': 10, 'z': -5.5, 'r': 4},
+                  'm10': {'x': 3.5, 'z': -5.5, 'r': 2},
+                  'm11': {'x': -3.5, 'z': -5.5, 'r': 2},
+                  'm12': {'x': -10, 'z': -5.5, 'r': 2},
+                  'm13': {'x': 10, 'z': -16.5, 'r': 8},
+                  'm14': {'x': 3.5, 'z': -16.5, 'r': 8},
+                  'm15': {'x': -3.5, 'z': -16.5, 'r': 8},
+                  'm16': {'x': -10, 'z': -16.5, 'r': 8}}
         self.RZgrid = {}
         for probe in RZgrid.iterkeys():
-            x, y = self._rotate((RZgrid[probe]['x'], RZgrid[probe]['z']), np.radians(angle))
-            self.RZgrid[probe] = {'r':RZgrid[probe]['r'], 'z':self.Zmem + y, 'x':x}
-
+            x, y = self._rotate(
+                (RZgrid[probe]['x'], RZgrid[probe]['z']), np.radians(angle))
+            self.RZgrid[probe] = {
+                'r': RZgrid[probe]['r'],
+                'z': self.Zmem + y,
+                'x': x}
 
     def _loadHHF(self):
         """
@@ -101,14 +105,14 @@ class Filaments(object):
                                       ('t', Mhc(n).time),
                                       ('r', self.RZgrid[n[-3:]]['r']),
                                       ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']), 
+                                      ('x', self.RZgrid[n[-3:]]['x']),
                                       ('name', n)])
             elif n[:5] == 'Ufl_m':
                 self.vfArr[n] = dict([('data', Mhc(n).data),
                                       ('t', Mhc(n).time),
                                       ('r', self.RZgrid[n[-3:]]['r']),
                                       ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']), 
+                                      ('x', self.RZgrid[n[-3:]]['x']),
                                       ('name', n)])
 
         for n in namesG.itervalues():
@@ -117,14 +121,14 @@ class Filaments(object):
                                       ('t', Mhg(n).time),
                                       ('r', self.RZgrid[n[-3:]]['r']),
                                       ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']), 
+                                      ('x', self.RZgrid[n[-3:]]['x']),
                                       ('name', n)])
             elif n[:5] == 'Ufl_m':
                 self.vfArr[n] = dict([('data', Mhg(n).data),
                                       ('t', Mhg(n).time),
                                       ('r', self.RZgrid[n[-3:]]['r']),
                                       ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']), 
+                                      ('x', self.RZgrid[n[-3:]]['x']),
                                       ('name', n)])
 
         # generale also the list of names for is and vf
@@ -146,7 +150,7 @@ class Filaments(object):
         Parameters
         ----------
         save : Boolean
-            If True save a pdf file with the probe configuration in the 
+            If True save a pdf file with the probe configuration in the
             working directory. Default is False
 
         """
@@ -156,18 +160,24 @@ class Filaments(object):
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)
         for probe in self.RZgrid.iterkeys():
-            if 'Isat_'+probe in self.isArr.keys():
-                col='red'
-            elif 'Ufl_'+probe in self.vfArr.keys():
-                col='blue'
+            if 'Isat_' + probe in self.isArr.keys():
+                col = 'red'
+            elif 'Ufl_' + probe in self.vfArr.keys():
+                col = 'blue'
             else:
-                col='black'
+                col = 'black'
 
-            tip = mpl.pyplot.Circle((self.RZgrid[probe]['x'],
-                                     self.RZgrid[probe]['z']-self.Zmem), 2, fc=col)
+            tip = mpl.pyplot.Circle(
+                (self.RZgrid[probe]['x'], self.RZgrid[probe]['z'] - self.Zmem), 2, fc=col)
             ax.add_artist(tip)
-            ax.text(self.RZgrid[probe]['x']-10, self.RZgrid[probe]['z']-2-self.Zmem, probe,
-                    fontsize=8)
+            ax.text(
+                self.RZgrid[probe]['x'] -
+                10,
+                self.RZgrid[probe]['z'] -
+                2 -
+                self.Zmem,
+                probe,
+                fontsize=8)
         ax.set_xlim([-70, 70])
         ax.set_ylim([-70, 70])
         ax.text(-40, 60, r'I$_s$', fontsize=18, color='red')
@@ -178,7 +188,7 @@ class Filaments(object):
         Load the position and compute for each of the pin the
         corresponding rho values taking into account the
         (R, Z) position
-        
+
         Parameters
         ----------
         None
@@ -198,9 +208,10 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = (2188 - (self.Xprobe - self.Xlim) - sPos + 100)/1e3
+        R = (2188 - (self.Xprobe - self.Xlim) - sPos + 100) / 1e3
         # convert in Rhopoloidal
-        self.rhoProbe = self.Eq.rz2psinorm(R, np.repeat(self.Zmem*1e-3), tPos, sqrt=True)
+        self.rhoProbe = self.Eq.rz2psinorm(
+            R, np.repeat(self.Zmem * 1e-3), tPos, sqrt=True)
         # then we need to compute for each of the different probe tips
         # this quantity and save them into a dictionary
 
@@ -232,9 +243,8 @@ class Filaments(object):
         if interELM:
             self._interElmMask = self._interElm()
 
-
-        self.blockmin=block[0]
-        self.blockmax=block[1]
+        self.blockmin = block[0]
+        self.blockmax = block[1]
         if Probe not in self.isName + self.vfName:
             print('Available Ion saturation current signals are')
             for p in self.isName:
@@ -248,25 +258,27 @@ class Filaments(object):
         if Probe[:4] == 'Isat':
             # for the ion saturation current
             # we need to mask for the arcless system
-            # and propagate the mask for 
+            # and propagate the mask for
             self._idx = ((isSignal[Probe]['data'] > self.blockmin) &
-                    (isSignal[Probe]['data'] < self.blockmax))
-            dt  = (isSignal[Probe]['t'].max()-isSignal[Probe]['t'].min())/(
-                isSignal[Probe]['t'].size-1)
+                         (isSignal[Probe]['data'] < self.blockmax))
+            dt = (isSignal[Probe]['t'].max() - isSignal[Probe]['t'].min()) / (
+                isSignal[Probe]['t'].size - 1)
             # we need to generate a dummy time basis
-            tDummy = np.arange(np.count_nonzero(self._idx))*dt + trange[0]
-            
-            self.blob = timeseries.Timeseries(isSignal[Probe]['data'][self._idx], tDummy)
+            tDummy = np.arange(np.count_nonzero(self._idx)) * dt + trange[0]
+
+            self.blob = timeseries.Timeseries(
+                isSignal[Probe]['data'][self._idx], tDummy)
             self.refSignal = Probe
         else:
-            self.blob = timeseries.Timeseries(vfSignal[Probe]['data'], isSignal[Probe]['t'])
+            self.blob = timeseries.Timeseries(
+                vfSignal[Probe]['data'], isSignal[Probe]['t'])
             self.refSignal = Probe
             self._idx = None
 
     def _defineTime(self, trange=[2, 3]):
         """
         Internal use to limit to a given time interval
-        
+
         Parameters
         ----------
         trange : :obj: `ndarray`
@@ -279,7 +291,7 @@ class Filaments(object):
             currents in the limited time interval
 
         vfOut : Dictionary
-            Contains all the floating potential 
+            Contains all the floating potential
             in the limited time interval
         """
 
@@ -300,7 +312,7 @@ class Filaments(object):
         Provide rotation of a point in a plane with respect to origin
         """
         px, py = point
-        qx = np.cos(angle) * px - py *np.sin(angle)
+        qx = np.cos(angle) * px - py * np.sin(angle)
         qy = np.sin(angle) * px + np.cos(angle) * py
         return qx, qy
 
@@ -308,7 +320,7 @@ class Filaments(object):
         """
         Provide an appropriate mask where we identify
         both the ELM and inter-ELM regime
-        
+
         Parameters
         ----------
         usedda : :obj: `bool`
@@ -321,7 +333,7 @@ class Filaments(object):
 
         Attributes
         ----------
-        Define the class hidden attributes 
+        Define the class hidden attributes
         self._elm
         self._interelm
         which are the indexes of the ELM and inter
@@ -333,10 +345,10 @@ class Filaments(object):
             elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
             t_endELM = elmd.data
             t_begELM = elmd.time
-            ELM.close()            
+            ELM.close()
         else:
             Mac = dd.shotfile("MAC", self.shot, experiment='AUG')
             Ipol = Mac('Ipolsoli')
             # now create an appropriate savgolfile
             Ipol = savgol_filter(Ipol.data, 501, 3)
-            # on these we 
+            # on these we
