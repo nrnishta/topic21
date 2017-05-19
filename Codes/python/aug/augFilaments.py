@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib as mpl
 import copy
 from scipy.signal import savgol_filter
-
+from time_series_tools import identify_bursts2
 
 class Filaments(object):
     """
@@ -141,6 +141,8 @@ class Filaments(object):
 
         Mhc.close()
         Mhg.close()
+        # generate a class aware time basis
+        self._timebasis = self.vfArr[self.vfName[0]]['t']
 
     def plotProbeSetup(self, save=False):
         """
@@ -216,7 +218,8 @@ class Filaments(object):
         # this quantity and save them into a dictionary
 
     def blobAnalysis(self, Probe='Isat_m01', trange=[2, 3],
-                     interELM=False, block=[0.015, 0.12]):
+                     interELM=False, block=[0.015, 0.12],
+                     usedda=False, threshold=3000):
         """
         Given the probe call the appropriate timeseries class
         for the analysis of the blobs.
@@ -240,8 +243,7 @@ class Filaments(object):
 
         # firs of all limit the isAt and vfFloat to the desired time interval
         isSignal, vfSignal = self._defineTime(trange=trange)
-        if interELM:
-            self._interElmMask = self._interElm()
+
 
         self.blockmin = block[0]
         self.blockmax = block[1]
@@ -259,10 +261,19 @@ class Filaments(object):
             # for the ion saturation current
             # we need to mask for the arcless system
             # and propagate the mask for
-            self._idx = ((isSignal[Probe]['data'] > self.blockmin) &
-                         (isSignal[Probe]['data'] < self.blockmax))
+
+            _idx = np.where((isSignal[Probe]['data'] > self.blockmin) &
+                         (isSignal[Probe]['data'] < self.blockmax))[0]
             dt = (isSignal[Probe]['t'].max() - isSignal[Probe]['t'].min()) / (
                 isSignal[Probe]['t'].size - 1)
+            if interELM:
+                self._maskElm(threshold=threshold, usedda=usedda,
+                              trange=trange)            
+                # now we need to combine the inter ELM mask and the
+                # mask for arcless
+                self._idx = _idx[np.in1d(_idx, self._interElm, assume_unique=True)]
+            else:
+                self._idx = _idx
             # we need to generate a dummy time basis
             tDummy = np.arange(np.count_nonzero(self._idx)) * dt + trange[0]
 
@@ -316,7 +327,8 @@ class Filaments(object):
         qy = np.sin(angle) * px + np.cos(angle) * py
         return qx, qy
 
-    def _maskElm(self, usedda=False):
+    def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
+                 check=False):
         """
         Provide an appropriate mask where we identify
         both the ELM and inter-ELM regime
@@ -327,6 +339,9 @@ class Filaments(object):
             Boolean, if True use the default ELM
             diagnostic ELM in the shotfile
 
+        threshold : :obj: `float`
+            If we choose to detect as threshold in the
+            SOL current then this is the threshold chosen
         Returns
         -------
         None
@@ -341,14 +356,58 @@ class Filaments(object):
         """
 
         if usedda:
-            ELM = dd.shotfile("ELM", self.shot, experiment='AUG')
+            print("Using ELM dda")
+            ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
             elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
-            t_endELM = elmd.data
-            t_begELM = elmd.time
+            # limit to the ELM included in the trange
+            _idx = np.where((elmd.time>= trange[0]) & (elmd.time <= trange[1]))[0]
+            self.tBegElm = eldm.time[_idx]
+            self.tEndElm = elmd.data[_idx]
             ELM.close()
         else:
-            Mac = dd.shotfile("MAC", self.shot, experiment='AUG')
+            print("Using IpolSolI")
+            Mac = dd.shotfile("MAC", self.shot, experiment='AUGD')
             Ipol = Mac('Ipolsoli')
+            _idx = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
             # now create an appropriate savgolfile
-            Ipol = savgol_filter(Ipol.data, 501, 3)
-            # on these we
+            IpolS = savgol_filter(Ipol.data[_idx], 501, 3)
+            IpolT = Ipol.time[_idx]
+            # on these we choose a threshold
+            # which can be set as also set as keyword
+            window, _a, _b, _c = identify_bursts2(IpolS, threshold)
+            # now determine the tmin-tmax of all the identified ELMS
+            _idx, _idy = zip(*window)
+            self.tBegElm = IpolT[np.asarray(_idx)]
+            self.tEndElm = IpolT[np.asarray(_idy)]
+
+        # and now set the mask
+        _dummyTime = self._timebasis[np.where((self._timebasis >= trange[0]) &
+                                              (self._timebasis <= trange[1]))[0]]
+
+        self._interElm = []
+        self._Elm=[]
+        for i in range(self.tBegElm.size):
+            _a = np.where((_dummyTime >= self.tBegElm[i]) &
+                          (_dummyTime <= self.tEndElm[i]))[0]
+            self._Elm.append(_a[:])
+            try:
+                _a = np.where((_dummyTime >= self.tEndElm[i]) &
+                              (_dummyTime <= self.tBegElm[i+1]))[0]
+                self._interElm.append(_a[:])
+            except:
+                pass
+                
+        self._interElm = np.concatenate(np.asarray(self._interElm))
+        self._Elm = np.concatenate(np.asarray(self._Elm))
+
+        if check:
+            fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
+            fig.subplots_adjust(bottom=0.15, left=0.15)
+            ax.plot(IpolT, IpolS, color='#1f77b4')
+            ax.set_xlabel(r't[s]')
+            ax.set_ylabel(r'Ipol SOL I')
+            ax.axhline(threshold, ls='--', color='#d62728')
+            for _ti, _te in zip(self.tBegElm, self.tEndElm):
+                ax.axvline(_ti, ls='--', color='#ff7f0e')
+                ax.axvline(_te, ls='--', color='#ff7f0e')
+
