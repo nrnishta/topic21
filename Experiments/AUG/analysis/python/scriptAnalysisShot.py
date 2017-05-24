@@ -38,6 +38,8 @@ def print_menu():
     print "12. ELM frequency vs H-5 for H-mode shots"
     print "13. Check Neutral response to Puffing in H-Mode"
     print "14. Compare Neutral compression with reference 2016"
+    print "15. Compare divertor/midplane puffing w/o cryopumps"
+    print "16. Compare compression with puffing from divertor/midplane w/o cryompumps"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -823,6 +825,115 @@ while loop:
 
         mpl.pylab.savefig('../pdfbox/CompareCompression33478_34115.pdf',
                           bbox_to_inches='tight')
+
+    elif selection == 15:
+        shotList = (34276, 34277)
+        pufL = ('Div', 'Mid')
+        colorList = ('#C90015', '#7B0Ce7')
+        fig, ax = mpl.pylab.subplots(figsize=(17, 17),
+                                     nrows=4, ncols=2, sharex=True)
+        fig.subplots_adjust(hspace=0.05, top=0.96, bottom=0.1)
+        for shot, _col, _str in zip(shotList, colorList, pufL):
+
+            # current
+            diag = dd.shotfile('MAG', shot)
+            ax[0, 0].plot(diag('Ipa').time, diag('Ipa').data/1e6, color=_col, lw=3,
+                          label=r'# %5i' % shot + ' Puff from '+_str)
+            ax[0, 0].axes.get_xaxis().set_visible(False)
+            ax[0, 0].set_ylabel(r'I$_p$ [MA]')
+            ax[0, 0].set_ylim([0, 1.1])
+            diag.close()
+            # power 
+            diag = dd.shotfile('TOT', shot)
+            ax[1, 0].plot(diag('PNBI_TOT').time, diag('PNBI_TOT').data/1e6, color=_col,
+                          lw=3)
+            ax[1, 0].axes.get_xaxis().set_visible(False)
+            ax[1, 0].set_ylabel('NBI [MW]')
+            ax[1, 0].set_ylim([0, 5])
+            ax[2, 0].plot(diag('PECR_TOT').time, diag('PECR_TOT').data/1e6, color=_col,
+                          lw=3)
+            diag.close()
+            ax[2, 0].axes.get_xaxis().set_visible(False)
+            ax[2, 0].set_ylabel('ECRH [MW]')
+            ax[2, 0].set_ylim([0, 5])
+            diag = dd.shotfile('BPD', shot)
+            ax[3, 0].plot(diag('Prad').time, diag('Prad').data/1e6, color=_col, lw=3,
+                          label=r'Prad')
+            ax[3, 0].set_ylabel(r'Prad [MW]')
+            ax[3, 0].set_xlim([0, 7])
+            ax[3, 0].set_ylim([0, 5])
+            ax[3, 0].set_xlabel(r't [s]')
+
+            diag = dd.shotfile('DCN', shot)
+            ax[0, 1].set_ylabel(r'$\overline{n}_e$ H-5 [10$^{19}$]')
+            ax[0, 1].set_ylim([0, 10])
+            ax[0, 1].plot(diag('H-5').time, diag('H-5').data/1e19, color=_col, lw=3)
+            ax[0, 1].axes.get_xaxis().set_visible(False)
+            diag.close
+
+            diag = dd.shotfile('TOT', shot)
+            ax[1, 1].plot(diag('Wmhd').time, diag('Wmhd').data/1e5, color=_col, lw=3,
+                          label=r'# %5i' % shot)
+            ax[1, 1].axes.get_xaxis().set_visible(False)
+            ax[1, 1].set_ylabel(r'W$_{mhd}$ [10$^5$ J]')
+            diag.close()
+
+            try:
+                Gas=neutrals.Neutrals(shot)
+            except:
+                pass
+            Uvs = dd.shotfile('UVS', shot)
+
+            ax[2, 1].plot(Uvs('D_tot').time,
+                          Uvs('D_tot').data/1e21,
+                          color=_col, label=r'D$_2$', lw=3)
+            ax[2, 1].plot(Uvs('N_tot').time,
+                          Uvs('N_tot').data/1e21,
+                          '--', color=_col, lw=3, label=r'N')
+            ax[2, 1].legend(loc='best', numpoints=1, frameon=False)
+            ax[2, 1].axes.get_xaxis().set_visible(False)
+            ax[2, 1].set_ylabel(r'[10$^{21}$]')
+            Uvs.close()
+            try:
+                ax[3, 1].plot(Gas.signal['F01']['t'],
+                              Gas.signal['F01']['data']/1e22, color=_col, lw=3,
+                              label=r'F01 [10$^{22}$m$^{-2}$s$^{-1}$]')
+            except:
+                pass
+            diag=dd.shotfile('MAC', shot)
+            ax[3, 1].plot(diag('Tdiv').time, diag('Tdiv').data,'--' , color=_col, lw=3,
+                          label=r'T$_{div}$')
+ 
+            ax[3, 1].set_xlabel(r't [s]')
+            diag.close()
+
+        ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
+        ax[3, 1].legend(loc='best', numpoints=1, frameon=False)
+        ax[3, 1].set_ylim([-10, 50])
+        ax[2, 1].legend(loc='best', numpoints=1, frameon=False)
+        mpl.pylab.savefig('../pdfbox/CompareShot'+str(int(shotList[0]))+'_'+
+                          str(int(shotList[1]))+'.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 16:
+        shotList = (34276, 34277)
+        pufL = ('Div', 'Mid')
+        colorList = ('#C90015', '#7B0Ce7')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.15)
+        for shot, col, p in zip(shotList, colorList, pufL):
+            Gas = neutrals.Neutrals(shot)
+            ax.plot(Gas.signal['F01']['t'],
+                    Gas.signal['F01']['data']/Gas.signal['F14']['data'],
+                    color=col, lw=2, label=r'Shot # %5i' % shot + 'Puff from '+p)
+
+        ax.set_xlabel('t [s]')
+        ax.set_ylabel(r'Compression F01/F14')
+        ax.legend(loc='best', fontsize=14, frameon=False, numpoints=1)
+        ax.set_xlim([0, 8])
+        mpl.pylab.savefig('../pdfbox/CompareCompression'+str(int(shotList[0]))+'_'+
+                          str(int(shotList[1]))+'.pdf',
+                          bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
