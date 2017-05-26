@@ -42,7 +42,7 @@ def print_menu():
     print "16. Compare compression with puffing from divertor/midplane w/o cryompumps"
     print "17. Compare shots same puffing with and wo cryompumps"
     print "18. Compare shots with/wo cryopumps try to match edge density"
-    print "19. Compare Li-Beam contour profiles"
+    print "19. Compare Li-Beam contour profiles with/wo crypumps when trying to math edge density"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1142,6 +1142,66 @@ while loop:
                           str(int(shotList[1]))+'.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 19:
+        shotList = (34276, 34280)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        colorLS = ('#C90015', '#7B0Ce7')
+        tList = (1.8, 2.4, 4.0)
+        fig = mpl.pylab.figure(figsize=(12, 12))
+        fig.subplots_adjust(hspace=0.25, right=0.86)
+        ax1 = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 0))
+        ax3 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        axL = (ax2, ax3)
+        Cryo = ('No', 'On')
+        for shot, cc, _ax, _cr in itertools.izip(
+            shotList, colorLS, axL, Cryo):
+            # this is the line average density
+            diag = dd.shotfile('TOT', shot)
+            neAvg = diag('H-1/(2a)')
+            diag.close()
+            ax1.plot(neAvg.time, neAvg.data/1e20, '-', color=cc, lw=2,
+                     label = r'Shot # %5i' % shot +' Cryo ' + _cr)
+            ax1.set_ylim([0, 1])
+            ax1.set_xlim([0, 7])
+            for t, col in zip(tList, colorL):
+                ax1.axvspan(t-0.01, t+0.01, ec='none', fc=col, alpha=0.5)
+            # load the Li-Beam profiles
+            LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
+            neLB = LiBD('ne').data
+            neLBtime = LiBD('ne').time
+            rhoP = LiBD('ne').area
+            LiBD.close()
+            rhoFake = np.linspace(0.98, 1.06, 50)
+            profFake = np.zeros((neLBtime.size, 50))
+            for n in range(neLBtime.size):
+                S = UnivariateSpline(rhoP[n, ::-1],
+                                     neLB[n, ::-1]/1e19, s=0)
+                profFake[n, :] = S(rhoFake)
+            im=_ax.imshow(np.log(profFake.transpose()), origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+                          extent=(neLBtime.min(), neLBtime.max(), 0.98, 1.06),
+                          norm=LogNorm(vmin=0.5, vmax=2.5))
+
+
+            _ax.set_title(r'Shot # % 5i' %shot)
+
+            _ax.set_xlim([1, 6.5])
+            _ax.set_xlabel(r't [s]')
+            _ax.set_title(r'Shot # % 5i' %shot)
+            _ax.set_ylim([0.99, 1.05])
+        ax2.set_ylabel(r'$\rho_p$')
+        ax3.axes.get_yaxis().set_visible(False)
+        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.set_ylabel(r'$\overline{n_e}$ H-5 $[10^{19}$m$^{-3}]$')
+        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
+        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.3])
+        cbar = fig.colorbar(im, cax=cbar_ax, format='%1.1f')
+        cbar.set_ticks([0.5, 1, 1.5, 2.5])
+        cbar.set_label(r'n$_{e}$ [10$^{19}$m$^{-3}$]')
+
+        mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
+                          '_'+str(int(shotList[1]))+'.pdf',
+                          bbox_to_inches='tight')    
 
     elif selection == 99:
         loop = False
