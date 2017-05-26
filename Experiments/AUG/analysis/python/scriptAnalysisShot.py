@@ -1166,8 +1166,6 @@ while loop:
                      label = r'Shot # %5i' % shot +' Cryo ' + _cr)
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 7])
-            for t, col in zip(tList, colorL):
-                ax1.axvspan(t-0.01, t+0.01, ec='none', fc=col, alpha=0.5)
             # load the Li-Beam profiles
             LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
             neLB = LiBD('ne').data
@@ -1227,8 +1225,6 @@ while loop:
                      label = r'Shot # %5i' % shot +' Cryo ' + _cr)
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 7])
-            for t, col in zip(tList, colorL):
-                ax1.axvspan(t-0.01, t+0.01, ec='none', fc=col, alpha=0.5)
             # load the Li-Beam profiles
             LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
             neLB = LiBD('ne').data
@@ -1288,8 +1284,6 @@ while loop:
                      label = r'Shot # %5i' % shot +' Cryo ' + _cr)
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 7])
-            for t, col in zip(tList, colorL):
-                ax1.axvspan(t-0.01, t+0.01, ec='none', fc=col, alpha=0.5)
             # load the Li-Beam profiles
             LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
             neLB = LiBD('ne').data
