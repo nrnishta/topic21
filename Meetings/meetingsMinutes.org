@@ -169,3 +169,38 @@
        - [ ] Insert experimental plan in EUROfusion Wiki (NV)
        - [ ] Insert the shot request in AUG system (DC)
        
+*** KoM-TCV 15.05.2017
+    Attendees: N. Vianello (NV), V. Naulin (VN), M. Bernert (MB), A. Hakola (AH), F. Militello (FM),
+    C. Theiler (CT), C. Tsui (CT), B. Labit (BL), R. Maurizio (RM), J. Kovacic (JK)
+
+    - NV: Presentation concerning experiments on TCV performed during the last MST1 experimental campaigns plus
+     presentation of the draft of shot plan for W24
+    - VN Raised question if it worth doing H-Mode during the the first Week of Operation. NV answer he would keep the
+      search for scenario in June not to loose all the October part in searching a good H-Mode reference plasma. CT
+      pointed out that a lot of H-Mode is foreseen for Topic 24 during the same week so they can be combined
+    - CT suggested to concentrate on few topics (shoulder/divertor for example) but both FM and VN pointed that at least
+      in other machines the two processes seemd unrelated
+    - CT pointed out correctly that the proposed current scan overestimated maximum values of toroidal field achievable
+      and needs to be readjusted
+    - FM pointed out the importance of neutrals in the process of shoulder formation and that all the
+      different scenarios need a detailed studies in the difference in neutral
+    - VN pointed out that Bt reversal is an issue which needs to be addressed although both CT and NV suggested
+      that a similar experiments has been performed in the last experiment
+    - CT explained the new capability of probe head
+    - CT suggested the need to explore the low collisionality part of the diagram and to
+      look carefully of differences in ExB shearing in the different regime, to understand if SOL transport
+      changes can be motivated by different shearing rate
+    - VN suggested the possibility to look more carefully into neutrals also considering eventually N seeding
+      in L-Mode
+    - VN pointed out that a possibility would be to perform the vertical scan by keeping both the divertor leg on
+      the inner wall in order not to have too different divertor condition. In this way we can have measurements
+      at different poloidal position
+    
+    Following the discussion the following todo list arised
+    - [ ] Check already existing measurements, also in terms of fluctuations, in vertical shifted plasmas
+    - [ ] Check already existing measuerements in L-Mode N seed discharges also in terms of fluctuations
+    - [ ] Redraft the program including part at lower collisionality
+    - [ ] Check availability of DBS flow profile at the edge
+    - [ ] Search of possible combination of H-Mode part together with Topic 24 which will be performed in the
+          same week.
+    - [ ] Circulate new program and new ideas by the end of next week

@@ -1,0 +1,130 @@
+\documentclass[10pt, compress]{beamer}
+\usetheme[conference=AUG Monday,venue=Remote, date=29/05/2017, titleprogressbar, logo=RFX-logo]{Eurof}
+\usepackage{listings,amsmath,multimedia, amssymb}
+\usepackage{../beamerclass/tangocolors}
+\usepackage{../beamerclass/rfxcolor}
+% for drawing
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,backgrounds}
+\usepackage{../beamerclass/onimage}
+\usepackage[export]{adjustbox}
+\usepackage{bm}
+% for font
+\usepackage[absolute,overlay]{textpos}
+  \setlength{\TPHorizModule}{1mm}
+  \setlength{\TPVertModule}{1mm}
+
+\usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
+uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
+\bibliography{biblio}
+\renewcommand*{\bibfont}{\footnotesize}
+\renewcommand*{\citesetup}{\footnotesize}
+\usepackage[export]{adjustbox}
+\makeatother
+\mode<presentation>
+\makeatletter
+% add a macro that saves its argument
+\newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
+\newbox\footlineextrabox
+% for reducing font on a single slide
+\newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
+\title{{\small Topic 21: Filamentary transport in high-power H-mode conditions and in no/small-ELM regimes to predict heat and particle loads on PFCs for future devices }}
+\date{29 May 2017}
+\author[Topic 21 Scientific Team]{N. Vianello for the Topic 21 Scientific Team}
+\begin{document}
+\tikzstyle{every picture}+=[remember picture]
+\maketitle
+\begin{frame}{Scientific team}
+  \begin{center}
+N. Vianello, D. Carralero, V. Naulin, W. Zhang, J. Madsen, K. McClements,
+M. Agostini, M.Spolaore, D. Aguiam, E. Wolfrum, J. Vicente,
+L. Florian, E. Seliunin, J. Galdon-Quiroga, C. Ionita, S. Costea ...
+  \end{center}
+\end{frame}
+\begin{frame}{Objective of Week 21 campaign}
+  \begin{itemize}[<+-|alert@+>]
+    \item Compare divertor/midplane fueling effect on filamentary
+      transport and profiles without cryo-pumps
+    \item Compare profiles with the same fueling with/without cryopums
+    \item Determine an H-Mode with the cryopumps matching similar
+      divertor pressure and SOL profiles
+  \end{itemize}    
+\end{frame}
+\begin{frame}{Compare divertor/midplane fueling}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34277}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34277}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item Similar puff from the divertor or from the midplane
+        without Cryopumps. The
+        shots are pretty similar also in terms of Divertor pressure
+      \item<2-> Edge density profiles from Li-Beam evolution are
+        pretty similar
+    \end{itemize}
+  
+  \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{Compare Similar fueling with/without cryopumps}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34278}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34278}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1-> Same fueling but with cryo-pumps. Clearly different in
+        terms of Edge density and Divertor pressure
+      \item<2-> Also with this amount of fueling any instance of SOL
+        saturation observed
+    \end{itemize}
+  
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Matching scenarios with cryo-pumps}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34281}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34280}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1-> To match similar edge density and divertor pressure
+        and to reach the same level of detachment we increase the
+        fueling by almost a factor of 3, increasing also the rate. In
+        addition to that we also increase substantially the N puffing
+      \item<2-> Li-beam profile not yet produced for the same
+        shots. With a lower level of N (no detachment observed) the
+        SOL profiles does not flatten as in the case with the cryo-pumps
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Work in progress}
+  \begin{itemize}
+    \item Confirmed SXR spikes correlated with the start of ELMs,
+      strongly suggesting electron accelleration during ELM filament
+      eruption
+    \item Evaluation progressing in terms of fluctuation analysis from
+      MEM, Reflectometry, Li-Beam
+    \item GPI data available in different density scenarios and also
+      during L-H transition
+  \end{itemize}
+\end{frame}
+\end{document}
+
