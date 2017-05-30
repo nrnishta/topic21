@@ -14,6 +14,7 @@ def print_menu():
     print 30 * "-", "MENU", 30 * "-"
     print "1. Current scan from Topic 25"
     print "2. Loop on Topic 25 Upstream profile evolution"
+    print "3. Plot proposed density ramp"
     print "99: End"
     print 67 * "-"
 
@@ -126,7 +127,8 @@ while loop:
                     err = Profile.err
                     spline = UnivariateSpline(x, y, ext=0)
                     xFake = np.linspace(0, 0.035, 50)
-                    ax[2].plot(x*1e2, y, 'o', mfc=c, mec='white', markersize=16)
+                    ax[2].plot(x*1e2, y, 'o', mfc=c, mec='white',
+                               markersize=16)
                     ax[2].errorbar(x*1e2, y, yerr=err, ecolor=c, fmt='none')
                     ax[2].plot(xFake*1e2, spline(xFake), '--', color=c)
                     ax[2].set_xlabel(r'R-R$_s$ [cm]')
@@ -139,6 +141,28 @@ while loop:
             mpl.pylab.savefig('../pdfbox/UpstreamProfileShot_'
                               + str(int(shot)) + '.pdf',
                               bbox_to_inches='tight')
+    elif selection == 3:
+        tFake = np.asarray([0, 0.2, 0.4, 0.54, 1.6])
+        enFake = np.asarray([0, 2.8, 3.6, 3.6, 11])
+        shotL = (57082, 57088, 51178, 57089)
+        iPL = (330, 245, 160, 185)
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(left=0.17, top=0.98, bottom=0.16)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728')
+        for shot, col, ip in zip(shotL, colorList, iPL):
+            Tree = mds.Tree('tcv_shot', shot)
+            eN = Tree.getNode(r'\results::fir:n_average').data()/1e19
+            eNT = Tree.getNode(
+                r'\results::fir:n_average').getDimensionAt().data()
+            ax.plot(eNT, eN, lw=2, color=col, label=r'# %5i' % shot +
+                    r' I$_p$ = %3i' % ip)
+        ax.plot(tFake, enFake, 'k--', lw=3)
+        ax.set_xlabel(r't[s]')
+        ax.set_ylabel(r'$\langle$n$_e\rangle$ [10$^{19}$m$^{-3}$]')
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        mpl.pylab.savefig('../pdfbox/ProposedDensityRamp.pdf',
+                          bbox_to_inches='tight')
+        
     elif selection == 99:
         loop = False
     else:
