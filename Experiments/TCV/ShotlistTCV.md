@@ -11,7 +11,7 @@
 5.  Repeat #3 with q95=2.44 as #2, adjust Bt consequently (Bt=0.8T)
 6.  Shape and current from #1. Stop puffing once the divertor is formed to get low collisionality case. Include an ECRH power ramp from 0.9s (150 kW) till the end (500 kW)
 7.  Repeat #6 with density at intermediate level from #1 @0.65s and #6 
-8.  Repeat density ramp of Shot #2 in DN configuration 
+8.  Repeat density ramp of Shot #2 in DN configuration (Equilibrium from #53516 @ 1.55)
 9.  Repeat density ramp of Shot #3 in DN configuration 
 10. Repeat #1 in forward field
 11. Repeat #3 in forward field
