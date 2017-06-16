@@ -50,9 +50,8 @@ class Radiation:
         self.tree = mds.Tree('tcv_shot', self.shot)
         R = [0.624, 0.624, 0.666, 0.672, 0.965, 0.971, 1.136, 1.136,
              0.971, 0.965, 0.672, 0.666, 0.624, 0.624, 0.624]
-	Z = [0.697,0.704, 0.75, 0.75, 0.75, 0.747, 
-             0.55, -0.55, -0.747, -0.75, -0.75,
-             -0.75, -0.704, -0.697, 0.697]
+	Z = [0.697, 0.704, 0.75, 0.75, 0.75, 0.747, 0.55,
+             -0.55, -0.747, -0.75, -0.75, -0.75, -0.704, -0.697, 0.697]
         try:
             # remember that we have all at LIUQE times
             pRadN = self.tree.getNode(r'\results::bolo:emissivity')
@@ -334,17 +333,19 @@ class Radiation:
         _dz = (self.Z.max()-self.Z.min())/(self.Z.size-1)
         _dx = (self.R.max()-self.R.min())/(self.R.size-1)
         for tidx in range(self.time.size):
-            mask = ((self.psiN[tidx, :, :] > 1) &
-                    (self.psiN[tidx, :, :] < 1.4))
-            mask[self.Z > self.zxP[tidx, self.actX[tidx]], :] = False
-            mask[:, self.R < self.rxP[tidx, self.actX[tidx]]] = False
-            # now integrate
-            emissivity[tidx] = numpy.trapz(2 * scipy.pi *
-                                           numpy.trapz(
-                                               self.pRad[tidx, :, :]*mask,
-                                               dx=_dz, axis=0),
-                                           dx=_dx)
-
+            try:
+                mask = ((self.psiN[tidx, :, :] > 1) &
+                        (self.psiN[tidx, :, :] < 1.4))
+                mask[self.Z > self.zxP[tidx, self.actX[tidx]], :] = False
+                mask[:, self.R < self.rxP[tidx, self.actX[tidx]]] = False
+                # now integrate
+                emissivity[tidx] = numpy.trapz(2 * scipy.pi *
+                                               numpy.trapz(
+                                                   self.pRad[tidx, :, :]*mask,
+                                                   dx=_dz, axis=0),
+                                               dx=_dx)
+            except:
+                pass
         return emissivity
 
     def HfsSolLeg(self):
