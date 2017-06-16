@@ -36,7 +36,7 @@ while loop:
     print_menu()
     selection = input("Enter your choice [1-99] ")
     if selection == 1:
-        shotList = (57425, 57437)
+        shotList = (57425, 57437, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
         # create the plot
         fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
@@ -139,7 +139,7 @@ while loop:
         mpl.pylab.savefig('../pdfbox/CurrentScanConstantBt.pdf',
                           bbox_to_inches='tight')
     elif selection == 2:
-        shotList = (57454, 57461)
+        shotList = (57454, 57461, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
         # create the plot
         fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
@@ -203,30 +203,30 @@ while loop:
             ax[2, 0].legend(loc='best', numpoints=1, frameon=False)
             ax[2, 0].set_xlim([0, 1.8])
             ax[2, 0].axes.get_xaxis().set_visible(False)
-            if not Pressure._Midplane:
-                ax[3, 0].plot(Pressure._Ttime,
-                              Pressure._Target,
-                              color=col)
-                ax[3, 0].set_ylabel(r'Target Pressure [Pa]')
-                ax[3, 0].set_xlim([0, 1.8])
+#            if not Pressure._Midplane:
+            ax[3, 0].plot(Pressure._Ttime,
+                          Pressure._Target,
+                          color=col)
+            ax[3, 0].set_ylabel(r'Target Pressure [Pa]')
+            ax[3, 0].set_xlim([0, 1.8])
+            ax[3, 0].set_xlabel('t[s]')
 #                ax[3, 0].set_ylim([0, 10])
-                ax[3, 0].set_xlabel('t[s]')
-            elif not Pressure._Target:
-                ax[3, 0].plot(Pressure._Mtime,
-                              Pressure._Midplane,
-                              color=col)
-                ax[3, 0].set_ylabel(r'Midplane Pressure [Pa]')
-                ax[3, 0].set_xlim([0, 1.8])
-#                ax[3, 0].set_ylim([0, 10])
-                ax[3, 0].set_xlabel('t[s]')
-            else:
-                ax[3, 0].plot(Pressure.t,
-                              Pressure.Compressione,
-                              color=col)
-                ax[3, 0].set_ylabel(r'Compression')
-                ax[3, 0].set_xlim([0, 1.8])
-                ax[3, 0].set_ylim([0, 10])
-                ax[3, 0].set_xlabel('t[s]')
+#             elif not Pressure._Target:
+#                 ax[3, 0].plot(Pressure._Mtime,
+#                               Pressure._Midplane,
+#                               color=col)
+#                 ax[3, 0].set_ylabel(r'Midplane Pressure [Pa]')
+#                 ax[3, 0].set_xlim([0, 1.8])
+# #                ax[3, 0].set_ylim([0, 10])
+#                 ax[3, 0].set_xlabel('t[s]')
+#             else:
+#                 ax[3, 0].plot(Pressure.t,
+#                               Pressure.Compression,
+#                               color=col)
+#                 ax[3, 0].set_ylabel(r'Compression')
+#                 ax[3, 0].set_xlim([0, 1.8])
+#                 ax[3, 0].set_ylim([0, 10])
+#                 ax[3, 0].set_xlabel('t[s]')
             ax[0, 1].plot(enAVG.getDimensionAt().data(),
                           enAVG.data()/1e19)
             ax[0, 1].set_ylabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}$]')
