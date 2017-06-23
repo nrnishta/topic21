@@ -1,0 +1,252 @@
+\documentclass[10pt, compress]{beamer}
+\usetheme[conference=TCV-Topic21 KoM,venue=Lausanne, date=15/05/2017, titleprogressbar, logo=RFX-logo]{Eurof}
+\usepackage{listings,amsmath,multimedia, amssymb}
+\usepackage{../beamerclass/tangocolors}
+\usepackage{../beamerclass/rfxcolor}
+% for drawing
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,backgrounds}
+\usepackage{../beamerclass/onimage}
+\usepackage[export]{adjustbox}
+\usepackage{bm}
+% for font
+\usepackage[absolute,overlay]{textpos}
+  \setlength{\TPHorizModule}{1mm}
+  \setlength{\TPVertModule}{1mm}
+
+\usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
+uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
+\bibliography{biblio}
+\renewcommand*{\bibfont}{\footnotesize}
+\renewcommand*{\citesetup}{\footnotesize}
+\usepackage[export]{adjustbox}
+\makeatother
+\mode<presentation>
+\makeatletter
+% add a macro that saves its argument
+\newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
+\newbox\footlineextrabox
+% for reducing font on a single slide
+\newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
+\title{Topic 21 experiment Week 24}
+\date{26 June 2017}
+\author[N. Vianello,  V. Naulin]{N . Vianello and V. Naulin for the
+  Topic 21 SC team}
+\begin{document}
+\tikzstyle{every picture}+=[remember picture]
+\maketitle
+\begin{frame}{Scientific Team}
+  \begin{description}
+  \item[EPFL:] H. De Oliveira, R. Maurizio, B. Labit,
+    C. Tsui, K. Verhaegh, H. Reimerdes, C. Theiler
+  \item[DTU:] J.J. Rasmussen and V. Naulin
+  \item[RFX:] N. Vianello, M. Spolaore, M. Agostini
+  \item[OEAW:] B. Schneider, S. Costea, R. Schrittwieser
+  \item[CCFE:] F. Militello
+  \item[JSI:] J. Kovacic
+  \end{description}
+\end{frame}
+\begin{frame}{TCV experiments: boundary condition}
+\vspace{-1cm}
+\Fontvi
+\begin{itemize}
+\item 2017 \textbf{objectives} listed after the General Planning Meeting
+  \begin{enumerate}
+  \item Provide cross-machine \alert{L-Mode} shoulder dependence on
+    current both at constant Bt and at constant q$_{95}$
+  \item Establish robust scenario for density shoulder profile in
+        H-mode and establish dependence on fuelling/neutral
+        profiles/divertor condition
+  \item Study the role of ELM regimes, neutral compression, and
+    particle density in filamentary transport and related shoulder
+    formation.
+  \item Identify the contribution of collisionality and
+    seeding on filamentary transport and related shoulder
+    formation.
+  \item Determine the effect of filaments and shoulder
+    formation on target heat loads in different Hmode plasmas.
+  \end{enumerate}
+\item We have a total number of \textbf{\# 23 Shots} originally split into two
+    operational window. Calendar week 24 (12.06-16.06) and Calendar
+    week 43 (23.10-27.10)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Experimental plan}
+  \begin{frame}{Proposed experimental plan}
+\Fontvi
+    \alert{For the first week of operation we originally planned L-mode shots
+      only. Shots 1-3 I$_p$ scan at constant toroidal field. Shots
+      1, 4 and 5 I$_p$ scan at constant q$_{95}$ to be compared with
+      analogous experiments in AUG and MAST-U. Shots 6-7 Low
+      collisionality scan. Shots 8-9 DN current scan: this will be
+      compared directly with Mast-U which will run predominantly in DN
+    configuration. Shot 10-11 Current scan in forward field to check
+    the role of $\nabla\times B$ direction.}
+\begin{enumerate}
+\item Shape from 57088, I$_p$ = 245 kA,  Reverse B$_t$,
+    density ramp from Line Average Density = 3.8e19 @ 0.5 s to 11e19 @ 1.6s,  Bt = 1.4T. Plunge @ 0.65, 1.52
+\item  Repeat \# 1 with I$_p$=330 kA Bt=1.4T, same density ramp, same timing for plunges
+\item  Repeat \# 1 with I$_p$=180 kA, Bt=1.4T, same density ramp, same timing for plunges
+\item  Repeat \# 1 with q95=2.44 as \# 2, adjust Bt consequently (Bt = 1.02T)
+\item  Repeat \# 3 with q95=2.44 as \# 2, adjust Bt consequently (Bt=0.8T)
+\item  Shape and current from \# 1. Stop puffing once the divertor is
+  formed to get low collisionality case. ECRH ramp from 0.9s (150
+  kW--500 kW)
+\item  Repeat \# 6 with intermediate density value between \# 6 and
+  \#1 density at 0.65s. 
+\item  Repeat density ramp of Shot \# 2 in DN configuration 
+\item  Repeat density ramp of Shot \# 3 in DN configuration 
+\item Repeat \# 1 in forward field
+\item Repeat \# 3 in forward field
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Current scan at constant Magnetic field}
+  \begin{columns}[c]
+    \begin{column}{0.65\textwidth}
+      \includegraphics[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/}
+    \end{column}
+  \end{columns}
+  
+
+\begin{frame}{Results obtained during MST1 Campaigns 2015-2016}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \includegraphics<1>[width=\textwidth]{pdfbox/KoM150517/Fig0}
+      \includegraphics<2>[width=\textwidth]{pdfbox/KoM150517/Fig1}
+      \includegraphics<3>[width=\textwidth]{pdfbox/KoM150517/Fig2}
+      \includegraphics<4>[width=\textwidth]{pdfbox/KoM150517/Fig4}
+      \includegraphics<5>[width=\textwidth]{pdfbox/KoM150517/Fig5}
+      \includegraphics<6>[width=\textwidth]{pdfbox/KoM150517/Fig6}
+      \includegraphics<7>[height=.8\textheight]{pdfbox/KoM150517/Fig7}
+      \includegraphics<8>[height=.8\textheight]{pdfbox/KoM150517/Fig8}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{itemize}
+        \item<1|only@1> Performed a series of L-Mode shots with
+          density ramp and different poloidal flux expansion to check
+          L$_{\parallel}$ effect
+        \item<2|only@2> Upstream profiles at same densities but
+          different $\Lambda_{div}$ (well above 1 all along the
+          profiles) are similar. Weak effect of parallel connection
+          length modification
+        \item<3|only@3> Density decay length $\lambda_n$ modified
+          strongly with increasing density in the near SOL region
+        \item<4|only@4> Blob size increases with density independently
+          from the Flux expansion
+        \item<5|only@5> In the Far SOL the decay length scales with
+          divertor collisionality but examples with high $\Lambda_n$
+          and steep profile clearly exhists
+        \item<6|only@6> Steep profile clearly seen in the
+          Sheath-connected regime. Unclear if Resistive balloning and
+          resistive X-point blobs behaves differently
+        \item<7|only@7> Change in the Flux expansion does not change
+          detachment density threshold, whereas divertor leg length
+          has a clear impact (\textit{Theiler, NF17 and Reimerdes IAEA
+            2016})
+        \item<8|only@8> Also any differences observed between single
+          and double null. Major modification only induced by density increase  
+          
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}{Proposed experimental plan: L-mode}
+  \Fontvi
+  The first shots are needed in order to have comparable scenario
+  between all the machines
+  \begin{itemize}
+    \item Current scan at constant q$_{95}$
+      \begin{enumerate}
+      \item Reference shot is \# 54867, I$_p$=240 kA, q$_{95}$=3.5,
+        B$_t$ = 1.41T with the same density ramp (\alert{Do we need a density ramp? can we
+          go directly at high density as in \# 53516? and repeat the
+          shot at low density?})
+      \item Repeat Shot \# 1 with I$_p$=180 kA (20\% decrease similarly
+        to AUG) with the same q$_{95}$ and adjusting the toroidal field
+      \item Repeat Shot \# 1 with I$_p$=300 kA (20\% increase similarly
+        to AUG) with the same q$_{95}$ and adjusting the toroidal
+        field. \alert{In case this causes a transition into Ohmic H-Mode we
+        might think to perform the shot in reverse B$_t$. This
+        eventually needs additional shots at lower current as
+        well. \emph{Why not operate all the shots in Reverse B$_t$?}}
+      \end{enumerate}
+    \item Current scan at constant B$_t$
+      \begin{enumerate}
+        \setcounter{enumi}{3}
+      \item I$_p$=180 kA,  B$_t$ = 1.41 as in shot \# 1 
+      \item I$_p$=300 kA, B$_t$=1.41 as in shot \# 1
+      \end{enumerate}
+    \end{itemize}      
+  \end{frame}
+
+  \begin{frame}{Proposed experimental plan: L-Mode}
+    \begin{itemize}
+      \item Divertor leg length/L$_{parallel}$ scan
+      \begin{enumerate}
+        \setcounter{enumi}{5}
+      \item Repeat \# 1 at $Z=+23$.
+      \item Repeat \# 1 at $Z=-10$  
+      \end{enumerate}
+      \item This can have issues in terms of probe operation because
+        of shadowing effect. 
+      \item Double Null. Repeat the current scan at constant q$_{95}$ in
+        DN configuration in order to provide suitable comparable
+        scenario with foreseen MAST-U operation
+        \begin{enumerate}
+          \setcounter{enumi}{7}
+          \item Repeat the density ramp of \# 1 in DN configuration
+            I$_p$ = 240kA
+          \item Repeat density ramp of shot \# 2 in DN configuration
+            I$_p$ = 180 kA
+          \item Repeat density ramp of shot \# 2 in DN configuration
+            I$_p$ = 300 kA
+          \end{enumerate}
+        \end{itemize}
+      \end{frame}
+
+      \begin{frame}{Proposed experimental plan: H-Mode}
+        The NBI heated plasma is still a partially uncovered scenario
+        for TCV. We have a good reference shot \# 53352 with a good
+        type-I Elmy regime. We propose to use the 3 shots for proper
+        scenario development
+        \begin{enumerate}
+          \setcounter{enumi}{10}
+          \item Repeat \# 53352 same setting. 1MW NBI power 0.4
+            s starting at 0.8s. At 0.82s start a density ramp keeping
+            the same rate as in \# 1. Power ramp down from 1.2 second
+            in order to check ELMy regime. \alert{We need a good
+              monitoring of divertor condition and modification}
+          \item The second shot will depend on \# 11. We will need to
+            adjust the fueling rate accordingly. Include N seeding
+            \alert{check for appropriate reference from past
+              experiment}
+          \item Repeat \# 12 with best trade off between seeding and fueling
+          \end{enumerate}
+          The hypothesis to reach ECRH high density H-Mode is limited, to my
+          knowledge, to operation in vertically shifted plasma and
+          X3. Can be explored in W23
+        \end{frame}
+
+        \begin{frame}{Diagnostic and open issues}
+          %\Fontvi
+          \begin{itemize}
+          \item Fast Camera
+          \item DBS radial localization
+          \item Neutrals from gauges. D$_{\alpha}$ calibrated camera
+            to be used together with \texttt{KN1D} code
+          \item Fast reciprocating probe. Can it work with radially
+            spaced I$_s$ measurements?
+          \item Do we miss something in L-Mode which is worth to be
+            done?
+          \item Do we have experience of nitrogen seeded NBI heated
+            discharge?
+          \item Do we have other references for high density H-Mode operation?
+          \end{itemize}
+        \end{frame}
+\end{document}
+
