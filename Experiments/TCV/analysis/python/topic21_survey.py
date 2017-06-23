@@ -207,7 +207,7 @@ if doubleP is not None:
     yO = doubleP['Dens(m-3)'][
         :np.argmin(doubleP['rrsep(m)'])].values/1e19
     eRO = doubleP['DensErr(cm-3)'][
-        :np.argmin(doubleP['rrsep(m)'])].values/10.
+         :np.argmin(doubleP['rrsep(m)'])].values/10.
     Profile = FastRP._getprofileR(xO, yO, npoint=35)
     x = Profile.rho.values
     y = Profile.values

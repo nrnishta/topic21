@@ -1,6 +1,5 @@
 import numpy as np
 import sys
-import itertools
 import matplotlib as mpl
 from scipy.interpolate import UnivariateSpline
 from scipy.signal import savgol_filter
@@ -26,6 +25,8 @@ def print_menu():
     print "2. General plot with current scan at constant q95"
     print "3. Compare profiles scan at constant Bt"
     print "4. Compare profiles scan at constant q95"
+    print "5. Compare profiles scan at constat Bt only SOL"
+    print "6. Compare profiles scan at constat q95 only SOL"
     print "99: End"
     print 67 * "-"
 
@@ -91,7 +92,8 @@ while loop:
                               POhm.data()/1e6, '-', color=col,
                               label='Ohmic')
             try:
-                ax[2, 0].plot(Bolo.time, (Bolo.LfsSol() + Bolo.LfsLeg())/1e3, '--',
+                ax[2, 0].plot(Bolo.time, (Bolo.LfsSol() +
+                                          Bolo.LfsLeg())/1e3, '--',
                               color=col, label=r'LFS SOL + Leg')
             except:
                 pass
@@ -257,11 +259,400 @@ while loop:
 
         mpl.pylab.savefig('../pdfbox/CurrentScanConstantQ95.pdf',
                           bbox_to_inches='tight')
-        
     elif selection == 3:
-        pass
+        shotList = (57437, 57425, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        currentList = ('190','240', '330')
+        fig, ax = mpl.pylab.subplots(figsize=(16, 10), nrows=2, ncols=3)
+        for shot, _col, _idx, _cur in zip(shotList, colorList,
+                                          range(len(shotList)),
+                                          currentList):
+            # read the average density data
+            Tree = mds.Tree('tcv_shot', shot)
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            # plot the data
+            ax[0, _idx].plot(enAVG.getDimensionAt().data(),
+                             enAVG.data()/1e19, color='k', lw=2,
+                             label=r' I$_p$ = ' + _cur+' kA')
+            ax[0, _idx].set_xlabel(r't [s]')
+            ax[0, _idx].set_ylim([0, 12])
+            ax[0, _idx].legend(loc='best', numpoints=1, frameon=False)
+            ax[0, _idx].set_title(r'Shot # %5i' % shot)
+            if _idx == 0:
+                ax[0, _idx].set_ylabel(
+                    r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+            else:
+                ax[0, _idx].axes.get_yaxis().set_visible(False)
+            # read the equilibrium
+            eq = eqtools.TCVLIUQETree(shot)
+            # read the thomson data
+            rPos = Tree.getNode(r'\diagz::thomson_set_up:radial_pos').data()
+            zPos = Tree.getNode(r'\diagz::thomson_set_up:vertical_pos').data()
+            # now the thomson times
+            times = Tree.getNode(r'\results::thomson:times').data()
+            # now the thomson raw data
+            dataTe = Tree.getNode(r'\results::thomson:te').data()
+            errTe = Tree.getNode(r'\results::thomson:te:error_bar').data()
+            dataEn = Tree.getNode(r'\results::thomson:ne').data()
+            errEn = Tree.getNode(r'\results::thomson:ne:error_bar').data()
+
+            # now read the profile data for these shots for both the
+            # strokes, plot the density profiles together with the
+            # data from Thomson in the three closests times
+            for strokes, cS in zip(('1', '2'),
+                                   ('orange', 'blue')):
+                # read the data in rho
+                doubleP = pd.read_table(
+                    '/home/tsui/idl/library/data/double/dpm' +
+                    str(int(shot)) + '_' +
+                    strokes + '.tab', skiprows=1,
+                    header=0)
+                t0 = (doubleP['Time(s)'].mean())
+                # indicates the density of the strokes
+                ax[0, _idx].axvline(t0, ls='--', color=cS)
+                x = doubleP['rrsep(m)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values
+                y = doubleP['Dens(m-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/1e19
+                eR = doubleP['DensErr(cm-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/10
+                # now transform from RRsep to Rho using eqtools
+                rhoProbe = eq.rmid2psinorm(
+                    x+eq.getRmidOutSpline()(
+                        doubleP['Time(s)'].mean()),
+                    doubleP['Time(s)'].mean(), sqrt=True)
+                _SOL = np.where(rhoProbe > 1)[0]
+                y = y[_SOL]
+                eR = eR[_SOL]
+                rhoProbe = rhoProbe[_SOL]
+                # now found the values of the thomson closest to the
+                # strokes (3 in total)
+                _indexThomson = np.argmin(np.abs(times-t0))
+                # append totally the rhothomson and
+                # the density thomson
+                rhoT = np.array([])
+                enT = np.array([])
+                erT = np.array([])
+                for l in (-1, 0, 1):
+                    _x = eq.rz2psinorm(rPos, zPos, times[_indexThomson+l],
+                                       sqrt=True)
+                    _y = dataEn[:, _indexThomson+l]
+                    _e = errEn[:, _indexThomson+l]
+                    rhoT = np.append(rhoT, _x[_y != -1])
+                    erT = np.append(erT, _e[_y != -1])
+                    enT = np.append(enT, _y[_y != -1])
+                enT = np.asarray(enT[rhoT > 0.97])/1e19
+                erT = np.asarray(erT[rhoT > 0.97])/1e19
+                rhoT = np.asarray(rhoT[rhoT > 0.97])
+                # now the plot and eventually the global spline
+                # for the probe limit ourself to the SOL
+                # now combine all together and order appropriately
+                rho = np.append(rhoT, rhoProbe)
+                density = np.append(enT, y)
+                error = np.append(erT, eR)
+                S = UnivariateSpline(rho[np.argsort(rho)],
+                                     density[np.argsort(rho)], ext=0)
+                _r = np.linspace(rho.min(), rho.max(), num=100)
+                S.set_smoothing_factor(12)
+
+                ax[1, _idx].plot(rhoProbe, y/S(1), 'o', color=cS, ms=10,
+                                 alpha=0.4)
+                ax[1, _idx].errorbar(rhoProbe, y/S(1),
+                                     yerr=eR/S(1), fmt='none',
+                                     ecolor=cS, alpha=0.4)
+                ax[1, _idx].plot(rhoT, enT/S(1), 'p',
+                                 color=cS, ms=10, alpha=0.4)
+                ax[1, _idx].errorbar(rhoT, enT/S(1), yerr=erT/S(1),
+                                     fmt='none', color=cS,
+                                     alpha=0.4)
+                ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
+                ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
+                ax[1, _idx].set_xlim([0.96, 1.12])
+            if _idx == 0:
+                ax[1, _idx].set_ylabel(r'n$_e$/n$_e(\rho=1)$')
+            else:
+                ax[1, _idx].axes.get_yaxis().set_visible(False)
+            ax[1, _idx].set_ylim([0.01, 4])
+            ax[1, _idx].set_yscale('log')
+        mpl.pylab.savefig('../pdfbox/DensityProfileCurrentScanConstantBt.pdf',
+                          bbox_to_inches='tight')
     elif selection == 4:
-        pass
+        shotList = (57461, 57454, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        currentList = ('190', '240', '330')
+        fig, ax = mpl.pylab.subplots(figsize=(16, 10), nrows=2, ncols=3)
+        for shot, _col, _idx, _cur in zip(shotList, colorList,
+                                          range(len(shotList)),
+                                          currentList):
+            # read the average density data
+            Tree = mds.Tree('tcv_shot', shot)
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            # plot the data
+            ax[0, _idx].plot(enAVG.getDimensionAt().data(),
+                             enAVG.data()/1e19, color='k', lw=2,
+                             label=r' I$_p$ = ' + _cur+' kA')
+            ax[0, _idx].set_xlabel(r't [s]')
+            ax[0, _idx].set_ylim([0, 12])
+            ax[0, _idx].legend(loc='best', numpoints=1, frameon=False)
+            ax[0, _idx].set_title(r'Shot # %5i' % shot)
+            if _idx == 0:
+                ax[0, _idx].set_ylabel(
+                    r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+            else:
+                ax[0, _idx].axes.get_yaxis().set_visible(False)
+            # read the equilibrium
+            eq = eqtools.TCVLIUQETree(shot)
+            # read the thomson data
+            rPos = Tree.getNode(r'\diagz::thomson_set_up:radial_pos').data()
+            zPos = Tree.getNode(r'\diagz::thomson_set_up:vertical_pos').data()
+            # now the thomson times
+            times = Tree.getNode(r'\results::thomson:times').data()
+            # now the thomson raw data
+            dataTe = Tree.getNode(r'\results::thomson:te').data()
+            errTe = Tree.getNode(r'\results::thomson:te:error_bar').data()
+            dataEn = Tree.getNode(r'\results::thomson:ne').data()
+            errEn = Tree.getNode(r'\results::thomson:ne:error_bar').data()
+
+            # now read the profile data for these shots for both the
+            # strokes, plot the density profiles together with the
+            # data from Thomson in the three closests times
+            for strokes, cS in zip(('1', '2'),
+                                   ('orange', 'blue')):
+                # read the data in rho
+                doubleP = pd.read_table(
+                    '/home/tsui/idl/library/data/double/dpm' +
+                    str(int(shot)) + '_' +
+                    strokes + '.tab', skiprows=1,
+                    header=0)
+                t0 = (doubleP['Time(s)'].mean())
+                # indicates the density of the strokes
+                ax[0, _idx].axvline(t0, ls='--', color=cS)
+                x = doubleP['rrsep(m)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values
+                y = doubleP['Dens(m-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/1e19
+                eR = doubleP['DensErr(cm-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/10
+                # now transform from RRsep to Rho using eqtools
+                rhoProbe = eq.rmid2psinorm(
+                    x+eq.getRmidOutSpline()(
+                        doubleP['Time(s)'].mean()),
+                    doubleP['Time(s)'].mean(), sqrt=True)
+                _SOL = np.where(rhoProbe > 1)[0]
+                y = y[_SOL]
+                eR = eR[_SOL]
+                rhoProbe = rhoProbe[_SOL]
+                # now found the values of the thomson closest to the
+                # strokes (3 in total)
+                _indexThomson = np.argmin(np.abs(times-t0))
+                # append totally the rhothomson and
+                # the density thomson
+                rhoT = np.array([])
+                enT = np.array([])
+                erT = np.array([])
+                for l in (-1, 0, 1):
+                    _x = eq.rz2psinorm(rPos, zPos, times[_indexThomson+l],
+                                       sqrt=True)
+                    _y = dataEn[:, _indexThomson+l]
+                    _e = errEn[:, _indexThomson+l]
+                    rhoT = np.append(rhoT, _x[_y != -1])
+                    erT = np.append(erT, _e[_y != -1])
+                    enT = np.append(enT, _y[_y != -1])
+                enT = np.asarray(enT[rhoT > 0.97])/1e19
+                erT = np.asarray(erT[rhoT > 0.97])/1e19
+                rhoT = np.asarray(rhoT[rhoT > 0.97])
+                # now the plot and eventually the global spline
+                # for the probe limit ourself to the SOL
+                # now combine all together and order appropriately
+                rho = np.append(rhoT, rhoProbe)
+                density = np.append(enT, y)
+                error = np.append(erT, eR)
+                S = UnivariateSpline(rho[np.argsort(rho)],
+                                     density[np.argsort(rho)], ext=0)
+                _r = np.linspace(rho.min(), rho.max(), num=100)
+                S.set_smoothing_factor(12)
+
+                ax[1, _idx].plot(rhoProbe, y/S(1), 'o', color=cS, ms=10,
+                                 alpha=0.4)
+                ax[1, _idx].errorbar(rhoProbe, y/S(1),
+                                     yerr=eR/S(1), fmt='none',
+                                     ecolor=cS, alpha=0.4)
+                ax[1, _idx].plot(rhoT, enT/S(1), 'p',
+                                 color=cS, ms=10, alpha=0.4)
+                ax[1, _idx].errorbar(rhoT, enT/S(1), yerr=erT/S(1),
+                                     fmt='none', color=cS,
+                                     alpha=0.4)
+                ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
+                ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
+                ax[1, _idx].set_xlim([0.96, 1.12])
+            if _idx == 0:
+                ax[1, _idx].set_ylabel(r'n$_e$/n$_e(\rho=1)$')
+            else:
+                ax[1, _idx].axes.get_yaxis().set_visible(False)
+            ax[1, _idx].set_ylim([0.01, 4])
+            ax[1, _idx].set_yscale('log')
+        mpl.pylab.savefig('../pdfbox/DensityProfileCurrentScanConstantQ95.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 5:
+        shotList = (57437, 57425, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        currentList = ('190','240', '330')
+        fig, ax = mpl.pylab.subplots(figsize=(16, 10), nrows=2, ncols=3)
+        for shot, _col, _idx, _cur in zip(shotList, colorList,
+                                          range(len(shotList)),
+                                          currentList):
+            # read the average density data
+            Tree = mds.Tree('tcv_shot', shot)
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            # plot the data
+            ax[0, _idx].plot(enAVG.getDimensionAt().data(),
+                             enAVG.data()/1e19, color='k', lw=2,
+                             label=r' I$_p$ = ' + _cur+' kA')
+            ax[0, _idx].set_xlabel(r't [s]')
+            ax[0, _idx].set_ylim([0, 12])
+            ax[0, _idx].legend(loc='best', numpoints=1, frameon=False)
+            ax[0, _idx].set_title(r'Shot # %5i' % shot)
+            if _idx == 0:
+                ax[0, _idx].set_ylabel(
+                    r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+            else:
+                ax[0, _idx].axes.get_yaxis().set_visible(False)
+            # read the equilibrium
+            eq = eqtools.TCVLIUQETree(shot)
+
+            # now read the profile data for these shots for both the
+            # strokes, plot the density profiles together with the
+            # data from Thomson in the three closests times
+            for strokes, cS in zip(('1', '2'),
+                                   ('orange', 'blue')):
+                # read the data in rho
+                doubleP = pd.read_table(
+                    '/home/tsui/idl/library/data/double/dpm' +
+                    str(int(shot)) + '_' +
+                    strokes + '.tab', skiprows=1,
+                    header=0)
+                t0 = (doubleP['Time(s)'].mean())
+                # indicates the density of the strokes
+                ax[0, _idx].axvline(t0, ls='--', color=cS)
+                x = doubleP['rrsep(m)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values
+                y = doubleP['Dens(m-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/1e19
+                eR = doubleP['DensErr(cm-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/10
+                # now transform from RRsep to Rho using eqtools
+                rhoProbe = eq.rmid2psinorm(
+                    x+eq.getRmidOutSpline()(
+                        doubleP['Time(s)'].mean()),
+                    doubleP['Time(s)'].mean(), sqrt=True)
+                _SOL = np.where(rhoProbe > 1)[0]
+                y = y[_SOL]
+                eR = eR[_SOL]
+                rhoProbe = rhoProbe[_SOL]
+                # now found the values of the thomson closest to the
+                # strokes (3 in total)
+                # now the plot and eventually the global spline
+                # for the probe limit ourself to the SOL
+                # now combine all together and order appropriately
+                S = UnivariateSpline(rhoProbe[np.argsort(rhoProbe)],
+                                     y[np.argsort(rhoProbe)], ext=0)
+                _r = np.linspace(rhoProbe.min(), rhoProbe.max(), num=100)
+                S.set_smoothing_factor(12)
+
+                ax[1, _idx].plot(rhoProbe, y/S(1), 'o', color=cS, ms=10,
+                                 alpha=0.4)
+                ax[1, _idx].errorbar(rhoProbe, y/S(1),
+                                     yerr=eR/S(1), fmt='none',
+                                     ecolor=cS, alpha=0.4, errorevery=3)
+                ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
+                ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
+                ax[1, _idx].set_xlim([0.99, 1.12])
+            if _idx == 0:
+                ax[1, _idx].set_ylabel(r'n$_e$/n$_e(\rho=1)$')
+            else:
+                ax[1, _idx].axes.get_yaxis().set_visible(False)
+            ax[1, _idx].set_ylim([0.01, 4])
+            ax[1, _idx].set_yscale('log')
+        mpl.pylab.savefig('../pdfbox/DensityProfileCurrentScanConstantBtSOL.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 6:
+        shotList = (57461, 57454, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        currentList = ('190', '240', '330')
+        fig, ax = mpl.pylab.subplots(figsize=(16, 10), nrows=2, ncols=3)
+        for shot, _col, _idx, _cur in zip(shotList, colorList,
+                                          range(len(shotList)),
+                                          currentList):
+            # read the average density data
+            Tree = mds.Tree('tcv_shot', shot)
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            # plot the data
+            ax[0, _idx].plot(enAVG.getDimensionAt().data(),
+                             enAVG.data()/1e19, color='k', lw=2,
+                             label=r' I$_p$ = ' + _cur+' kA')
+            ax[0, _idx].set_xlabel(r't [s]')
+            ax[0, _idx].set_ylim([0, 12])
+            ax[0, _idx].legend(loc='best', numpoints=1, frameon=False)
+            ax[0, _idx].set_title(r'Shot # %5i' % shot)
+            if _idx == 0:
+                ax[0, _idx].set_ylabel(
+                    r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+            else:
+                ax[0, _idx].axes.get_yaxis().set_visible(False)
+            # read the equilibrium
+            eq = eqtools.TCVLIUQETree(shot)
+
+            # now read the profile data for these shots for both the
+            # strokes, plot the density profiles together with the
+            # data from Thomson in the three closests times
+            for strokes, cS in zip(('1', '2'),
+                                   ('orange', 'blue')):
+                # read the data in rho
+                doubleP = pd.read_table(
+                    '/home/tsui/idl/library/data/double/dpm' +
+                    str(int(shot)) + '_' +
+                    strokes + '.tab', skiprows=1,
+                    header=0)
+                t0 = (doubleP['Time(s)'].mean())
+                # indicates the density of the strokes
+                ax[0, _idx].axvline(t0, ls='--', color=cS)
+                x = doubleP['rrsep(m)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values
+                y = doubleP['Dens(m-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/1e19
+                eR = doubleP['DensErr(cm-3)'][
+                    :np.argmin(doubleP['rrsep(m)'])].values/10
+                # now transform from RRsep to Rho using eqtools
+                rhoProbe = eq.rmid2psinorm(
+                    x+eq.getRmidOutSpline()(
+                        doubleP['Time(s)'].mean()),
+                    doubleP['Time(s)'].mean(), sqrt=True)
+                _SOL = np.where(rhoProbe > 1)[0]
+                y = y[_SOL]
+                eR = eR[_SOL]
+                rhoProbe = rhoProbe[_SOL]
+                S = UnivariateSpline(rhoProbe[np.argsort(rhoProbe)],
+                                     y[np.argsort(rhoProbe)], ext=0)
+                _r = np.linspace(rhoProbe.min(), rhoProbe.max(), num=100)
+                S.set_smoothing_factor(12)
+
+                ax[1, _idx].plot(rhoProbe, y/S(1), 'o', color=cS, ms=10,
+                                 alpha=0.4)
+                ax[1, _idx].errorbar(rhoProbe, y/S(1),
+                                     yerr=eR/S(1), fmt='none',
+                                     ecolor=cS, alpha=0.4, errorevery=3)
+                ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
+                ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
+                ax[1, _idx].set_xlim([0.99, 1.12])
+            if _idx == 0:
+                ax[1, _idx].set_ylabel(r'n$_e$/n$_e(\rho=1)$')
+            else:
+                ax[1, _idx].axes.get_yaxis().set_visible(False)
+            ax[1, _idx].set_ylim([0.01, 4])
+            ax[1, _idx].set_yscale('log')
+        mpl.pylab.savefig('../pdfbox/DensityProfileCurrentScanConstantQ95SOL.pdf',
+                          bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
