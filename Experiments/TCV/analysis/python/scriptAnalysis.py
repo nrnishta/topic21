@@ -42,7 +42,7 @@ while loop:
         # create the plot
         fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
                                      ncols=2, sharex=True)
-        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.17, right=0.98)
+        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.98)
         for shot, col in zip(shotList, colorList):
             eq = eqtools.TCVLIUQETree(shot)
             Tree = mds.Tree('tcv_shot', shot)
@@ -146,7 +146,7 @@ while loop:
         # create the plot
         fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
                                      ncols=2, sharex=True)
-        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.17, right=0.98)
+        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.98)
         for shot, col in zip(shotList, colorList):
             eq = eqtools.TCVLIUQETree(shot)
             Tree = mds.Tree('tcv_shot', shot)
@@ -287,7 +287,8 @@ while loop:
             eq = eqtools.TCVLIUQETree(shot)
             # read the thomson data
             rPos = Tree.getNode(r'\diagz::thomson_set_up:radial_pos').data()
-            zPos = Tree.getNode(r'\diagz::thomson_set_up:vertical_pos').data()
+            zPos = Tree.getNode(
+                r'\diagz::thomson_set_up:vertical_pos').data()
             # now the thomson times
             times = Tree.getNode(r'\results::thomson:times').data()
             # now the thomson raw data
@@ -359,12 +360,13 @@ while loop:
                                  alpha=0.4)
                 ax[1, _idx].errorbar(rhoProbe, y/S(1),
                                      yerr=eR/S(1), fmt='none',
-                                     ecolor=cS, alpha=0.4)
+                                     ecolor=cS, alpha=0.4,
+                                     errorevery=4)
                 ax[1, _idx].plot(rhoT, enT/S(1), 'p',
                                  color=cS, ms=10, alpha=0.4)
                 ax[1, _idx].errorbar(rhoT, enT/S(1), yerr=erT/S(1),
                                      fmt='none', color=cS,
-                                     alpha=0.4)
+                                     alpha=0.4, errorevery=4)
                 ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
                 ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
                 ax[1, _idx].set_xlim([0.96, 1.12])
@@ -473,15 +475,16 @@ while loop:
                 S.set_smoothing_factor(12)
 
                 ax[1, _idx].plot(rhoProbe, y/S(1), 'o', color=cS, ms=10,
-                                 alpha=0.4)
+                                 alpha=0.3)
                 ax[1, _idx].errorbar(rhoProbe, y/S(1),
                                      yerr=eR/S(1), fmt='none',
-                                     ecolor=cS, alpha=0.4)
+                                     ecolor=cS, alpha=0.3,
+                                     errorevery=4)
                 ax[1, _idx].plot(rhoT, enT/S(1), 'p',
-                                 color=cS, ms=10, alpha=0.4)
+                                 color=cS, ms=10, alpha=0.3)
                 ax[1, _idx].errorbar(rhoT, enT/S(1), yerr=erT/S(1),
                                      fmt='none', color=cS,
-                                     alpha=0.4)
+                                     alpha=0.3, errorevery=4)
                 ax[1, _idx].plot(_r, S(_r)/S(1), '--', lw=2, color=cS)
                 ax[1, _idx].set_xlabel(r'$\rho_{\Psi}$')
                 ax[1, _idx].set_xlim([0.96, 1.12])
