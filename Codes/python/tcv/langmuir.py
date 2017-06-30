@@ -65,38 +65,39 @@ class LP:
             r'\results::langmuir:time2').data()
         if type == 'floor':
             # limit to the floor probe
-            _idx = np.where(Z == -0.75)[0]
+            self._idx = np.where(Z == -0.75)[0]
         elif type == 'HFSwall':
-            _idx = np.where(R == 0.624)[0]
+            self._idx = np.where(R == 0.624)[0]
         elif type == 'LFSwall':
-            _idx = np.where(R == 1.136)[0]
+            self._idx = np.where(R == 1.136)[0]
         else:
             print('Not implemented')
 
         self.en = self._Tree.getNode(
-           r'\results::langmuir:four_par_fit:dens').data()[:, _idx]
+           r'\results::langmuir:four_par_fit:dens').data()[:, self._idx]
         self.te = self._Tree.getNode(
-            r'\results::langmuir:four_par_fit:Te').data()[:, _idx]
+            r'\results::langmuir:four_par_fit:Te').data()[:, self._idx]
         self.angle = self._Tree.getNode(
-            r'\results::langmuir:area').data()[:, _idx]
+            r'\results::langmuir:area').data()[:, self._idx]
         self.jSat2 = self._Tree.getNode(
-            r'\results::langmuir:jsat2').data()[:, _idx]
+            r'\results::langmuir:jsat2').data()[:, self._idx]
         self.pPer = self._Tree.getNode(
-            r'\results::langmuir:four_par_fit:P_perp').data()[:, _idx]
-        self.R = R[_idx]
-        self.Z = Z[_idx]
+            r'\results::langmuir:four_par_fit:P_perp').data()[:, self._idx]
+        self.R = R[self._idx]
+        self.Z = Z[self._idx]
 
     def RemapUpstream(self):
         # first of all trasform remap the R, Z to
         # Rmid
+
         self.RUpStream = self._Tree.getNode(
-            r'\results::langmuir:dsep_mid').data()
+            r'\results::langmuir:dsep_mid').data()[:, self._idx]
         self.RUpStream2 = self._Tree.getNode(
-            r'\results::langmuir:dsep_mid2').data()
+            r'\results::langmuir:dsep_mid2').data()[:, self._idx]
         self.Rho = self._Tree.getNode(
-            r'\results::langmuir:rho_psi').data()
+            r'\results::langmuir:rho_psi').data()[:, self._idx]
         self.Rho2 = self._Tree.getNode(
-            r'\results::langmuir:rho_psi2').data()
+            r'\results::langmuir:rho_psi2').data()[:, self._idx]
 
     def UpStreamProfile(self, trange=[0.6, 0.8]):
         """
