@@ -28,6 +28,7 @@ def print_menu():
     print "5. Compare profiles scan at constat Bt only SOL"
     print "6. Compare profiles scan at constat q95 only SOL"
     print "7. Attempt for low collisionality"
+    print "8. Compare plot and profiles at constant q95"
     print "99: End"
     print 67 * "-"
 
@@ -761,8 +762,48 @@ while loop:
             ax[3, 1].set_ylim([0, 4])
         mpl.pylab.savefig('../pdfbox/LowCollisionalityAttempt.pdf',
                           bbox_to_inches='tight')
-        
-    
+
+    elif selection == 8:
+        shotL = (57454, 57461, 57497)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig = mpl.pylab.figure(figsize=(14, 18))
+        fig.subplots_adjust(hspace=0.3, top=0.96, right=0.98)
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        ax12 = mpl.pylab.subplot2grid((4, 3), (1, 0), colspan=3)
+        ax13 = mpl.pylab.subplot2grid((4, 3), (2, 0), colspan=3)
+        ax2 = mpl.pylab.subplot2grid((4, 3), (3, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 3), (3, 1))
+        ax4 = mpl.pylab.subplot2grid((4, 3), (3, 2))
+        axL = (ax2, ax3, ax4)
+        for shot, col, _ax in zip(shotL, colorL, axL):
+            Tree = mds.Tree('tcv_shot', shot)
+            iP = mds.Data.compile(r'tcv_ip()').evaluate()
+            ax1.plot(iP.getDimensionAt().data(), iP.data/1e6,
+                     color=col, label=r'# %5i' % shot)
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_xlim([0., 1.7])
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_ylim([0., 0.4])
+
+            enE = Tree.getNode(r'\results::fir_n_average_array')
+            ax12.plot(enE.getDimensionAt().data(), enE.data()[-1, :]/1e20,
+                      '-', color=col, lw=2)
+            ax12.set_xlim([0, 1.7])
+            ax12.set_ylim([0, 1])
+            ax12.axes.get_xaxis().set_visible(False)
+
+            GasP1 = Tree.getNode(r'\diagz::flux_gaz:piezo_1:flux')
+            ax13.plot(GasP1.getDimensionAt().data(), GasP1.data().data(),
+                      '-', color=col, lw=2)
+            ax13.set_ylabel(r'D$_2$')
+            ax13.set_xlabel(r't [s]')
+            ax13.set_xlim([0.1, 7])
+
+            # now we need the profiles from Thomson and from the probe
+            # for the probe we use the newly stored Tree
+            filam = mds.Tree('tcv_topic21', shot)
+            
+            
     elif selection == 99:
         loop = False
     else:
