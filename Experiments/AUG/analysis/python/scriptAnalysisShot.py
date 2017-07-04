@@ -45,6 +45,8 @@ def print_menu():
     print "19. Compare Li-Beam contour profiles with/wo crypumps when trying to math edge density"
     print "20. Compare Li-Be contour div/midplane puffing"
     print "21. Compare Li-Be contour same fueling with/without cryo"
+    print "22. Compare Shot constant q95 same edge density"
+    print "23. Compare Li-Beam contour profiles with/wo crypumps, Density and Fueling"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1296,7 +1298,8 @@ while loop:
                 S = UnivariateSpline(rhoP[n, ::-1],
                                      neLB[n, ::-1]/1e19, s=0)
                 profFake[n, :] = S(rhoFake)
-            im=_ax.imshow(np.log(profFake.transpose()), origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+            im=_ax.imshow(np.log(profFake.transpose()), origin='lower', aspect='auto' ,
+                          cmap=mpl.cm.viridis,
                           extent=(neLBtime.min(), neLBtime.max(), 0.98, 1.06),
                           norm=LogNorm(vmin=0.5, vmax=2.5))
 
@@ -1320,6 +1323,172 @@ while loop:
         mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.pdf',
                           bbox_to_inches='tight')    
+
+    elif selection == 22:
+        shotL = (34103, 34102, 34104)
+        iPL = (0.6, 0.8, 0.99)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')        
+        fig = mpl.pylab.figure(figsize=(14, 18))
+        fig.subplots_adjust(hspace=0.3, top=0.96, right=0.98)
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        ax12 = mpl.pylab.subplot2grid((4, 3), (1, 0), colspan=3)
+        ax13 = mpl.pylab.subplot2grid((4, 3), (2, 0), colspan=3)
+        ax2 = mpl.pylab.subplot2grid((4, 3), (3, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 3), (3, 1))
+        ax4 = mpl.pylab.subplot2grid((4, 3), (3, 2))
+        axL = (ax2, ax3, ax4)
+        # these are approximately the time at the same edge density
+        tList = (3.43, 3.187, 2.75)
+        for shot, tMax, iP, col, _ax in itertools.izip(
+            shotL, tList, iPL, colorL, axL):
+            diag = dd.shotfile('MAG', shot)
+            ax1.plot(diag('Ipa').time, diag('Ipa').data/1e6, color=col, lw=3,
+                     label=r'# %5i' % shot)
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_xlim([0, 4.2])
+            ax1.set_ylim([0, 1.1])
+            diag.close()
+
+            diag = dd.shotfile('TOT', shot)
+            neAvg = diag('H-1/(2a)')
+            ax12.plot(neAvg.time, neAvg.data/1e20, '-', color=col, lw=3)
+            ax12.set_ylim([0, 1])
+            ax12.set_xlim([0, 4.2])
+
+            ax12.axes.get_xaxis().set_visible(False)
+
+            Gas = neutrals.Neutrals(shot)
+            ax13.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                          color=col, lw=3)
+            ax13.set_ylabel(r'D$_2$  [10$^{21}$]')
+            ax13.set_xlim([0, 4.2])
+            ax13.set_xlabel(r't [s]')
+
+            # load the Li-Beam profiles
+            try:
+                LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
+            except:
+                LiBD = dd.shotfile('LIN', shot, experiment='LIBE')
+            neLB = LiBD('ne').data
+            neLBtime = LiBD('ne').time
+            rhoP = LiBD('ne').area
+            LiBD.close()
+            rhoFake = np.linspace(0.9, 1.11, 200)
+            # plot the first of the normalized profile
+            # with label according to the average density
+            _idx = np.where((neLBtime >= 1.78) & (neLBtime <=1.82))[0]
+            y = np.zeros((_idx.size, 200))
+            for n, _iDummy in zip(_idx, range(_idx.size)):
+                S = UnivariateSpline(rhoP[n, ::-1],
+                                     neLB[n, ::-1], s=0)
+                y[_iDummy, :] = S(rhoFake)/S(1)
+            _idx = np.where((neAvg.time >= 1.78) & (neAvg.time <=1.82))[0]
+            _ne = neAvg.data[_idx].mean()/1e20
+            _ax.plot(rhoFake, np.mean(y, axis=0), '-', color='k',
+                              lw=3, label = r'n$_e$ = %3.2f' % _ne)
+            _ax.fill_between(rhoFake, np.mean(y, axis=0)-
+                             np.std(y, axis=0), np.mean(y, axis=0)+
+                             np.std(y, axis=0),
+                             facecolor='grey', edgecolor='none',
+                             alpha=0.5)
+        
+            # repeat and now it will be tmax
+            _idx = np.where((neLBtime >= tMax-0.02) & (neLBtime <= tMax+0.02))[0]
+            y = np.zeros((_idx.size, 200))
+            for n, _iDummy in zip(_idx, range(_idx.size)):
+                S = UnivariateSpline(rhoP[n, ::-1],
+                                     neLB[n, ::-1], s=0)
+                y[_iDummy, :] = S(rhoFake)/S(1)
+            _idx = np.where((neAvg.time >= tMax-0.02) & (neAvg.time <= tMax+0.02))[0]
+            _ne = neAvg.data[_idx].mean()/1e20
+            _ax.plot(rhoFake, np.mean(y, axis=0), '-', color='orange',
+                              lw=3, label = r'n$_e$ = %3.2f' % _ne)
+            _ax.fill_between(rhoFake, np.mean(y, axis=0)-
+                             np.std(y, axis=0), np.mean(y, axis=0)+
+                             np.std(y, axis=0),
+                             facecolor='orange', edgecolor='none',
+                             alpha=0.5)
+            _ax.set_yscale('log')
+            _ax.set_xlabel(r'$\rho_p$')
+            _ax.set_title(r'Shot # % 5i' %shot)
+            _ax.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.set_ylabel(r'I$_p$ [MA]')
+        ax12.set_ylabel(r'$\overline{n}_e$ H-5 [10$^{20}$]')
+        ax13.set_ylabel(r'D$_2 [10^{21}$s$^{-1}]$')
+        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
+        ax2.set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
+        mpl.pylab.savefig('../pdfbox/IpConstantq95_samedensity.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 23:
+        shotList = (34276, 34281)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        colorLS = ('#C90015', '#7B0Ce7')
+        tList = (1.8, 2.4, 4.0)
+        fig = mpl.pylab.figure(figsize=(12, 12))
+        fig.subplots_adjust(hspace=0.25, right=0.86, top=0.98)
+        ax1 = mpl.pylab.subplot2grid((3, 2), (0, 0), colspan=2)
+        ax12 = mpl.pylab.subplot2grid((3, 2), (1, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((3, 2), (2, 0))
+        ax3 = mpl.pylab.subplot2grid((3, 2), (2, 1))
+        axL = (ax2, ax3)
+        Cryo = ('No', 'On')
+        for shot, cc, _ax, _cr in itertools.izip(
+            shotList, colorLS, axL, Cryo):
+            
+            Gas = neutrals.Neutrals(shot)
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=cc, lw=3,
+                     label = r'Shot # %5i' % shot +' Cryo ' + _cr)
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+            ax1.set_xlim([0, 7])
+            # this is the line average density
+            diag = dd.shotfile('DCN', shot)
+            neAvg = diag('H-5')
+            diag.close()
+            ax12.plot(neAvg.time, neAvg.data/1e19, '-', color=cc, lw=2,
+                     label = r'Shot # %5i' % shot +' Cryo ' + _cr)
+            ax12.set_ylim([0, 10])
+            ax12.set_xlim([0, 7])
+            # load the Li-Beam profiles
+            LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
+            neLB = LiBD('ne').data
+            neLBtime = LiBD('ne').time
+            rhoP = LiBD('ne').area
+            LiBD.close()
+            rhoFake = np.linspace(0.98, 1.06, 50)
+            profFake = np.zeros((neLBtime.size, 50))
+            for n in range(neLBtime.size):
+                S = UnivariateSpline(rhoP[n, ::-1],
+                                     neLB[n, ::-1]/1e19, s=0)
+                profFake[n, :] = S(rhoFake)
+            im=_ax.imshow(np.log(profFake.transpose()),
+                          origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+                          extent=(neLBtime.min(), neLBtime.max(), 0.98, 1.06),
+                          norm=LogNorm(vmin=0.5, vmax=2.5))
+
+
+            _ax.set_title(r'Shot # % 5i' %shot)
+
+            _ax.set_xlim([1, 6.5])
+            _ax.set_xlabel(r't [s]')
+            _ax.set_title(r'Shot # % 5i' %shot)
+            _ax.set_ylim([0.99, 1.05])
+        ax2.set_ylabel(r'$\rho_p$')
+        ax3.axes.get_yaxis().set_visible(False)
+        ax12.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax12.set_ylabel(r'n$_e$ H-5 $[10^{19}$m$^{-3}]$')
+        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.3])
+        cbar = fig.colorbar(im, cax=cbar_ax, format='%1.1f')
+        cbar.set_ticks([0.5, 1, 1.5, 2.5])
+        cbar.set_label(r'n$_{e}$ [10$^{19}$m$^{-3}$]')
+
+        mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
+                          '_'+str(int(shotList[1]))+'.pdf',
+                          bbox_to_inches='tight')    
+
 
     elif selection == 99:
         loop = False
