@@ -844,7 +844,8 @@ while loop:
 
             # current
             diag = dd.shotfile('MAG', shot)
-            ax[0, 0].plot(diag('Ipa').time, diag('Ipa').data/1e6, color=_col, lw=3,
+            ax[0, 0].plot(diag('Ipa').time, diag('Ipa').data/1e6,
+                          color=_col, lw=3,
                           label=r'# %5i' % shot + ' Puff from '+_str)
             ax[0, 0].axes.get_xaxis().set_visible(False)
             ax[0, 0].set_ylabel(r'I$_p$ [MA]')

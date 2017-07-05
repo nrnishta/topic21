@@ -28,6 +28,7 @@ def print_menu():
     print "5. Compare profiles scan at constat Bt only SOL"
     print "6. Compare profiles scan at constat q95 only SOL"
     print "7. Attempt for low collisionality"
+    print "8. Compare plot and profiles at constant q95"
     print "99: End"
     print 67 * "-"
 
@@ -761,8 +762,126 @@ while loop:
             ax[3, 1].set_ylim([0, 4])
         mpl.pylab.savefig('../pdfbox/LowCollisionalityAttempt.pdf',
                           bbox_to_inches='tight')
-        
-    
+
+    elif selection == 8:
+        shotL = (57461, 57454, 57497)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig = mpl.pylab.figure(figsize=(14, 18))
+        fig.subplots_adjust(hspace=0.3, top=0.96, right=0.98)
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        ax12 = mpl.pylab.subplot2grid((4, 3), (1, 0), colspan=3)
+        ax13 = mpl.pylab.subplot2grid((4, 3), (2, 0), colspan=3)
+        ax2 = mpl.pylab.subplot2grid((4, 3), (3, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 3), (3, 1))
+        ax4 = mpl.pylab.subplot2grid((4, 3), (3, 2))
+        axL = (ax2, ax3, ax4)
+        for shot, col, _ax in zip(shotL, colorL, axL):
+            Tree = mds.Tree('tcv_shot', shot)
+            iP = mds.Data.compile(r'tcv_ip()').evaluate()
+            ax1.plot(iP.getDimensionAt().data(), iP.data()/1e6,
+                     color=col, label=r'# %5i' % shot, lw=3)
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_xlim([0., 1.7])
+            ax1.axes.get_xaxis().set_visible(False)
+            ax1.set_ylim([0., 0.4])
+
+            enE = Tree.getNode(r'\results::fir_n_average_array')
+            ax12.plot(enE.getDimensionAt().data(), enE.data()[-1, :]/1e20,
+                      '-', color=col, lw=3)
+            ax12.set_xlim([0, 1.7])
+            ax12.set_ylim([0, 1])
+            ax12.axes.get_xaxis().set_visible(False)
+
+            GasP1 = Tree.getNode(r'\diagz::flux_gaz:piezo_1:flux')
+            ax13.plot(GasP1.getDimensionAt().data(), GasP1.data(),
+                      '-', color=col, lw=3)
+            ax13.set_ylabel(r'D$_2$')
+            ax13.set_xlabel(r't [s]')
+            ax13.set_xlim([0.1, 1.7])
+            eq = eqtools.TCVLIUQETree(shot)
+            # read the thomson data
+            rPos = Tree.getNode(r'\diagz::thomson_set_up:radial_pos').data()
+            zPos = Tree.getNode(r'\diagz::thomson_set_up:vertical_pos').data()
+            # now the thomson times
+            times = Tree.getNode(r'\results::thomson:times').data()
+            # now the thomson raw data
+            dataTe = Tree.getNode(r'\results::thomson:te').data()
+            errTe = Tree.getNode(r'\results::thomson:te:error_bar').data()
+            dataEn = Tree.getNode(r'\results::thomson:ne').data()
+            errEn = Tree.getNode(r'\results::thomson:ne:error_bar').data()
+
+            # now we need the profiles from Thomson and from the probe
+            # for the probe we use the newly stored Tree
+            filam = mds.Tree('tcv_topic21', shot)
+            for plunge, _c in zip(('1', '2'), ('k', 'orange')):
+                enProbe = filam.getNode(r'\fp_' + plunge + 'pl_en').data()/1e19
+                errProbe = filam.getNode(
+                    r'\fp_' + plunge + 'pl_enerr').data()/1e19
+                rhoProbe = filam.getNode(r'\fp_' + plunge + 'pl_rho').data()
+                t0 = filam.getNode(
+                    r'\fp_' + plunge + 'pl_en').getDimensionAt().data().mean()
+                # limit to only values of probes into the SOL_geometry
+                enProbe = enProbe[np.where(rhoProbe >= 1)[0]]
+                errProbe = errProbe[np.where(rhoProbe >= 1)[0]]
+                rhoProbe = rhoProbe[np.where(rhoProbe >= 1)[0]]
+                _indexThomson = np.argmin(np.abs(times-t0))
+                # append totally the rhothomson and
+                # the density thomson
+                rhoT = np.array([])
+                enT = np.array([])
+                erT = np.array([])
+                for l in (-1, 0, 1):
+                    _x = eq.rz2psinorm(rPos, zPos, times[_indexThomson+l],
+                                       sqrt=True)
+                    _y = dataEn[:, _indexThomson+l]
+                    _e = errEn[:, _indexThomson+l]
+                    rhoT = np.append(rhoT, _x[_y != -1])
+                    erT = np.append(erT, _e[_y != -1])
+                    enT = np.append(enT, _y[_y != -1])
+                enT = np.asarray(enT[rhoT > 0.985])/1e19
+                erT = np.asarray(erT[rhoT > 0.985])/1e19
+                rhoT = np.asarray(rhoT[rhoT > 0.985])
+                rho = np.append(rhoT, rhoProbe)
+                error = np.append(erT, errProbe)
+                density = np.append(enT, enProbe)
+                S = UnivariateSpline(rho[np.argsort(rho)],
+                                     density[np.argsort(rho)], ext=0)
+                _r = np.linspace(rho.min(), rho.max(), num=100)
+                S.set_smoothing_factor(12)
+                # find the corresponding mean values of edge density
+                _idx = np.where((enE.getDimensionAt().data() >= t0-0.01) &
+                                (enE.getDimensionAt().data() <= t0+0.01))[0]
+                _n = enE.data()[-1, _idx].mean()/1e19
+                _ax.plot(rhoProbe, enProbe/S(1), 'o', color=_c,
+                         ms=10, alpha=0.3)
+                _ax.errorbar(rhoProbe, enProbe/S(1),
+                             yerr=errProbe/S(1), fmt='none',
+                             ecolor=_c, alpha=0.3,
+                             errorevery=4)
+                _ax.plot(rhoT, enT/S(1), 'p',
+                         color=_c, ms=10, alpha=0.3)
+                _ax.errorbar(rhoT, enT/S(1), yerr=erT/S(1),
+                             fmt='none', color=_c,
+                             alpha=0.3, errorevery=4)
+                _ax.plot(_r, S(_r)/S(1), '--', lw=2,
+                         color=_c, label=r'n$_e$ = %3.2f' % _n)
+            _ax.set_ylim([0.01, 3])
+            _ax.set_yscale('log')
+            _ax.set_xlabel(r'$\rho_{\Psi}$')
+            _ax.set_xlim([0.98, 1.08])
+            _ax.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            _ax.set_title(r'# %5i' % shot)
+        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.set_ylabel(r'I$_p$ [MA]')
+        ax12.set_ylabel(r'$\overline{n}_e$ edge [10$^{20}$]')
+        ax13.set_ylabel(r'D$_2 [10^{21}$s$^{-1}]$')
+        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
+        ax2.set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
+        ax3.axes.get_yaxis().set_visible(False)
+        ax4.axes.get_yaxis().set_visible(False)
+        mpl.pylab.savefig('../pdfbox/IpConstantq95_samedensity.pdf',
+                          bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
