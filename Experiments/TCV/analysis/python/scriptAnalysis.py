@@ -881,6 +881,8 @@ while loop:
         ax4.axes.get_yaxis().set_visible(False)
         mpl.pylab.savefig('../pdfbox/IpConstantq95_samedensity.pdf',
                           bbox_to_inches='tight')
+        mpl.pylab.savefig('../pngbox/IpConstantq95_samedensity.png',
+                          bbox_to_inches='tight', dpi=300)
 
     elif selection == 99:
         loop = False
