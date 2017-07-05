@@ -1420,6 +1420,8 @@ while loop:
         ax2.set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
         mpl.pylab.savefig('../pdfbox/IpConstantq95_samedensity.pdf',
                           bbox_to_inches='tight')
+        mpl.pylab.savefig('../pngbox/IpConstantq95_samedensity.png',
+                          bbox_to_inches='tight', dpi=300)
 
     elif selection == 23:
         shotList = (34276, 34281)
@@ -1488,7 +1490,9 @@ while loop:
         mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.pdf',
                           bbox_to_inches='tight')    
-
+        mpl.pylab.savefig('../pngbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
+                          '_'+str(int(shotList[1]))+'.png',
+                          bbox_to_inches='tight', dpi=300)   
 
     elif selection == 99:
         loop = False
