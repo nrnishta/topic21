@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
+import os
 
 
 """
@@ -722,7 +723,11 @@ class equilibrium(object):
         self.psiN = equilibriumField(
             (self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis),psiN_func)
     
-        self.wall = None
+        VesselFile = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'augVesseldata.txt')
+        x, y = np.loadtxt(VesselFile, unpack=True)
+        self.wall = { 'R' : x, 'Z' : y }
         if with_bfield: self.calc_bfield()
 
 
