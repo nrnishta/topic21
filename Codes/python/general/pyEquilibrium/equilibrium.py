@@ -152,7 +152,8 @@ class equilibrium(object):
         axis        Point       position of the magnetic axis as a Point type (see above)
     """
     
-    def __init__(self,device=None,shot=None,time=None,gfile=None,with_bfield=True,verbose=False,mdsport=None):
+    def __init__(self,device=None,shot=None,time=None,gfile=None,
+                 with_bfield=True,verbose=False,mdsport=None, remote=True):
         self.psi = None
         self._loaded = False
         self._time = None       
@@ -185,7 +186,7 @@ class equilibrium(object):
             elif device is 'JET':
                 self.load_JET(shot,time,with_bfield=with_bfield,verbose=verbose)
             elif device is 'TCV':
-                self.load_TCV(shot,time,port=mdsport,with_bfield=with_bfield,verbose=verbose)
+                self.load_TCV(shot,time,port=mdsport,with_bfield=with_bfield,verbose=verbose, remote=remote)
             elif device is 'AUG':
                 self.load_AUG(shot,time,with_bfield=with_bfield,verbose=verbose)
             elif gfile is not None:
@@ -564,52 +565,79 @@ class equilibrium(object):
         if with_bfield: self.calc_bfield()
 
 
-    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False):
-        try:
-            import MDSplus as mds
-        except:
-            raise ImportError("Error: No MDSplus module found. \nPlease see www.mdsplus.org to install MDSplus\n")
-        
-        if port is None:
-            port = raw_input("Please enter port for ssh tunnel to TCV LAC: ")            
-        try:
-            conn = mds.Connection('localhost:'+str(port))
-            self._mdsport = port
-        except:
-            print("---------------------------------------------------------------------")
-            print("Have you created an ssh tunnel to the TCV LAC?")
-            print("Create a tunnel by typing into the command line")
-            print("      ssh username@lac.911.epfl.ch -L XYZ:tcvdata.epfl.ch:8000")
-            print("where XYV is your port number (i.e 1600)")
-            print("---------------------------------------------------------------------")
-            raise RuntimeError("Error: Could not connect through port")
+    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False, remote=True):
+        if remote:
+            try:
+                import MDSplus as mds
+            except:
+                raise ImportError("Error: No MDSplus module found. \nPlease see www.mdsplus.org to install MDSplus\n")
+
+            if port is None:
+                port = raw_input("Please enter port for ssh tunnel to TCV LAC: ")            
+            try:
+                conn = mds.Connection('localhost:'+str(port))
+                self._mdsport = port
+            except:
+                print("---------------------------------------------------------------------")
+                print("Have you created an ssh tunnel to the TCV LAC?")
+                print("Create a tunnel by typing into the command line")
+                print("      ssh username@lac.911.epfl.ch -L XYZ:tcvdata.epfl.ch:8000")
+                print("where XYV is your port number (i.e 1600)")
+                print("---------------------------------------------------------------------")
+                raise RuntimeError("Error: Could not connect through port")
+
+            #Open tree to Lique data for equilibrium info
+
+            self.machine = 'TCV'
+            self._shot = shot
+            if not self._loaded:
+                #Tree = mds.Tree('tcv_shot',shot)
+                conn.openTree('tcv_shot',int(shot))
+                #Load in required data from Lique off the MDS server
+                self._psi = conn.get('\\results::psi').data()/(2.0*np.pi)
+                self._time_array = conn.get('dim_of(\\results::psi, 2)').data()
+                nr = self._psi.shape[2]
+                nz = self._psi.shape[1]
+                self._r = np.linspace(conn.get('\\results::parameters:ri').data(),conn.get('\\results::parameters:ro').data(),nr)       
+                z0 = conn.get('\\results::parameters:zu').data()
+                self._z   = np.linspace(-z0,z0,nz)        
+                self._psi_axis = conn.get('\\results::psi_axis').data()
+                self._psi_bnd  = conn.get('\\results::psi_xpts').data()
+                self._bphi = conn.get('\\magnetics::rbphi').data()
+                self._bt_time_array = conn.get('dim_of(\\magnetics::rbphi)').data()    
+                self._xpointr = conn.get('\\results::r_xpts').data()       
+                self._xpointz = conn.get('\\results::z_xpts').data()            
+                self._axisr = conn.get('\\results::r_axis').data()            
+                self._axisz = conn.get('\\results::z_axis').data() 
+                conn.closeTree('tcv_shot',int(shot))
+                self._loaded = True
+
+        else:
+            if not self._loaded:
+                import MDSplus as mds
+                Tree = mds.Tree('tcv_shot', int(shot))
+                self._psi = Tree.getNode(r'\results::psi').data()
+                self._time_array = Tree.getNode(
+                    r'\results::psi').getDimensionAt(2).data()
+                nr = self._psi.shape[2]
+                nz = self._psi.shape[1]
+                self._r = Tree.getNode(
+                    r'\results::psi').getDimensionAt(0).data()
+                self._z = Tree.getNode(
+                    r'\results::psi').getDimensionAt(1).data()
+                self._psi_axis = Tree.getNode(r'\results::psi_axis').data()
+                self._psi_bnd  = Tree.getNode('\\results::psi_xpts').data()
+                self._bphi = Tree.getNode('\\magnetics::rbphi').data()
+                self._bt_time_array = Tree.getNode(
+                    r'\magnetics::rbphi').getDimensionAt().data()
+                self._xpointr = Tree.getNode('\\results::r_xpts').data()       
+                self._xpointz = Tree.getNode('\\results::z_xpts').data()            
+                self._axisr = Tree.getNode('\\results::r_axis').data()            
+                self._axisz = Tree.getNode('\\results::z_axis').data() 
+                Tree.quit()
+                self._loaded = True
+
                 
-        #Open tree to Lique data for equilibrium info
-    
-        self.machine = 'TCV'
-        self._shot = shot
-        if not self._loaded:
-            #Tree = mds.Tree('tcv_shot',shot)
-            conn.openTree('tcv_shot',int(shot))
-            #Load in required data from Lique off the MDS server
-            self._psi = conn.get('\\results::psi').data()/(2.0*np.pi)
-            self._time_array = conn.get('dim_of(\\results::psi, 2)').data()
-            nr = self._psi.shape[2]
-            nz = self._psi.shape[1]
-            self._r = np.linspace(conn.get('\\results::parameters:ri').data(),conn.get('\\results::parameters:ro').data(),nr)       
-            z0 = conn.get('\\results::parameters:zu').data()
-            self._z   = np.linspace(-z0,z0,nz)        
-            self._psi_axis = conn.get('\\results::psi_axis').data()
-            self._psi_bnd  = conn.get('\\results::psi_xpts').data()
-            self._bphi = conn.get('\\magnetics::rbphi').data()
-            self._bt_time_array = conn.get('dim_of(\\magnetics::rbphi)').data()    
-            self._xpointr = conn.get('\\results::r_xpts').data()       
-            self._xpointz = conn.get('\\results::z_xpts').data()            
-            self._axisr = conn.get('\\results::r_axis').data()            
-            self._axisz = conn.get('\\results::z_axis').data() 
-            conn.closeTree('tcv_shot',int(shot))
-            self._loaded = True
-        
         tind = np.abs(self._time_array - time).argmin()     
         #print "\n\n",tind,"\n\n"
         self.R = self._r#.data[0,:]

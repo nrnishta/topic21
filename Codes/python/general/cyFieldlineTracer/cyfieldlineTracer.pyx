@@ -246,8 +246,11 @@ class fieldlineTracer(object):
                 time = 0.25
             else:
                 time = kwargs['time']
+            if 'remote' not in kwargs:
+                print('Assuming we are fetching remotely')
+                remote=False
                 
-            self.get_equilibrium(shot=shot,machine=machine,time=time)
+            self.get_equilibrium(shot=shot,machine=machine,time=time, remote=remote)
         
             
         elif 'gfile' in kwargs:
@@ -262,7 +265,8 @@ class fieldlineTracer(object):
         self.kwargs = kwargs
         
 
-    def get_equilibrium(self,gfile=None,shot=None,machine=None,time=None,rev_Bt=False):
+    def get_equilibrium(self,gfile=None,shot=None,machine=None,
+                        time=None,rev_Bt=False, remote=True):
         """ Read in data from efit
 
         keywords:
@@ -275,6 +279,10 @@ class fieldlineTracer(object):
                 self.eq.load_MAST(shot,time)
             elif machine == 'JET':
                 self.eq.load_JET(shot,time)
+            elif machine == 'AUG':
+                self.eq.load_AUG(shot, time)
+            elif machine == 'TCV':
+                self.eq.load_TCV(shot, time, remote=remote)
         elif gfile != None:
             #load from gfile
             self.eq.load_geqdsk(gfile,rev_Bt=rev_Bt)
