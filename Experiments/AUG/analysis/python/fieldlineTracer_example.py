@@ -11,7 +11,8 @@ from copy import deepcopy as copy
 import numpy as np
 
 #loading from a MAST shot
-my_tracer =  get_fieldline_tracer('RK4', gfile='/home/nwalkden/gfiles/sxd2010.geqdsk',revBt=False, interp='quintic') #RK4Tracer(gfile='/home/nwalkden/gfiles/sxd2010.geqdsk')
+my_tracer =  get_fieldline_tracer('RK4', gfile='../equilibriadata/Shot34102_3s.g',
+                                  revBt=True, interp='quintic') #RK4Tracer(gfile='/home/nwalkden/gfiles/sxd2010.geqdsk')
 
 # The tracer is now ready to be used. Note that you can access
 # equilibrium quantities using my_tracer.eq which is an equilibrium object
