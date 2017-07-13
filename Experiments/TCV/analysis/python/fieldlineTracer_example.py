@@ -24,11 +24,6 @@ rmid = Eq.rz2rmid(Rarray,
 rmid = np.asarray([0.00827948, 0.01215342, 0.01603019, 0.01990912,
                    0.02378965, 0.02767118, 0.03155308, 0.03543471,
                    0.03931538, 0.0431944])
-# build an array of position and corresponding
-# r-rsep at 1s
-Rarray = np.linspace(1.105, 1.14, num=10)
-rmid = Eq.rz2rmid(Rarray,
-                  np.repeat(0, Rarray.size), 1)-Eq.getRmidOutSpline()(1)])
 # loading from TCV saved gfile
 Tracer = get_fieldline_tracer(
     'RK4', machine='TCV', shot=57418, time=1, remote=False,
