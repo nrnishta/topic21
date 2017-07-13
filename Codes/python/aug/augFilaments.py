@@ -7,6 +7,7 @@ import copy
 from scipy.signal import savgol_filter
 from time_series_tools import identify_bursts2
 
+
 class Filaments(object):
     """
     Class for analysis of Filaments from the HFF probe on the
@@ -243,7 +244,6 @@ class Filaments(object):
 
         # firs of all limit the isAt and vfFloat to the desired time interval
         isSignal, vfSignal = self._defineTime(trange=trange)
-
 
         self.blockmin = block[0]
         self.blockmax = block[1]

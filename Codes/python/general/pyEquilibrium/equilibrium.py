@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division
+import os
+import scipy
 
 
 """
@@ -224,7 +226,8 @@ class equilibrium(object):
 
 
         self._Rinterp,self._Zinterp = np.meshgrid(self.R,self.Z)
-        psi = ingf['psirz']
+        psi = scipy.array(ingf['psirz']).reshape((self.nz, self.nr), order='C')
+        
         psi_func = interp2d(self.R,self.Z,psi)
         self.psi = equilibriumField(psi,psi_func)
 
@@ -590,7 +593,7 @@ class equilibrium(object):
             conn.openTree('tcv_shot',int(shot))
             #Load in required data from Lique off the MDS server
             self._psi = conn.get('\\results::psi').data()/(2.0*np.pi)
-            self._time_array = conn.get('dim_of(\\results::psi)').data()
+            self._time_array = conn.get('dim_of(\\results::psi, 2)').data()
             nr = self._psi.shape[2]
             nz = self._psi.shape[1]
             self._r = np.linspace(conn.get('\\results::parameters:ri').data(),conn.get('\\results::parameters:ro').data(),nr)       
@@ -656,8 +659,10 @@ class equilibrium(object):
             Eqm._read_scalars()
             Eqm._read_profiles()
             Eqm._read_pfm()
-            #Load in required data 
-            self._psi = Eqm.pfm
+            # Load in required data 
+            # The transpose is needed since in this way we have dimension of
+            # the form (#samples, Rgrid, ZGrid)
+            self._psi = Eqm.pfm.transpose()
             self._time_array = Eqm.t_eq
             nr = self._psi.shape[0]
             nz = self._psi.shape[1]
@@ -694,8 +699,8 @@ class equilibrium(object):
         tind = np.abs(self._time_array - time).argmin()     
         self.R = self._r#.data[0,:]
         self.Z = self._z#.data[0,:]
-        psi_func = interp2d(self.R,self.Z,self._psi[:, :, tind].transpose())
-        self.psi = equilibriumField(self._psi[:, :, tind].transpose(),psi_func) 
+        psi_func = interp2d(self.R,self.Z,self._psi[tind])
+        self.psi = equilibriumField(self._psi[tind],psi_func) 
         self.nr = len(self.R)
         self.nz = len(self.Z)       
         self.psi_axis = self._psi_axis[tind]
@@ -722,7 +727,11 @@ class equilibrium(object):
         self.psiN = equilibriumField(
             (self.psi[:] - self.psi_axis)/(self.psi_bnd-self.psi_axis),psiN_func)
     
-        self.wall = None
+        VesselFile = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'augVesseldata.txt')
+        x, y = np.loadtxt(VesselFile, unpack=True)
+        self.wall = { 'R' : x, 'Z' : y }
         if with_bfield: self.calc_bfield()
 
 
