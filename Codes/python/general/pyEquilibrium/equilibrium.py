@@ -593,7 +593,7 @@ class equilibrium(object):
             conn.openTree('tcv_shot',int(shot))
             #Load in required data from Lique off the MDS server
             self._psi = conn.get('\\results::psi').data()/(2.0*np.pi)
-            self._time_array = conn.get('dim_of(\\results::psi)').data()
+            self._time_array = conn.get('dim_of(\\results::psi, 2)').data()
             nr = self._psi.shape[2]
             nz = self._psi.shape[1]
             self._r = np.linspace(conn.get('\\results::parameters:ri').data(),conn.get('\\results::parameters:ro').data(),nr)       
