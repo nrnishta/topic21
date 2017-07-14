@@ -4,29 +4,37 @@ with respect to FLT code from SOL_geometry
 """
 from copy import deepcopy as copy
 import numpy as np
-import eqtools
 import sys
 import MDSplus as mds
+import platform
+import matplotlib as mpl
+if platform.system() == 'Darwin':
+    libDir = '/Users/vianello/Dropbox/work/Collaborations/EUROFusion/MST1-2017/Topic-21/Repository/'
+else:
+    libDir = '/home/vianello/work/topic21/'
+    import eqtools
+
 sys.path.append(
-    '/home/vianello/work/topic21/Codes/python/general/cyFieldlineTracer/')
+    libDir+'Codes/python/general/cyFieldlineTracer/')
 sys.path.append(
-    '/home/vianello/work/topic21/Codes/python/general/pyEquilibrium/')
+    libDir+'/Codes/python/general/pyEquilibrium/')
 from cyfieldlineTracer import get_fieldline_tracer
 import equilibrium
 
-Eq = eqtools.TCVLIUQETree(57418)
 # build an array of position and corresponding
 # r-rsep at 1s
 Rarray = np.linspace(1.105, 1.14, num=10)
-rmid = Eq.rz2rmid(Rarray,
-                  np.repeat(0, Rarray.size), 1)-Eq.getRmidOutSpline()(1)
-# hard coded as eqtools does not work remotely
-rmid = np.asarray([0.00827948, 0.01215342, 0.01603019, 0.01990912,
-                   0.02378965, 0.02767118, 0.03155308, 0.03543471,
-                   0.03931538, 0.0431944])
-# loading from TCV saved gfile
+if platform.system() == 'Darwin':
+    rmid = np.asarray([0.00827948, 0.01215342, 0.01603019, 0.01990912,
+                       0.02378965, 0.02767118, 0.03155308, 0.03543471,
+                       0.03931538, 0.0431944])
+else:
+    Eq = eqtools.TCVLIUQETree(57418)
+    rmid = Eq.rz2rmid(Rarray,
+                      np.repeat(0, Rarray.size), 1)-Eq.getRmidOutSpline()(1)
+
 Tracer = get_fieldline_tracer(
-    'RK4', machine='TCV', shot=57418, time=1, remote=False,
+    'RK4', machine='TCV', shot=57418, time=1, remote=True,
     interp='quintic') 
 # now build a list of field lines as a 
 # To trace a field line, call the trace method

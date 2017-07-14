@@ -44,4 +44,5 @@ both the absolute path and the corresponding tag in MDSplus
 	
 Both the L<sub>//</sub> and the Lambda are saved as a function of time and R-Rsep (second dimension in the
 save MDSplus tree). We have also computed the appropriate mapping in rho poloidal (square root of normalized poloidal flux).
-The Lambda are computed using the parallel connection length from the divertor to upstream and using also the parallel connection length from the divertor to the X-point.
+The Lambda are computed using the parallel connection length from the divertor to upstream and using also the parallel connection length from the divertor to the X-point. 
+**Beware that for some reason MDSplus does not work if the tree are stored on Dropbox. So if you clone the repository then copy the tree in a different folder**
