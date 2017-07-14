@@ -35,7 +35,7 @@ for shot in shotList:
     ZLcfs = ZLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
     RLcfs = RLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
     Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
-    rmin = np.linspace(Rout+0.003, 2.19, num=25)
+    rmin = np.linspace(Rout+0.001, 2.19, num=30)
     # this is R-Rsep
     rMid = rmin-Rout
     # this is Rho
