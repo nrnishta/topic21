@@ -21,11 +21,12 @@ for shot in shotList:
     Eq.remapLCFS()
     
     # load now the tracer for the same shot all at 3s
-    myTracer = get_fieldline_tracer('RK4', machine='AUG', shot=shot, time=3, interp='quintic')
+    myTracer = get_fieldline_tracer('RK4', machine='AUG', shot=shot, time=3, interp='quintic', rev_bt=True)
     # height of magnetic axis
     zMAxis = myTracer.eq.axis.__dict__['z']
     # height of Xpoint
     zXPoint = myTracer.eq.xpoints['xpl'].__dict__['z']
+    rXPoint = myTracer.eq.xpoints['xpl'].__dict__['r']
     # now determine at the height of the zAxis the R of the LCFS
     _idTime = np.argmin(np.abs(Eq.getTimeBase()-3))
     RLcfs = Eq.getRLCFS()[_idTime, :]
@@ -61,7 +62,8 @@ for shot in shotList:
 
     
     
-    fieldLinesZ = [line.filter('Z', [-1, zXPoint]) for line in fieldLines]
+    fieldLinesZ = [line.filter(['R', 'Z'],
+                               [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
     Lpar =np.array([])
     for line in fieldLinesZ:
         try:
