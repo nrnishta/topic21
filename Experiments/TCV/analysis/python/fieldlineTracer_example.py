@@ -23,7 +23,8 @@ import equilibrium
 
 # build an array of position and corresponding
 # r-rsep at 1s
-Rarray = np.linspace(1.105, 1.14, num=10)
+
+Rarray = np.linspace(1.1, 1.14, num=15)
 if platform.system() == 'Darwin':
     rmid = np.asarray([0.00827948, 0.01215342, 0.01603019, 0.01990912,
                        0.02378965, 0.02767118, 0.03155308, 0.03543471,
