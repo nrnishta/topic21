@@ -565,7 +565,14 @@ class equilibrium(object):
         if with_bfield: self.calc_bfield()
 
 
-    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False, remote=True):
+    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False):
+        import socket
+        Host = socket.gethostname()
+        if Host[-7:] == 'epfl.ch':
+            remote = False
+        else:
+            remote = True
+        
         if remote:
             try:
                 import MDSplus as mds
