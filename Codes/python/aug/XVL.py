@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import sys, os
 sys.path.append('/afs/ipp/u/mcavedon/repository/python')
 from Debug.Ipsh import *
-from dd import ddPlus
+from ddPlus import ddPlus
 import idlwrap
 import logging
 

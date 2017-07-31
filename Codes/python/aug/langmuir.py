@@ -1,7 +1,6 @@
 import os
 import dd
 import map_equ
-import dd
 from scipy.interpolate import UnivariateSpline
 import numpy as np
 import matplotlib as mpl
