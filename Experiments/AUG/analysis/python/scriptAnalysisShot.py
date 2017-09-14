@@ -56,6 +56,7 @@ def print_menu():
     print "26. Compare Lparallel constant q95 constant Bt"
     print "27. Equilibria and Lparallel at constant q95"
     print "28. Equilibria and Lparallel at constant q95"
+    print "29. Fluctuations and PDF during Ip scan constant q95"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1613,7 +1614,7 @@ while loop:
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-3, 15])
+            axLamL[i].set_ylim([1e-2, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
             axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
             axLamL[i].set_yscale('log')
@@ -1731,7 +1732,7 @@ while loop:
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-3, 15])
+            axLamL[i].set_ylim([1e-2, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
             axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
             axLamL[i].set_yscale('log')
@@ -1801,10 +1802,10 @@ while loop:
 
     elif selection == 27:
         sL = (34103, 34102, 34104)
-        fig, Ax = mpl.pylab.subplots(figsize=(10, 6),
-                                     nrows=1, ncols=2)
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
+                                     nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.15)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1870,10 +1871,10 @@ while loop:
 
     elif selection == 28:
         sL = (34105, 34102, 34106)
-        fig, Ax = mpl.pylab.subplots(figsize=(10, 6),
-                                     nrows=1, ncols=2)
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
+                                     nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.15)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1936,6 +1937,55 @@ while loop:
         Ax[0].set_ylabel(r'Z')
 
         mpl.pylab.savefig('../pdfbox/EquilibraLparallelConstantBt.pdf', bbox_to_inches='tight')
+
+    elif selection == 29:
+        shotL = (34103, 34102, 34104)
+        strokeL = (((1.68, 1.82), (2.889, 3.02), (3.48, 3.56)),
+                   ((1.90, 2.00), (3.151, 3.22), (3.69, 3.81)),
+                   ((1.90, 2.02), (3.090, 3.22), (3.70, 3.81)))
+        IpLabel = ('0.6', '0.8', '1')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, Ax = mpl.pylab.subplots(figsize=(16, 8),
+                                     nrows=2, ncols=3)
+        for shot, strokes, col, ip in zip(shotL, strokeL, colorL, IpLabel):
+            Turbo = augFilaments.Filaments(shot, Xprobe=1790)
+            Turbo.loadPosition()
+            Target = langmuir.Target(shot)
+            for time, i in zip(strokes, range(len(strokes))):
+                Turbo.blobAnalysis(Probe='Isat_m06', trange=[time[0], time[1]], block=[0.012, 0.4])
+                # compute the corresponding Lambda at the location of the probe
+                rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
+                S = UnivariateSpline(rho[~np.isnan(Lambda)], Lambda[~np.isnan(Lambda)], s=0)
+                _iidx = np.where((Turbo.tpos >= time[0]) (Turbo.tpos <= time[1]))[0]
+                rhoProbe = Turbo.rhoProbe[_iidx].mean()
+                LambdaProbe = S(rhoProbe)
+                # compute the pdf using Scott rule
+                h, b =Turbo.blob.pdf(bins='scott', density=True, normed=True)
+                Ax[i, 0].plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
+                              label=r'I$_p$ = ' + ip +
+                              ' MA, $\Lambda_{div} = %2.1f$' % LambdaProbe)
+
+                cs, tau, err = Turbo.blob.cas(Type='thresh', detrend=True)
+                Ax[i, 1].plot(cs*1e6, tau, lw=2, color=col,
+                              label=r'I$_p$ = ' + ip +
+                              ' MA, $\Lambda_{div} = %2.1f$' % LambdaProbe)
+
+        for i in range(3):
+            Ax[i, 0].set_xlabel(r'$\delta I_s/\sigma$')
+            Ax[i, 0].set_ylim([1e-4, 1])
+            Ax[i, 1].set_xlabel(r't[$\mu$s]')
+            Ax[i, 1].set_xlim([-50, 50])
+            Ax[i, 1].set_ylim([-0.02, 0.15])
+
+        Ax[1, 0].axes.get_yaxis().set_visible(False)
+        Ax[2, 0].axes.get_yaxis().set_visible(False)
+        Ax[0, 0].set_ylabel(r'Pdf')
+
+        Ax[1, 1].axes.get_yaxis().set_visible(False)
+        Ax[2, 1].axes.get_yaxis().set_visible(False)
+        Ax[1, 0].set_ylabel(r'$\delta$I$_s$')
+        mpl.pylab.savefig('../pdfbox/PdfStructureCurrentScan_ConstantQ95.pdf',
+                          bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
