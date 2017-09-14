@@ -216,10 +216,10 @@
      SUMMARY for Channel 2 / 15Sep2017: AUG topic 21 Meeting: 
      Presentation: https://tv.euro-fusion.org/channel2/home 
      Presentation Password: topic21 
-
      Video-conference nr. (H.323): 004910097920062 
      ISDN: +49-30-20097920062 (ConferenceID = 97920062) 
-
+**** Participants
+**** Minutes
 
 
      
