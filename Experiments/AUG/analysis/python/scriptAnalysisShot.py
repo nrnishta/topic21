@@ -14,10 +14,14 @@ sys.path.append('/afs/ipp/home/n/nvianell/pythonlib/submodules/pycwt/')
 sys.path.append('/afs/ipp/home/n/nvianell/analisi/topic21/Codes/python/general/')
 sys.path.append('/afs/ipp/home/n/nvianell/analisi/topic21/Codes/python/aug/')
 sys.path.append('/afs/ipp/home/n/nvianell/pythonlib/signalprocessing/')
+sys.path.append('/afs/ipp/home/n/nvianell/analisi/topic21/Codes/python/general/cyFieldlineTracer')
 import augFilaments
 import neutrals
 import peakdetect
+import langmuir
 from matplotlib.colors import LogNorm
+from cyfieldlineTracer import get_fieldline_tracer
+import eqtools
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=22)
 mpl.rc('font',**{'family':'sans-serif','sans-serif':['Tahoma']})
@@ -47,6 +51,11 @@ def print_menu():
     print "21. Compare Li-Be contour same fueling with/without cryo"
     print "22. Compare Shot constant q95 same edge density"
     print "23. Compare Li-Beam contour profiles with/wo crypumps, Density and Fueling"
+    print "24. Compare Li-Beam and Lambda_Div Ip scan constant q95"
+    print "25. Compare Li-Beam and Lambda_Div Ip scan constant Bt"
+    print "26. Compare Lparallel constant q95 constant Bt"
+    print "27. Equilibria and Lparallel at constant q95"
+    print "28. Equilibria and Lparallel at constant q95"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1494,6 +1503,439 @@ while loop:
         mpl.pylab.savefig('../pngbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.png',
                           bbox_to_inches='tight', dpi=300)   
+
+    elif selection == 24:
+        shotList = (34103, 34102, 34104)
+        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        tList = ((2.57, 2.9),
+                 (2.57, 3.03, 3.5),
+                 (1.83, 2.44, 3.15))
+        fig = mpl.pylab.figure(figsize=(16, 17))
+        fig.subplots_adjust(hspace=0.25)
+
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        # list of subplots for the profiles of Li-Bea
+        axEnL = (mpl.pylab.subplot2grid((4, 3), (1, 0)),
+                 mpl.pylab.subplot2grid((4, 3), (1, 1)),
+                 mpl.pylab.subplot2grid((4, 3), (1, 2)))
+
+        # list of subplots for the Divertor density profiles
+        axDivL = (mpl.pylab.subplot2grid((4, 3), (2, 0)),
+                  mpl.pylab.subplot2grid((4, 3), (2, 1)),
+                  mpl.pylab.subplot2grid((4, 3), (2, 2)))
+
+        # list of subplots for Lambda profiles
+        axLamL = (mpl.pylab.subplot2grid((4, 3), (3, 0)),
+                  mpl.pylab.subplot2grid((4, 3), (3, 1)),
+                  mpl.pylab.subplot2grid((4, 3), (3, 2)))
+
+        for shot, col, tL in itertools.izip(
+            shotList, colorLS, tList):
+            # get the current and compute the average current in Ip
+            Mag = dd.shotfile('MAG', shot)
+            _ii = np.where((Mag('Ipa').time >= 3) & (Mag('Ipa').time <= 3.3))[0]
+            ip = Mag('Ipa').data[_ii]/1e6
+            Mag.close()
+            # this is the line average density
+            diag = dd.shotfile('DCN', shot)
+            neEdge = diag('H-5')
+            diag.close()
+            ax1.plot(neEdge.time, neEdge.data/1e20, '-', color=col, lw=2,
+                     label = r'Shot # %5i' % shot +' I$_p$ = %2.1f' % ip.mean() +' MA')
+            ax1.set_ylim([0, 1])
+            ax1.set_xlim([0, 4.5])
+            # load the Li-Beam profiles
+            try:
+                LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
+            except:
+                LiBD = dd.shotfile('LIN', shot, experiment='LIBE')
+            neLB = LiBD('ne').data
+            neLBtime = LiBD('ne').time
+            rhoP = LiBD('ne').area
+            LiBD.close()
+            rhoFake = np.linspace(0.9, 1.11, 200)
+            for t, ax in zip(tL, axEnL):
+                _idx = np.where((neLBtime >= t-0.02) & (neLBtime <= t+0.02))[0]
+                y = np.zeros((_idx.size, 200))
+                for n, _iDummy in zip(_idx, range(_idx.size)):
+                    S = UnivariateSpline(rhoP[n, ::-1],
+                                         neLB[n, ::-1], s=0)
+                    y[_iDummy, :] = S(rhoFake)/S(1)
+                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                enLabel = neEdge.data[_idx].mean()/1e20
+                ax.plot(rhoFake, np.mean(y, axis=0), '-', color=col,
+                              lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                ax.fill_between(rhoFake, np.mean(y, axis=0)-
+                                      np.std(y, axis=0), np.mean(y, axis=0)+
+                                      np.std(y, axis=0),
+                                      facecolor=col, edgecolor='none',
+                                      alpha=0.5)
+                ax.set_yscale('log')
+
+            # Now we need to compute the profiles at the target
+            Target = langmuir.Target(shot)
+            for t, axD, axL in zip(tL, axDivL, axLamL):
+                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                enLabel = neEdge.data[_idx].mean()/1e20
+                rho, en, err = Target.PlotEnProfile(
+                    trange=[t-0.015, t+0.015], Plot=False)
+                axD.plot(rho, en/1e19, 'o', ms=15, mec=col, mfc=col,
+                        label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                axD.errorbar(rho, en/1e19, yerr=err/1e19, fmt='none', ecolor=col)
+                rho, Lambda = Target.computeLambda(
+                    trange=[t-0.015, t+0.015], Plot=False)
+                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                         label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+
+        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
+        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
+        ax1.set_ylim([0, 0.6])
+        axEnL[0].set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
+        for i in range(3):
+            axEnL[i].axes.get_xaxis().set_visible(False)
+            axEnL[i].set_xlim([0.98, 1.05])
+            axEnL[i].set_ylim([1e-1, 4])
+            axEnL[i].set_yscale('log')
+            axEnL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+
+        axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
+        for i in range(3):
+            axDivL[i].axes.get_xaxis().set_visible(False)
+            axDivL[i].set_xlim([0.98, 1.05])
+            axDivL[i].set_ylim([0, 5])
+            axDivL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+
+        axLamL[0].set_ylabel(r'$\Lambda_{div}$')
+        for i in range(3):
+            axLamL[i].set_xlabel(r'$\rho_p$')
+            axLamL[i].set_xlim([0.98, 1.05])
+            axLamL[i].set_ylim([1e-3, 15])
+            axLamL[i].axhline(1, ls='--', color='grey', lw=3)
+            axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            axLamL[i].set_yscale('log')
+            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
+        mpl.pylab.savefig('../pdfbox/IpConstantQ95_Profiles_UsDiv.pdf',
+                          bbox_to_inches='tight')    
+
+
+    elif selection == 25:
+        shotList = (34105, 34102, 34106)
+        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        tList = ((1.1, 2.83),
+                 (1.1, 2.83, 3.41),
+                 (1.1, 2.34, 3.09))
+        fig = mpl.pylab.figure(figsize=(16, 17))
+        fig.subplots_adjust(hspace=0.25)
+
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        # list of subplots for the profiles of Li-Bea
+        axEnL = (mpl.pylab.subplot2grid((4, 3), (1, 0)),
+                 mpl.pylab.subplot2grid((4, 3), (1, 1)),
+                 mpl.pylab.subplot2grid((4, 3), (1, 2)))
+
+        # list of subplots for the Divertor density profiles
+        axDivL = (mpl.pylab.subplot2grid((4, 3), (2, 0)),
+                  mpl.pylab.subplot2grid((4, 3), (2, 1)),
+                  mpl.pylab.subplot2grid((4, 3), (2, 2)))
+
+        # list of subplots for Lambda profiles
+        axLamL = (mpl.pylab.subplot2grid((4, 3), (3, 0)),
+                  mpl.pylab.subplot2grid((4, 3), (3, 1)),
+                  mpl.pylab.subplot2grid((4, 3), (3, 2)))
+
+        for shot, col, tL in itertools.izip(
+            shotList, colorLS, tList):
+            # get the current and compute the average current in Ip
+            Mag = dd.shotfile('MAG', shot)
+            _ii = np.where((Mag('Ipa').time >= 3) & (Mag('Ipa').time <= 3.3))[0]
+            ip = Mag('Ipa').data[_ii]/1e6
+            Mag.close()
+            # this is the line average density
+            diag = dd.shotfile('DCN', shot)
+            neEdge = diag('H-5')
+            diag.close()
+            ax1.plot(neEdge.time, neEdge.data/1e20, '-', color=col, lw=2,
+                     label = r'Shot # %5i' % shot +' I$_p$ = %2.1f' % ip.mean() +' MA')
+            ax1.set_ylim([0, 1])
+            ax1.set_xlim([0, 4.5])
+            # load the Li-Beam profiles
+            try:
+                LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
+            except:
+                LiBD = dd.shotfile('LIN', shot, experiment='LIBE')
+            neLB = LiBD('ne').data
+            neLBtime = LiBD('ne').time
+            rhoP = LiBD('ne').area
+            LiBD.close()
+            rhoFake = np.linspace(0.9, 1.11, 200)
+            for t, ax in zip(tL, axEnL):
+                _idx = np.where((neLBtime >= t-0.02) & (neLBtime <= t+0.02))[0]
+                y = np.zeros((_idx.size, 200))
+                for n, _iDummy in zip(_idx, range(_idx.size)):
+                    S = UnivariateSpline(rhoP[n, ::-1],
+                                         neLB[n, ::-1], s=0)
+                    y[_iDummy, :] = S(rhoFake)/S(1)
+                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                enLabel = neEdge.data[_idx].mean()/1e20
+                ax.plot(rhoFake, np.mean(y, axis=0), '-', color=col,
+                              lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                ax.fill_between(rhoFake, np.mean(y, axis=0)-
+                                      np.std(y, axis=0), np.mean(y, axis=0)+
+                                      np.std(y, axis=0),
+                                      facecolor=col, edgecolor='none',
+                                      alpha=0.5)
+                ax.set_yscale('log')
+
+            # Now we need to compute the profiles at the target
+            Target = langmuir.Target(shot)
+            for t, axD, axL in zip(tL, axDivL, axLamL):
+                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                enLabel = neEdge.data[_idx].mean()/1e20
+                rho, en, err = Target.PlotEnProfile(
+                    trange=[t-0.015, t+0.015], Plot=False)
+                axD.plot(rho, en/1e19, 'o', ms=15, mec=col, mfc=col,
+                        label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                axD.errorbar(rho, en/1e19, yerr=err/1e19, fmt='none', ecolor=col)
+                rho, Lambda = Target.computeLambda(
+                    trange=[t-0.015, t+0.015], Plot=False)
+                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                         label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+
+        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
+        ax1.set_title(r'I$_p$ scan at constant B$_{t}$')
+        ax1.set_ylim([0, 0.6])
+        axEnL[0].set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
+        for i in range(3):
+            axEnL[i].axes.get_xaxis().set_visible(False)
+            axEnL[i].set_xlim([0.98, 1.05])
+            axEnL[i].set_ylim([1e-1, 4])
+            axEnL[i].set_yscale('log')
+            axEnL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+
+        axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
+        for i in range(3):
+            axDivL[i].axes.get_xaxis().set_visible(False)
+            axDivL[i].set_xlim([0.98, 1.05])
+            axDivL[i].set_ylim([0, 5])
+            axDivL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+
+        axLamL[0].set_ylabel(r'$\Lambda_{div}$')
+        for i in range(3):
+            axLamL[i].set_xlabel(r'$\rho_p$')
+            axLamL[i].set_xlim([0.98, 1.05])
+            axLamL[i].set_ylim([1e-3, 15])
+            axLamL[i].axhline(1, ls='--', color='grey', lw=3)
+            axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            axLamL[i].set_yscale('log')
+            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
+        mpl.pylab.savefig('../pdfbox/IpConstantBt_Profiles_UsDiv.pdf',
+                          bbox_to_inches='tight')    
+
+    elif selection == 26:
+        shotL = ((34103, 34102, 34104),
+                 (34105, 34102, 34106))
+        TitleL = (r'Constant q$_{95}$', r'Constant B$_t$')
+        fig, Ax = mpl.pylab.subplots(figsize=(14, 6),
+                                     nrows=1, ncols=2, sharey=True)
+        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        fig.subplots_adjust(bottom=0.17)
+        for sL, ax, title in zip(shotL, Ax, TitleL):
+            for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
+                Eq = eqtools.AUGDDData(shot)
+                Eq.remapLCFS()
+
+                # load now the tracer for the same shot all at 3s
+                myTracer = get_fieldline_tracer('RK4', machine='AUG', shot=shot,
+                                                time=3, interp='quintic', rev_bt=True)
+                # height of magnetic axis
+                zMAxis = myTracer.eq.axis.__dict__['z']
+                # height of Xpoint
+                zXPoint = myTracer.eq.xpoints['xpl'].__dict__['z']
+                rXPoint = myTracer.eq.xpoints['xpl'].__dict__['r']
+                # now determine at the height of the zAxis the R of the LCFS
+                _idTime = np.argmin(np.abs(Eq.getTimeBase()-3))
+                RLcfs = Eq.getRLCFS()[_idTime, :]
+                ZLcfs = Eq.getZLCFS()[_idTime, :]
+                # onlye the part greater then xaxis
+                ZLcfs = ZLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+                RLcfs = RLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+                Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
+                rmin = np.linspace(Rout+0.001, 2.19, num=30)
+                # this is R-Rsep
+                rMid = rmin-Rout
+                # this is Rho
+                rho = Eq.rz2psinorm(rmin, np.repeat(zMAxis, rmin.size), 3, sqrt=True)
+                # now create the Traces and lines
+                fieldLines = [myTracer.trace(r, zMAxis, mxstep=100000,
+                                             ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]                
+
+                fieldLinesZ = [line.filter(['R', 'Z'],
+                                           [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
+                Lpar =np.array([])
+                for line in fieldLinesZ:
+                    try:
+                        _dummy = np.abs(line.S[0] - line.S[-1])
+                    except:
+                        _dummy = np.nan
+                    Lpar = np.append(Lpar, _dummy)
+
+                ax.plot(rho, Lpar, '-', color=col, lw=2, label=r'I$_p$ = ' +ip+' MA')
+            ax.set_xlim([1, 1.05])
+            ax.set_yscale('log')
+            ax.set_xlabel(r'$\rho_p$')
+            ax.set_title(title)
+            ax.legend(loc='best', numpoints=1, frameon=False)
+
+        Ax[1].axes.get_yaxis().set_visible(False)
+        Ax[0].set_ylabel(r'L$_{\parallel}$ [m]')
+        Ax[0].set_ylim([0.1, 5])
+        mpl.pylab.savefig('../pdfbox/IpScanLparallel.pdf', bbox_to_inches='tight')
+
+    elif selection == 27:
+        sL = (34103, 34102, 34104)
+        fig, Ax = mpl.pylab.subplots(figsize=(10, 6),
+                                     nrows=1, ncols=2)
+        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        fig.subplots_adjust(bottom=0.12, right=0.98)
+        for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
+            Eq = eqtools.AUGDDData(shot)
+            Eq.remapLCFS()
+            # load now the tracer for the same shot all at 3s
+            myTracer = get_fieldline_tracer('RK4', machine='AUG', shot=shot,
+                                            time=3, interp='quintic', rev_bt=True)
+                # height of magnetic axis
+            zMAxis = myTracer.eq.axis.__dict__['z']
+                # height of Xpoint
+            zXPoint = myTracer.eq.xpoints['xpl'].__dict__['z']
+            rXPoint = myTracer.eq.xpoints['xpl'].__dict__['r']
+                # now determine at the height of the zAxis the R of the LCFS
+            _idTime = np.argmin(np.abs(Eq.getTimeBase()-3))
+            RLcfs = Eq.getRLCFS()[_idTime, :]
+            ZLcfs = Eq.getZLCFS()[_idTime, :]
+                # onlye the part greater then xaxis
+            ZLcfs = ZLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+            RLcfs = RLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+            Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
+            rmin = np.linspace(Rout+0.001, 2.19, num=30)
+                # this is R-Rsep
+            rMid = rmin-Rout
+                # this is Rho
+            rho = Eq.rz2psinorm(rmin, np.repeat(zMAxis, rmin.size), 3, sqrt=True)
+                # now create the Traces and lines
+            fieldLines = [myTracer.trace(r, zMAxis, mxstep=100000,
+                                         ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]                
+
+            fieldLinesZ = [line.filter(['R', 'Z'],
+                                       [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
+            Lpar =np.array([])
+            for line in fieldLinesZ:
+                try:
+                    _dummy = np.abs(line.S[0] - line.S[-1])
+                except:
+                    _dummy = np.nan
+                Lpar = np.append(Lpar, _dummy)
+
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z,
+                          myTracer.eq.psiN, np.linspace(0.01, 0.95, num=9),
+                          colors=col, linestyles='-', lw=0.5)
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z, myTracer.eq.psiN, [1],
+                          colors=col, linestyle='-', linewidths=2)
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z, myTracer.eq.psiN,
+                          np.linspace(1.01, 1.16, num=5),
+                          colors=col, linestyles='--', linewidths=0.5)
+
+            Ax[1].plot(rho, Lpar, '-', color=col, lw=2, label=r'I$_p$ = ' +ip+' MA')
+
+        Ax[1].set_xlim([1, 1.05])
+        Ax[1].set_ylim([0.1, 5])
+        Ax[1].set_yscale('log')
+        Ax[1].set_xlabel(r'$\rho_p$')
+        Ax[1].legend(loc='best', numpoints=1, frameon=False)
+        Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
+
+        Ax[0].plot(myTracer.eq.wall['R'],myTracer.eq.wall['Z'],'k', lw=3)
+        Ax[0].set_aspect('equal')
+        Ax[0].set_xlabel(r'R')
+        Ax[0].set_ylabel(r'Z')
+
+        mpl.pylab.savefig('../pdfbox/EquilibraLparallelConstantQ95.pdf', bbox_to_inches='tight')
+
+    elif selection == 28:
+        sL = (34105, 34102, 34106)
+        fig, Ax = mpl.pylab.subplots(figsize=(10, 6),
+                                     nrows=1, ncols=2)
+        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        fig.subplots_adjust(bottom=0.12, right=0.98)
+        for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
+            Eq = eqtools.AUGDDData(shot)
+            Eq.remapLCFS()
+            # load now the tracer for the same shot all at 3s
+            myTracer = get_fieldline_tracer('RK4', machine='AUG', shot=shot,
+                                            time=3, interp='quintic', rev_bt=True)
+                # height of magnetic axis
+            zMAxis = myTracer.eq.axis.__dict__['z']
+                # height of Xpoint
+            zXPoint = myTracer.eq.xpoints['xpl'].__dict__['z']
+            rXPoint = myTracer.eq.xpoints['xpl'].__dict__['r']
+                # now determine at the height of the zAxis the R of the LCFS
+            _idTime = np.argmin(np.abs(Eq.getTimeBase()-3))
+            RLcfs = Eq.getRLCFS()[_idTime, :]
+            ZLcfs = Eq.getZLCFS()[_idTime, :]
+                # onlye the part greater then xaxis
+            ZLcfs = ZLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+            RLcfs = RLcfs[RLcfs > myTracer.eq.axis.__dict__['r']]
+            Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
+            rmin = np.linspace(Rout+0.001, 2.19, num=30)
+                # this is R-Rsep
+            rMid = rmin-Rout
+                # this is Rho
+            rho = Eq.rz2psinorm(rmin, np.repeat(zMAxis, rmin.size), 3, sqrt=True)
+                # now create the Traces and lines
+            fieldLines = [myTracer.trace(r, zMAxis, mxstep=100000,
+                                         ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]                
+
+            fieldLinesZ = [line.filter(['R', 'Z'],
+                                       [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
+            Lpar =np.array([])
+            for line in fieldLinesZ:
+                try:
+                    _dummy = np.abs(line.S[0] - line.S[-1])
+                except:
+                    _dummy = np.nan
+                Lpar = np.append(Lpar, _dummy)
+
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z,
+                          myTracer.eq.psiN, np.linspace(0.01, 0.95, num=9),
+                          colors=col, linestyles='-', lw=0.5)
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z, myTracer.eq.psiN, [1],
+                          colors=col, linestyle='-', linewidths=2)
+            Ax[0].contour(myTracer.eq.R, myTracer.eq.Z, myTracer.eq.psiN,
+                          np.linspace(1.01, 1.16, num=5),
+                          colors=col, linestyles='--', linewidths=0.5)
+
+            Ax[1].plot(rho, Lpar, '-', color=col, lw=2, label=r'I$_p$ = ' +ip+' MA')
+
+        Ax[1].set_xlim([1, 1.05])
+        Ax[1].set_ylim([0.1, 5])
+        Ax[1].set_yscale('log')
+        Ax[1].set_xlabel(r'$\rho_p$')
+        Ax[1].legend(loc='best', numpoints=1, frameon=False)
+        Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
+
+        Ax[0].plot(myTracer.eq.wall['R'],myTracer.eq.wall['Z'],'k', lw=3)
+        Ax[0].set_aspect('equal')
+        Ax[0].set_xlabel(r'R')
+        Ax[0].set_ylabel(r'Z')
+
+        mpl.pylab.savefig('../pdfbox/EquilibraLparallelConstantBt.pdf', bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False

@@ -213,11 +213,13 @@ class Filaments(object):
         # convert into absolute value according to transformation
         R = (2188 - (self.Xprobe - self.Xlim) - sPos + 100) / 1e3
         # convert in Rhopoloidal
-        self.rhoProbe = self.Eq.rz2psinorm(
-            R, np.repeat(self.Zmem * 1e-3), tPos, sqrt=True)
-        # then we need to compute for each of the different probe tips
-        # this quantity and save them into a dictionary
+        
+        self.rhoProbe = np.zeros(R.size)
+        for r, t, i in zip(R, tPos, range(R.size)):
+            self.rhoProbe[i]=self.Eq.rz2psinorm(r, self.Zmem*1e-3, t, sqrt=True)
+        self.tPos = tPos
 
+        
     def blobAnalysis(self, Probe='Isat_m01', trange=[2, 3],
                      interELM=False, block=[0.015, 0.12],
                      usedda=False, threshold=3000):
