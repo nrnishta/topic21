@@ -3,7 +3,9 @@ import dd
 import map_equ
 from scipy.interpolate import UnivariateSpline
 import numpy as np
+import scipy
 import matplotlib as mpl
+import matplotlib._cntr as cntr
 from mpl_toolkits.mplot3d import Axes3D
 from cyfieldlineTracer import get_fieldline_tracer
 from scipy.interpolate import interp1d
@@ -751,48 +753,7 @@ class Target(object):
            based on a smoothed
         """
 
-        t0 = (trange[0]+trange[1])/2.
-        # reload the equilibrium at the appropriate time instant
-        self._setTimeEq(time=t0)
-        # save into a dummy gfile to be loaded by the Tracer
-        self.dump_geqdsk(filename='tmp.g')
-        # We need to reload the equilibrium since there is no way
-        # for the moment to pass an istance of equilibrium to the
-        # tracer CLASS
-        self.Tracer = get_fieldline_tracer('RK4', gfile='tmp.g',
-                                           interp='quintic', rev_bt=True)
-        # height of magnetic axis
-        zMAxis = self.axis.__dict__['z']
-        # height of Xpoint
-        zXPoint = self.xpoints['xpl'].__dict__['z']
-        rXPoint = self.xpoints['xpl'].__dict__['r']
-        # now determine at the height of the zAxis the R of the LCFS
-        Boundary = self.get_fluxsurface(1.0)
-        RLcfs = Boundary.R
-        ZLcfs = Boundary.Z
-        # only the part greater then xaxis
-        ZLcfs = ZLcfs[RLcfs > self.axis.__dict__['r']]
-        RLcfs = RLcfs[RLcfs > self.axis.__dict__['r']]
-        Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
-        rmin = np.linspace(Rout+0.001, 2.19, num=30)            
-        # this is the R-Rsep
-        rMid = rmin-Rout
-        # get the corrisponding Rho
-        rho = self.Eqm.rz2rho(rmin, np.repeat(zMAxis, rmin.size), self._time,
-                              extrapolate=True).squeeze()
-
-        # compute the field lines
-        fieldLines = [self.Tracer.trace(r, zMAxis, mxstep=100000, ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]
-        # compute the parallel connection length from the divertor plate to the X-point
-        fieldLinesZ = [line.filter(['R', 'Z'],
-                                   [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
-        Lpar =np.array([])
-        for line in fieldLinesZ:
-            try:
-                _dummy = np.abs(line.S[0] - line.S[-1])
-            except:
-                _dummy = np.nan
-            Lpar = np.append(Lpar, _dummy)
+        rho, Lpar = self._computeLpar(trange=trange)
 
         # now we compute the profiles of density and temperature at the divertor
         rhoEn, en, errEn = self.PlotEnProfile(trange=trange, Type=Type, Plot=False)
@@ -806,8 +767,7 @@ class Target(object):
         nuEi = 5e-11*sEn(rho)/(sTe(rho)**1.5)
         Lambda = (nuEi * Lpar * constants.electron_mass /
                   (constants.proton_mass*Cs))
-        # we then remove the temporary created G-file
-        os.remove('tmp.g')
+
         # we now create the appropriate plot
         # which include both the field lines in 2D and 3D
         # the profiles of density and temperature and
@@ -908,45 +868,125 @@ class Target(object):
         else:
             print("WARNING: No equilibrium loaded, cannot write gfile")
 
+    def _computeLpar(self, trange=[3, 3.1], Plot=False, Type='OuterTarget'):
+
+        """
+        Method for the computation of the parallel connection length
+        using the cyFieldLine Tracer Code. Presently it is
+        implemented only for the lenght in the Divertor region
+
+        Parameters
+        ----------
+        Type :obj: `string`
+            The only Possible value so far is 'OuterTarget'
+
+        trange :obj: 'ndarray'
+            2D array indicating the time minium and maximum
+
+        """
+
+
+        t0 = (trange[0]+trange[1])/2.
+        # reload the equilibrium at the appropriate time instant
+        self._setTimeEq(time=t0)
+        # save into a dummy gfile to be loaded by the Tracer
+        self.dump_geqdsk(filename='tmp.g')
+        # We need to reload the equilibrium since there is no way
+        # for the moment to pass an istance of equilibrium to the
+        # tracer CLASS
+        self.Tracer = get_fieldline_tracer('RK4', gfile='tmp.g',
+                                           interp='quintic', rev_bt=True)
+        if Type is 'OuterTarget':
+            # height of magnetic axis
+            zMAxis = self.axis.__dict__['z']
+            # height of Xpoint
+            zXPoint = self.xpoints['xpl'].__dict__['z']
+            rXPoint = self.xpoints['xpl'].__dict__['r']
+            # now determine at the height of the zAxis the R of the LCFS
+            Boundary = self.get_fluxsurface(1.0)
+            RLcfs = Boundary.R
+            ZLcfs = Boundary.Z
+            # only the part greater then xaxis
+            ZLcfs = ZLcfs[RLcfs > self.axis.__dict__['r']]
+            RLcfs = RLcfs[RLcfs > self.axis.__dict__['r']]
+            Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
+            rmin = np.linspace(Rout+0.001, 2.19, num=30)            
+            # this is the R-Rsep
+            rMid = rmin-Rout
+            # get the corrisponding Rho
+            rho = self.Eqm.rz2rho(rmin, np.repeat(zMAxis, rmin.size), self._time,
+                                  extrapolate=True).squeeze()
+
+            # compute the field lines
+            fieldLines = [self.Tracer.trace(r, zMAxis, mxstep=100000, ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]
+            # compute the parallel connection length from the divertor plate to the X-point
+            fieldLinesZ = [line.filter(['R', 'Z'],
+                                       [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
+            Lpar =np.array([])
+            for line in fieldLinesZ:
+                try:
+                    _dummy = np.abs(line.S[0] - line.S[-1])
+                except:
+                    _dummy = np.nan
+                Lpar = np.append(Lpar, _dummy)
+
+            # we then remove the temporary created G-file
+            os.remove('tmp.g')
+            return rho, Lpar
+        else:
+            print('Only outer divertor implemented so far')
+            pass
 
     def get_fluxsurface(self,psiN,Rref=1.5,Zref=0.0):
         """
         Get R,Z coordinates of a flux surface at psiN
         """
-        try:
-            import matplotlib.pyplot as plt
-        except:
-            print("ERROR: matplotlib required for flux surface construction, returning")
-            return
+        R, Z = scipy.meshgrid(self.R, self.Z)
+        c = cntr.Cntr(R, Z, self.psiN[:])
+        nlist = c.trace(psiN)
+        segs=nlist[: len(nlist)//2]
+        if len(segs) > 1:
+            R = segs[1].transpose()[0]
+            Z = segs[1].transpose()[1]
+        else:
+            R = segs[0].transpose()[0]
+            Z = segs[0].transpose()[1]
+
+        return fluxSurface(R = R, Z = Z)
+#         try:
+#             import matplotlib.pyplot as plt
+#         except:
+#             print("ERROR: matplotlib required for flux surface construction, returning")
+#             return
             
-        if type(psiN) is list:
-            surfaces = []
-            for psiNval in psiN:
-                psi_cont = plt.contour(self.R,self.Z,(self.psi - self.psi_axis)/(self.psi_bnd-self.psi_axis),levels=[0,psiN],alpha=0.0)
-                paths = psi_cont.collections[1].get_paths()
-                #Figure out which path to use
-                i = 0
-                old_dist = 100.0
-                for path in paths:
-                    dist = np.min(((path.vertices[:,0] - Rref)**2.0 + (path.vertices[:,1] - Zref)**2.0)**0.5)
-                    if  dist < old_dist:
-                        true_path = path
-                    old_dist = dist 
+#         if type(psiN) is list:
+#             surfaces = []
+#             for psiNval in psiN:
+#                 psi_cont = plt.contour(self.R,self.Z,(self.psi - self.psi_axis)/(self.psi_bnd-self.psi_axis),levels=[0,psiN],alpha=0.0)
+#                 paths = psi_cont.collections[1].get_paths()
+#                 #Figure out which path to use
+#                 i = 0
+#                 old_dist = 100.0
+#                 for path in paths:
+#                     dist = np.min(((path.vertices[:,0] - Rref)**2.0 + (path.vertices[:,1] - Zref)**2.0)**0.5)
+#                     if  dist < old_dist:
+#                         true_path = path
+#                     old_dist = dist 
                 
 
 
-                R,Z =  true_path.vertices[:,0],true_path.vertices[:,1]
-                surfaces.append(fluxSurface(R = R, Z = Z))
-            return surfaces
-        else:
-            psi_cont = plt.contour(self.R,self.Z,(self.psi - self.psi_axis)/(self.psi_bnd-self.psi_axis),levels=[0,psiN],alpha=0.0)
-            paths = psi_cont.collections[1].get_paths()
-            old_dist = 100.0
-            for path in paths:
-                dist = np.min(((path.vertices[:,0] - Rref)**2.0 + (path.vertices[:,1] - Zref)**2.0)**0.5)
-                if  dist < old_dist:
-                    true_path = path
-                old_dist = dist
-            R,Z =  true_path.vertices[:,0],true_path.vertices[:,1]
-            plt.clf()  
-            return fluxSurface(R = R, Z = Z)
+#                 R,Z =  true_path.vertices[:,0],true_path.vertices[:,1]
+#                 surfaces.append(fluxSurface(R = R, Z = Z))
+#             return surfaces
+#         else:
+#             psi_cont = plt.contour(self.R,self.Z,(self.psi - self.psi_axis)/(self.psi_bnd-self.psi_axis),levels=[0,psiN],alpha=0.0)
+#             paths = psi_cont.collections[1].get_paths()
+#             old_dist = 100.0
+#             for path in paths:
+#                 dist = np.min(((path.vertices[:,0] - Rref)**2.0 + (path.vertices[:,1] - Zref)**2.0)**0.5)
+#                 if  dist < old_dist:
+#                     true_path = path
+#                 old_dist = dist
+#             R,Z =  true_path.vertices[:,0],true_path.vertices[:,1]
+#             plt.clf()  
+#             return fluxSurface(R = R, Z = Z)
