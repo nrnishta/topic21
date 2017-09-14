@@ -204,3 +204,23 @@
     - [ ] Search of possible combination of H-Mode part together with Topic 24 which will be performed in the
           same week.
     - [ ] Circulate new program and new ideas by the end of next week
+*** AUG-Data analysis meeting 15.09.2017
+**** Agenda
+     1. Introduction and Data evaluation (N. Vianello)
+     2. Neutrals data analysis from camera (M. Agostini)
+     3. Evaluation of wall mounted probes (S. Costea)
+     4. Modelling of fast electrons associated with ELM filament eruption in AUG (K. McClements)
+     5. Discussion and determination of task-lists
+     6. Brainstorming on 2018 AUG campaign
+**** Connection details
+     SUMMARY for Channel 2 / 15Sep2017: AUG topic 21 Meeting: 
+     Presentation: https://tv.euro-fusion.org/channel2/home 
+     Presentation Password: topic21 
+
+     Video-conference nr. (H.323): 004910097920062 
+     ISDN: +49-30-20097920062 (ConferenceID = 97920062) 
+
+
+
+     
+	
