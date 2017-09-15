@@ -2045,6 +2045,8 @@ while loop:
         axStr[0].set_ylabel(r'$\delta$I$_s$')
         ax.set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
         ax.set_ylabel(r'$\tau_{ac}[\mu$s]')
+        ax.set_xscale('log')
+        ax.set_ylim([0, 200])
         mpl.pylab.savefig('../pdfbox/PdfStructureCurrentScan_ConstantQ95.pdf',
                           bbox_to_inches='tight')
 
@@ -2112,6 +2114,8 @@ while loop:
         axStr[0].set_ylabel(r'$\delta$I$_s$')
         ax.set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
         ax.set_ylabel(r'$\tau_{ac}[\mu$s]')
+        ax.set_xscale('log')
+        ax.set_ylim([0, 200])
         mpl.pylab.savefig('../pdfbox/PdfStructureCurrentScan_ConstantBt.pdf',
                           bbox_to_inches='tight')
 
