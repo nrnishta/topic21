@@ -2174,7 +2174,7 @@ while loop:
         IpLabel = ('Off', 'On')
         colorL = ('#82A17E', '#1E4682')
         fig, ax = mpl.pylab.subplots(figsize=(8, 14), nrows=3, ncols=1)
-        fig.subplots_adjust(wspace=0.3, hspace=0.3)
+        fig.subplots_adjust(wspace=0.3, hspace=0.3, left=0.2)
 
         for shot, strokes, col, ip, _idx in zip(shotL, strokeL,
                                                 colorL, IpLabel, range(len(ax))):
@@ -2203,17 +2203,18 @@ while loop:
 
             
         ax[0].set_xlabel(r'$\tilde{I}_s/\sigma$')
-        ax[0].set_ylim([1e-4, 1])
+        ax[0].set_ylim([1e-4, 3])
         ax[0].set_yscale('log')
         ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
         ax[1].set_xlabel(r't[$\mu$s]')
         ax[1].set_xlim([-50, 50])
-        ax[1].set_ylim([-0.02, 0.15])
+        ax[1].set_ylim([-0.02, 0.35])
         ax[1].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
         ax[0].set_ylabel(r'Pdf')
         ax[1].set_ylabel(r'$\delta$I$_s$')
         ax[2].set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
         ax[2].set_ylabel(r'$\tau_{ac}[\mu$s]')
+        ax[2].set_xscale('log')
         mpl.pylab.savefig('../pdfbox/PdfStructureHmodeCryoOnOffMatch.pdf',
                           bbox_to_inches='tight')
 
