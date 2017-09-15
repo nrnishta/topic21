@@ -1871,7 +1871,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.25)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1940,7 +1940,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.25)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -2192,7 +2192,7 @@ while loop:
                           bbox_to_inches='tight')
 
     elif selection == 32:
-        shotL = (34276, 34278)
+        shotL = (34276, 34281)
         strokeL = ((3.75714, 3.80528), (3.73724, 3.83))
         IpLabel = ('Off', 'On')
         colorL = ('#82A17E', '#1E4682')
@@ -2207,8 +2207,9 @@ while loop:
             Turbo.blobAnalysis(Probe='Isat_m06', trange=[strokes[0], strokes[1]],
                                block=[0.012, 1])
                 # compute the corresponding Lambda at the location of the probe
-            rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
-            _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
+            rho, Lambda = Target.computeLambda(trange=[strokes[0],
+                                                       strokes[1]], Plot=False)
+            _iidx = np.where((Turbo.tPos >= strokes[0]) & (Turbo.tPos <= strokes[1]))[0]
             rhoProbe = Turbo.rhoProbe[_iidx].mean()
             LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
                 # compute the pdf using Scott rule
@@ -2224,7 +2225,6 @@ while loop:
             ax[2].plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
                         ms=15, color=col, label='I$_p$ ' + ip +'Ma')
 
-            
         ax[0].set_xlabel(r'$\tilde{I}_s/\sigma$')
         ax[0].set_ylim([1e-4, 3])
         ax[0].set_yscale('log')
