@@ -1482,16 +1482,19 @@ while loop:
         colorL = ('#82A17E', '#1E4682', '#DD6D3D')
         colorLS = ('#C90015', '#7B0Ce7')
         tList = (1.8, 2.4, 4.0)
-        fig = mpl.pylab.figure(figsize=(12, 12))
+        fig = mpl.pylab.figure(figsize=(12, 16))
         fig.subplots_adjust(hspace=0.25, right=0.86, top=0.98)
-        ax1 = mpl.pylab.subplot2grid((3, 2), (0, 0), colspan=2)
-        ax12 = mpl.pylab.subplot2grid((3, 2), (1, 0), colspan=2)
-        ax2 = mpl.pylab.subplot2grid((3, 2), (2, 0))
-        ax3 = mpl.pylab.subplot2grid((3, 2), (2, 1))
+        ax1 = mpl.pylab.subplot2grid((4, 2), (0, 0), colspan=2)
+        ax12 = mpl.pylab.subplot2grid((4, 2), (1, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((4, 2), (2, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 2), (2, 1))
         axL = (ax2, ax3)
+        ax4 = mpl.pylab.subplot2grid((4, 2), (2, 0))
+        ax5 = mpl.pylab.subplot2grid((4, 2), (2, 1))
+        axD = (ax4, ax5)
         Cryo = ('No', 'On')
-        for shot, cc, _ax, _cr in itertools.izip(
-            shotList, colorLS, axL, Cryo):
+        for shot, cc, _ax, _ax2, _cr in itertools.izip(
+            shotList, colorLS, axL, axD, Cryo):
             
             Gas = neutrals.Neutrals(shot)
             ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
@@ -1532,6 +1535,25 @@ while loop:
             _ax.set_xlabel(r't [s]')
             _ax.set_title(r'Shot # % 5i' %shot)
             _ax.set_ylim([0.99, 1.05])
+            try:
+                shotfile = dd.shotfile('RIC', shot)
+                En = shotfile('Ne_Ant4')
+                RicFake = np.zeros((En.time.size, 50))
+                for n in range(En.time.size):
+                    S = UnivariateSpline(En.area[n, :], En.data[n, :], s=0)
+                    RicFake[n, :] = S(rhoFake)
+
+                    im=_ax2.imshow(np.log(profFake.transpose()),
+                                   origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+                                   extent=(En.time.min(), En.time.max(), 0.98, 1.06),
+                                   norm=LogNorm(vmin=0.5, vmax=2.5))
+                    _ax2.set_xlim([1, 6.5])
+                    _ax2.set_xlabel(r't [s]')
+                    _ax2.set_ylim([0.99, 1.05])
+            except:
+                pass
+
+
         ax2.set_ylabel(r'$\rho_p$')
         ax3.axes.get_yaxis().set_visible(False)
         ax12.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
@@ -1540,7 +1562,8 @@ while loop:
         cbar = fig.colorbar(im, cax=cbar_ax, format='%1.1f')
         cbar.set_ticks([0.5, 1, 1.5, 2.5])
         cbar.set_label(r'n$_{e}$ [10$^{19}$m$^{-3}$]')
-
+        ax4.set_ylabel(r'$\rho_p$')
+        ax5.axes.get_yaxis().set_visible(False)
         mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.pdf',
                           bbox_to_inches='tight')    
@@ -1848,7 +1871,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.25)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1917,7 +1940,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.25)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -2169,7 +2192,7 @@ while loop:
                           bbox_to_inches='tight')
 
     elif selection == 32:
-        shotL = (34276, 34278)
+        shotL = (34276, 34281)
         strokeL = ((3.75714, 3.80528), (3.73724, 3.83))
         IpLabel = ('Off', 'On')
         colorL = ('#82A17E', '#1E4682')
@@ -2184,8 +2207,9 @@ while loop:
             Turbo.blobAnalysis(Probe='Isat_m06', trange=[strokes[0], strokes[1]],
                                block=[0.012, 1])
                 # compute the corresponding Lambda at the location of the probe
-            rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
-            _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
+            rho, Lambda = Target.computeLambda(trange=[strokes[0],
+                                                       strokes[1]], Plot=False)
+            _iidx = np.where((Turbo.tPos >= strokes[0]) & (Turbo.tPos <= strokes[1]))[0]
             rhoProbe = Turbo.rhoProbe[_iidx].mean()
             LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
                 # compute the pdf using Scott rule
@@ -2201,7 +2225,6 @@ while loop:
             ax[2].plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
                         ms=15, color=col, label='I$_p$ ' + ip +'Ma')
 
-            
         ax[0].set_xlabel(r'$\tilde{I}_s/\sigma$')
         ax[0].set_ylim([1e-4, 3])
         ax[0].set_yscale('log')
