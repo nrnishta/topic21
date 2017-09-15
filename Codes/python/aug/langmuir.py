@@ -825,9 +825,10 @@ class Target(object):
             ax6.tick_params(axis='y', colors='red')
             ax6.set_ylabel(r'L$_{\parallel}$ [m]', color='red')
 
+        rho = rho[Lambda >0]
+        Lambda=Lambda[Lambda>0]
 
-
-        return rho, Lambda
+        return rho[~np.isnan(Lambda)], Lambda[~np.isnan(Lambda)]
 
 
     def dump_geqdsk(self,filename="equilibrium.g"):

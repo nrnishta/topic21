@@ -47,7 +47,7 @@ def print_menu():
     print "17. Compare shots same puffing with and wo cryompumps"
     print "18. Compare shots with/wo cryopumps try to match edge density"
     print "19. Compare Li-Beam contour profiles with/wo crypumps when trying to math edge density"
-    print "20. Compare Li-Be contour div/midplane puffing"
+    print "20. Compare Li-Be contour Lower/Upper divertor puffing"
     print "21. Compare Li-Be contour same fueling with/without cryo"
     print "22. Compare Shot constant q95 same edge density"
     print "23. Compare Li-Beam contour profiles with/wo crypumps, Density and Fueling"
@@ -57,6 +57,9 @@ def print_menu():
     print "27. Equilibria and Lparallel at constant q95"
     print "28. Equilibria and Lparallel at constant q95"
     print "29. Fluctuations and PDF during Ip scan constant q95"
+    print "30. Fluctuations and PDF during Ip scan constant Bt"
+    print "31. Fluctuations and PDF Cryo On/OFF"
+    print "32. Fluctuations and PDF Match Cryo ON/OFF"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -845,7 +848,7 @@ while loop:
 
     elif selection == 15:
         shotList = (34276, 34277)
-        pufL = ('Div', 'Mid')
+        pufL = ('Low Div', 'Up Mid')
         colorList = ('#C90015', '#7B0Ce7')
         fig, ax = mpl.pylab.subplots(figsize=(17, 17),
                                      nrows=4, ncols=2, sharex=True)
@@ -934,7 +937,7 @@ while loop:
                           bbox_to_inches='tight')
     elif selection == 16:
         shotList = (34276, 34277)
-        pufL = ('Div', 'Mid')
+        pufL = ('Low Div', 'Up Div')
         colorList = ('#C90015', '#7B0Ce7')
         fig, ax = mpl.pylab.subplots(figsize=(8, 10), nrows=2, ncols=1, sharex=True)
         fig.subplots_adjust(bottom=0.15)
@@ -1034,8 +1037,10 @@ while loop:
             ax[2, 1].set_ylabel(r'N$_2$ [10$^{21}$]')
             Uvs.close()
             Msp = dd.shotfile('MSP', shot)
-            Press = 100.*Msp('B25_08Fu').data/(0.0337*np.log10(Msp('B25_08Fu').data*100.)+0.7304)
-            ax[3, 1].plot(Msp('B25_08Fu').time, Press, ls='--', color=_col, lw=2, label='B25_08Fu')
+            Press = 100.*Msp('B25_08Fu').data/(
+                0.0337*np.log10(Msp('B25_08Fu').data*100.)+0.7304)
+            ax[3, 1].plot(Msp('B25_08Fu').time, Press, ls='--',
+                          color=_col, lw=2, label='B25_08Fu')
             Msp.close()
             try:
                 ax[3, 1].plot(Gas.signal['F01']['t'],
@@ -1223,19 +1228,22 @@ while loop:
         tList = (1.8, 2.4, 4.0)
         fig = mpl.pylab.figure(figsize=(12, 12))
         fig.subplots_adjust(hspace=0.25, right=0.86)
-        ax1 = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
-        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 0))
-        ax3 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        ax1 = mpl.pylab.subplot2grid((3, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((3, 2), (1, 0))
+        ax3 = mpl.pylab.subplot2grid((3, 2), (1, 1))
         axL = (ax2, ax3)
-        Cryo = ('No', 'On')
-        for shot, cc, _ax, _cr in itertools.izip(
-            shotList, colorLS, axL, Cryo):
+        ax4 = mpl.pylab.subplot2grid((3, 2), (2, 0))
+        ax5 = mpl.pylab.subplot2grid((3, 2), (2, 1))
+        axD = (ax4, ax5)
+        Cryo = ('Lower', 'Upper')
+        for shot, cc, _ax, _ax2, _cr in itertools.izip(
+            shotList, colorLS, axL, axD, Cryo):
             # this is the line average density
-            diag = dd.shotfile('TOT', shot)
-            neAvg = diag('H-1/(2a)')
+            diag = dd.shotfile('DCN', shot)
+            neAvg = diag('H-5')
             diag.close()
             ax1.plot(neAvg.time, neAvg.data/1e20, '-', color=cc, lw=2,
-                     label = r'Shot # %5i' % shot +' Cryo ' + _cr)
+                     label = r'Shot # %5i' % shot +' Puff from ' + _cr +' Divertor')
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 7])
             # load the Li-Beam profiles
@@ -1250,26 +1258,42 @@ while loop:
                 S = UnivariateSpline(rhoP[n, ::-1],
                                      neLB[n, ::-1]/1e19, s=0)
                 profFake[n, :] = S(rhoFake)
-            im=_ax.imshow(np.log(profFake.transpose()), origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+            im=_ax.imshow(np.log(profFake.transpose()),
+                          origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
                           extent=(neLBtime.min(), neLBtime.max(), 0.98, 1.06),
                           norm=LogNorm(vmin=0.5, vmax=2.5))
-
-
             _ax.set_title(r'Shot # % 5i' %shot)
 
             _ax.set_xlim([1, 6.5])
-            _ax.set_xlabel(r't [s]')
             _ax.set_title(r'Shot # % 5i' %shot)
             _ax.set_ylim([0.99, 1.05])
+            # add the computation from the RIC profile
+            if shot != 34277:
+                shotfile = dd.shotfile('RIC', shot)
+                En = shotfile('Ne_Ant4')
+                RicFake = np.zeros((En.time.size, 50))
+                for n in range(En.time.size):
+                    S = UnivariateSpline(En.area[n, :], En.data[n, :], s=0)
+                    RicFake[n, :] = S(rhoFake)
+
+                im=_ax2.imshow(np.log(profFake.transpose()),
+                               origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+                               extent=(En.time.min(), En.time.max(), 0.98, 1.06),
+                               norm=LogNorm(vmin=0.5, vmax=2.5))
+                _ax2.set_xlim([1, 6.5])
+                _ax2.set_xlabel(r't [s]')
+                _ax2.set_ylim([0.99, 1.05])
+
         ax2.set_ylabel(r'$\rho_p$')
         ax3.axes.get_yaxis().set_visible(False)
         ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
-        ax1.set_ylabel(r'$\overline{n_e}$ H-5 $[10^{19}$m$^{-3}]$')
-        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
-        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.3])
+        ax1.set_ylabel(r'$\overline{n_e}$ H-5 $[10^{19}$m$^{-2}]$')
+        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.4])
         cbar = fig.colorbar(im, cax=cbar_ax, format='%1.1f')
         cbar.set_ticks([0.5, 1, 1.5, 2.5])
         cbar.set_label(r'n$_{e}$ [10$^{19}$m$^{-3}$]')
+        ax4.set_ylabel(r'$\rho_p$')
+        ax5.axes.get_yaxis().set_visible(False)
 
         mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.pdf',
@@ -1282,13 +1306,16 @@ while loop:
         tList = (1.8, 2.4, 4.0)
         fig = mpl.pylab.figure(figsize=(12, 12))
         fig.subplots_adjust(hspace=0.25, right=0.86)
-        ax1 = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
-        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 0))
-        ax3 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        ax1 = mpl.pylab.subplot2grid((3, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((3, 2), (1, 0))
+        ax3 = mpl.pylab.subplot2grid((3, 2), (1, 1))
         axL = (ax2, ax3)
-        Cryo = ('No', 'On')
-        for shot, cc, _ax, _cr in itertools.izip(
-            shotList, colorLS, axL, Cryo):
+        ax4 = mpl.pylab.subplot2grid((3, 2), (2, 0))
+        ax5 = mpl.pylab.subplot2grid((3, 2), (2, 1))
+        axD = (ax4, ax5)
+        Cryo = ('Off', 'On')
+        for shot, cc, _ax, _ax2,  _cr in itertools.izip(
+            shotList, colorLS, axL, axD, Cryo):
             # this is the line average density
             diag = dd.shotfile('TOT', shot)
             neAvg = diag('H-1/(2a)')
@@ -1321,15 +1348,31 @@ while loop:
             _ax.set_xlabel(r't [s]')
             _ax.set_title(r'Shot # % 5i' %shot)
             _ax.set_ylim([0.99, 1.05])
+            shotfile = dd.shotfile('RIC', shot)
+            En = shotfile('Ne_Ant4')
+            RicFake = np.zeros((En.time.size, 50))
+            for n in range(En.time.size):
+                S = UnivariateSpline(En.area[n, :], En.data[n, :], s=0)
+                RicFake[n, :] = S(rhoFake)
+
+            im=_ax2.imshow(np.log(profFake.transpose()),
+                           origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
+                           extent=(En.time.min(), En.time.max(), 0.98, 1.06),
+                           norm=LogNorm(vmin=0.5, vmax=2.5))
+            _ax2.set_xlim([1, 6.5])
+            _ax2.set_xlabel(r't [s]')
+            _ax2.set_ylim([0.99, 1.05])
+
         ax2.set_ylabel(r'$\rho_p$')
         ax3.axes.get_yaxis().set_visible(False)
         ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
         ax1.set_ylabel(r'$\overline{n_e}$ H-5 $[10^{19}$m$^{-3}]$')
-        ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
-        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.3])
+        cbar_ax = fig.add_axes([0.87, 0.1, 0.02, 0.4])
         cbar = fig.colorbar(im, cax=cbar_ax, format='%1.1f')
         cbar.set_ticks([0.5, 1, 1.5, 2.5])
         cbar.set_label(r'n$_{e}$ [10$^{19}$m$^{-3}$]')
+        ax4.set_ylabel(r'$\rho_p$')
+        ax5.axes.get_yaxis().set_visible(False)
 
         mpl.pylab.savefig('../pdfbox/EvolutionEdgeProfiles_' + str(int(shotList[0])) +
                           '_'+str(int(shotList[1]))+'.pdf',
@@ -1805,7 +1848,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.15)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1874,7 +1917,7 @@ while loop:
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
-        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.15)
+        fig.subplots_adjust(bottom=0.12, right=0.98, wspace=0.2, left=0.19)
         for shot, col, ip in zip(sL, colorLS, ('0.6', '0.8', '1')):
             Eq = eqtools.AUGDDData(shot)
             Eq.remapLCFS()
@@ -1945,47 +1988,235 @@ while loop:
                    ((1.90, 2.02), (3.090, 3.22), (3.70, 3.81)))
         IpLabel = ('0.6', '0.8', '1')
         colorL = ('#82A17E', '#1E4682', '#DD6D3D')
-        fig, Ax = mpl.pylab.subplots(figsize=(16, 8),
-                                     nrows=2, ncols=3)
+        fig = mpl.pylab.figure(figsize=(16, 14))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3)
+        axPdf = (mpl.pylab.subplot2grid((3, 3), (0, 0)),
+                 mpl.pylab.subplot2grid((3, 3), (0, 1)), 
+                 mpl.pylab.subplot2grid((3, 3), (0, 2)))
+
+        axStr = (mpl.pylab.subplot2grid((3, 3), (1, 0)),
+                 mpl.pylab.subplot2grid((3, 3), (1, 1)), 
+                 mpl.pylab.subplot2grid((3, 3), (1, 2)))
+
+        ax = mpl.pylab.subplot2grid((3, 3), (2, 0), colspan=3)
+
         for shot, strokes, col, ip in zip(shotL, strokeL, colorL, IpLabel):
             Turbo = augFilaments.Filaments(shot, Xprobe=1790)
             Turbo.loadPosition()
             Target = langmuir.Target(shot)
-            for time, i in zip(strokes, range(len(strokes))):
-                Turbo.blobAnalysis(Probe='Isat_m06', trange=[time[0], time[1]], block=[0.012, 0.4])
+            for time, axP, axS in zip(
+                strokes, axPdf, axStr):
+                Turbo.blobAnalysis(Probe='Isat_m06', trange=[time[0], time[1]],
+                                   block=[0.012, 0.4])
                 # compute the corresponding Lambda at the location of the probe
                 rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
-                S = UnivariateSpline(rho[~np.isnan(Lambda)], Lambda[~np.isnan(Lambda)], s=0)
-                _iidx = np.where((Turbo.tpos >= time[0]) (Turbo.tpos <= time[1]))[0]
+                _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
                 rhoProbe = Turbo.rhoProbe[_iidx].mean()
-                LambdaProbe = S(rhoProbe)
+                LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
                 # compute the pdf using Scott rule
                 h, b =Turbo.blob.pdf(bins='scott', density=True, normed=True)
-                Ax[i, 0].plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
+                axP.plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
                               label=r'I$_p$ = ' + ip +
-                              ' MA, $\Lambda_{div} = %2.1f$' % LambdaProbe)
+                              ' MA, $\Lambda_{div} = %3.2f$' % LambdaProbe)
 
                 cs, tau, err = Turbo.blob.cas(Type='thresh', detrend=True)
-                Ax[i, 1].plot(cs*1e6, tau, lw=2, color=col,
+                axS.plot(tau*1e6, cs, lw=2, color=col,
                               label=r'I$_p$ = ' + ip +
-                              ' MA, $\Lambda_{div} = %2.1f$' % LambdaProbe)
+                              ' MA, $\Lambda_{div} = %3.2f$' % LambdaProbe)
+                ax.plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
+                        ms=15, color=col, label='I$_p$ ' + ip +'Ma')
 
-        for i in range(3):
-            Ax[i, 0].set_xlabel(r'$\delta I_s/\sigma$')
-            Ax[i, 0].set_ylim([1e-4, 1])
-            Ax[i, 1].set_xlabel(r't[$\mu$s]')
-            Ax[i, 1].set_xlim([-50, 50])
-            Ax[i, 1].set_ylim([-0.02, 0.15])
+        for a, b in zip(axPdf, axStr):
+            a.set_xlabel(r'$\tilde{I}_s/\sigma$')
+            a.set_ylim([1e-4, 1])
+            a.set_yscale('log')
+            a.legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+            b.set_xlabel(r't[$\mu$s]')
+            b.set_xlim([-50, 50])
+            b.set_ylim([-0.02, 0.15])
+            b.legend(loc='best', numpoints=1, frameon=False, fontsize=12)
 
-        Ax[1, 0].axes.get_yaxis().set_visible(False)
-        Ax[2, 0].axes.get_yaxis().set_visible(False)
-        Ax[0, 0].set_ylabel(r'Pdf')
+        axPdf[1].axes.get_yaxis().set_visible(False)
+        axPdf[2].axes.get_yaxis().set_visible(False)
+        axPdf[0].set_ylabel(r'Pdf')
 
-        Ax[1, 1].axes.get_yaxis().set_visible(False)
-        Ax[2, 1].axes.get_yaxis().set_visible(False)
-        Ax[1, 0].set_ylabel(r'$\delta$I$_s$')
+        axStr[1].axes.get_yaxis().set_visible(False)
+        axStr[2].axes.get_yaxis().set_visible(False)
+        axStr[0].set_ylabel(r'$\delta$I$_s$')
+        ax.set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
+        ax.set_ylabel(r'$\tau_{ac}[\mu$s]')
+        ax.set_xscale('log')
+        ax.set_ylim([0, 200])
         mpl.pylab.savefig('../pdfbox/PdfStructureCurrentScan_ConstantQ95.pdf',
                           bbox_to_inches='tight')
+
+    elif selection == 30:
+        shotL = (34105, 34102, 34106)
+        strokeL = (((1.90, 2.00), (3.090, 3.22)),
+                   ((1.90, 2.00), (3.151, 3.22), (3.69, 3.81)),
+                   ((1.90, 2.02), (3.090, 3.22), (3.70, 3.81)))
+        IpLabel = ('0.6', '0.8', '1')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig = mpl.pylab.figure(figsize=(16, 14))
+        fig.subplots_adjust(hspace=0.3, wspace=0.3)
+        axPdf = (mpl.pylab.subplot2grid((3, 3), (0, 0)),
+                 mpl.pylab.subplot2grid((3, 3), (0, 1)), 
+                 mpl.pylab.subplot2grid((3, 3), (0, 2)))
+
+        axStr = (mpl.pylab.subplot2grid((3, 3), (1, 0)),
+                 mpl.pylab.subplot2grid((3, 3), (1, 1)), 
+                 mpl.pylab.subplot2grid((3, 3), (1, 2)))
+
+        ax = mpl.pylab.subplot2grid((3, 3), (2, 0), colspan=3)
+
+        for shot, strokes, col, ip in zip(shotL, strokeL, colorL, IpLabel):
+            Turbo = augFilaments.Filaments(shot, Xprobe=1790)
+            Turbo.loadPosition()
+            Target = langmuir.Target(shot)
+            for time, axP, axS in zip(
+                strokes, axPdf, axStr):
+                Turbo.blobAnalysis(Probe='Isat_m06', trange=[time[0], time[1]],
+                                   block=[0.012, 0.4])
+                # compute the corresponding Lambda at the location of the probe
+                rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
+                _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
+                rhoProbe = Turbo.rhoProbe[_iidx].mean()
+                LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
+                # compute the pdf using Scott rule
+                h, b =Turbo.blob.pdf(bins='scott', density=True, normed=True)
+                axP.plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
+                              label=r'I$_p$ = ' + ip +
+                              ' MA, $\Lambda_{div} = %3.2f$' % LambdaProbe)
+
+                cs, tau, err = Turbo.blob.cas(Type='thresh', detrend=True)
+                axS.plot(tau*1e6, cs, lw=2, color=col,
+                              label=r'I$_p$ = ' + ip +
+                              ' MA, $\Lambda_{div} = %3.2f$' % LambdaProbe)
+                ax.plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
+                        ms=15, color=col, label='I$_p$ ' + ip +'Ma')
+
+        for a, b in zip(axPdf, axStr):
+            a.set_xlabel(r'$\tilde{I}_s/\sigma$')
+            a.set_ylim([1e-4, 1])
+            a.set_yscale('log')
+            a.legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+            b.set_xlabel(r't[$\mu$s]')
+            b.set_xlim([-50, 50])
+            b.set_ylim([-0.02, 0.15])
+            b.legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+
+        axPdf[1].axes.get_yaxis().set_visible(False)
+        axPdf[2].axes.get_yaxis().set_visible(False)
+        axPdf[0].set_ylabel(r'Pdf')
+
+        axStr[1].axes.get_yaxis().set_visible(False)
+        axStr[2].axes.get_yaxis().set_visible(False)
+        axStr[0].set_ylabel(r'$\delta$I$_s$')
+        ax.set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
+        ax.set_ylabel(r'$\tau_{ac}[\mu$s]')
+        ax.set_xscale('log')
+        ax.set_ylim([0, 200])
+        mpl.pylab.savefig('../pdfbox/PdfStructureCurrentScan_ConstantBt.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 31:
+        shotL = (34276, 34278)
+        strokeL = ((3.75714, 3.80528), (3.76694, 3.83))
+        IpLabel = ('Off', 'On')
+        colorL = ('#82A17E', '#1E4682')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 14), nrows=3, ncols=1)
+        fig.subplots_adjust(wspace=0.3, hspace=0.3)
+
+        for shot, strokes, col, ip, _idx in zip(shotL, strokeL,
+                                                colorL, IpLabel, range(len(ax))):
+            Turbo = augFilaments.Filaments(shot, Xprobe=1773)
+            Turbo.loadPosition()
+            Target = langmuir.Target(shot)
+            Turbo.blobAnalysis(Probe='Isat_m06', trange=[strokes[0], strokes[1]],
+                               block=[0.012, 1])
+                # compute the corresponding Lambda at the location of the probe
+            rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
+            _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
+            rhoProbe = Turbo.rhoProbe[_iidx].mean()
+            LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
+                # compute the pdf using Scott rule
+            h, b =Turbo.blob.pdf(bins='scott', density=True, normed=True)
+            ax[0].plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
+                       label=r'Cryo ' + ip +
+                       ' $\Lambda_{div} = %3.2f$' % LambdaProbe)
+            
+            cs, tau, err = Turbo.blob.cas(Type='thresh', detrend=True)
+            ax[1].plot(tau*1e6, cs, lw=2, color=col,
+                     label=r'Cryo ' + ip +
+                     ' $\Lambda_{div} = %3.2f$' % LambdaProbe)
+            ax[2].plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
+                        ms=15, color=col, label='I$_p$ ' + ip +'Ma')
+
+            
+        ax[0].set_xlabel(r'$\tilde{I}_s/\sigma$')
+        ax[0].set_ylim([1e-4, 1])
+        ax[0].set_yscale('log')
+        ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        ax[1].set_xlabel(r't[$\mu$s]')
+        ax[1].set_xlim([-50, 50])
+        ax[1].set_ylim([-0.02, 0.15])
+        ax[1].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        ax[0].set_ylabel(r'Pdf')
+        ax[1].set_ylabel(r'$\delta$I$_s$')
+        ax[2].set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
+        ax[2].set_ylabel(r'$\tau_{ac}[\mu$s]')
+        mpl.pylab.savefig('../pdfbox/PdfStructureHmodeCryoOnOff.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 32:
+        shotL = (34276, 34278)
+        strokeL = ((3.75714, 3.80528), (3.73724, 3.83))
+        IpLabel = ('Off', 'On')
+        colorL = ('#82A17E', '#1E4682')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 14), nrows=3, ncols=1)
+        fig.subplots_adjust(wspace=0.3, hspace=0.3)
+
+        for shot, strokes, col, ip, _idx in zip(shotL, strokeL,
+                                                colorL, IpLabel, range(len(ax))):
+            Turbo = augFilaments.Filaments(shot, Xprobe=1773)
+            Turbo.loadPosition()
+            Target = langmuir.Target(shot)
+            Turbo.blobAnalysis(Probe='Isat_m06', trange=[strokes[0], strokes[1]],
+                               block=[0.012, 1])
+                # compute the corresponding Lambda at the location of the probe
+            rho, Lambda = Target.computeLambda(trange=[time[0], time[1]], Plot=False)
+            _iidx = np.where((Turbo.tPos >= time[0]) & (Turbo.tPos <= time[1]))[0]
+            rhoProbe = Turbo.rhoProbe[_iidx].mean()
+            LambdaProbe = Lambda[np.argmin(np.abs(rho-1.01))]
+                # compute the pdf using Scott rule
+            h, b =Turbo.blob.pdf(bins='scott', density=True, normed=True)
+            ax[0].plot((b[1:]+b[:-1])/2, h, lw=2, color=col,
+                       label=r'Cryo ' + ip +
+                       ' $\Lambda_{div} = %3.2f$' % LambdaProbe)
+            
+            cs, tau, err = Turbo.blob.cas(Type='thresh', detrend=True)
+            ax[1].plot(tau*1e6, cs, lw=2, color=col,
+                     label=r'Cryo ' + ip +
+                     ' $\Lambda_{div} = %3.2f$' % LambdaProbe)
+            ax[2].plot(LambdaProbe, Turbo.blob.act*1e6, 'o',
+                        ms=15, color=col, label='I$_p$ ' + ip +'Ma')
+
+            
+        ax[0].set_xlabel(r'$\tilde{I}_s/\sigma$')
+        ax[0].set_ylim([1e-4, 1])
+        ax[0].set_yscale('log')
+        ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        ax[1].set_xlabel(r't[$\mu$s]')
+        ax[1].set_xlim([-50, 50])
+        ax[1].set_ylim([-0.02, 0.15])
+        ax[1].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        ax[0].set_ylabel(r'Pdf')
+        ax[1].set_ylabel(r'$\delta$I$_s$')
+        ax[2].set_xlabel(r'$\Lambda_{div}$ @ $\rho = 1.01$')
+        ax[2].set_ylabel(r'$\tau_{ac}[\mu$s]')
+        mpl.pylab.savefig('../pdfbox/PdfStructureHmodeCryoOnOffMatch.pdf',
+                          bbox_to_inches='tight')
+
 
     elif selection == 99:
         loop = False
