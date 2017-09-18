@@ -1597,10 +1597,11 @@ while loop:
                   mpl.pylab.subplot2grid((4, 3), (3, 2)))
 
         for shot, col, tL in itertools.izip(
-            shotList, colorLS, tList):
+                shotList, colorLS, tList):
             # get the current and compute the average current in Ip
             Mag = dd.shotfile('MAG', shot)
-            _ii = np.where((Mag('Ipa').time >= 3) & (Mag('Ipa').time <= 3.3))[0]
+            _ii = np.where((Mag('Ipa').time >= 3) &
+                           (Mag('Ipa').time <= 3.3))[0]
             ip = Mag('Ipa').data[_ii]/1e6
             Mag.close()
             # this is the line average density
@@ -1608,7 +1609,8 @@ while loop:
             neEdge = diag('H-5')
             diag.close()
             ax1.plot(neEdge.time, neEdge.data/1e20, '-', color=col, lw=2,
-                     label = r'Shot # %5i' % shot +' I$_p$ = %2.1f' % ip.mean() +' MA')
+                     label=r'Shot # %5i' % shot  +
+                     ' I$_p$ = %2.1f' % ip.mean() + ' MA')
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 4.5])
             # load the Li-Beam profiles
@@ -1628,36 +1630,41 @@ while loop:
                     S = UnivariateSpline(rhoP[n, ::-1],
                                          neLB[n, ::-1], s=0)
                     y[_iDummy, :] = S(rhoFake)/S(1)
-                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                _idx = np.where((neEdge.time >= t-0.02) &
+                                (neEdge.time <= t+0.02))[0]
                 enLabel = neEdge.data[_idx].mean()/1e20
                 ax.plot(rhoFake, np.mean(y, axis=0), '-', color=col,
-                              lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
-                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
-                ax.fill_between(rhoFake, np.mean(y, axis=0)-
-                                      np.std(y, axis=0), np.mean(y, axis=0)+
-                                      np.std(y, axis=0),
-                                      facecolor=col, edgecolor='none',
-                                      alpha=0.5)
+                        lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                        ' I$_p$ = %2.1f' % ip.mean() + ' MA')
+                ax.fill_between(rhoFake, np.mean(y, axis=0) -
+                                np.std(y, axis=0), np.mean(y, axis=0) +
+                                np.std(y, axis=0),
+                                facecolor=col, edgecolor='none',
+                                alpha=0.5)
                 ax.set_yscale('log')
 
             # Now we need to compute the profiles at the target
             Target = langmuir.Target(shot)
             for t, axD, axL in zip(tL, axDivL, axLamL):
-                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                _idx = np.where((neEdge.time >= t-0.02) &
+                                (neEdge.time <= t+0.02))[0]
                 enLabel = neEdge.data[_idx].mean()/1e20
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axD.plot(rho, en/1e19, 'o', ms=15, mec=col, mfc=col,
-                        label=r'$\overline{n_e}$ = %3.2f' % enLabel +
-                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
-                axD.errorbar(rho, en/1e19, yerr=err/1e19, fmt='none', ecolor=col)
+                axD.plot(rho, en/1e19, '--o', ms=15, mec=col, mfc=col,
+                         label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                         ' I$_p$ = %2.1f' % ip.mean() + ' MA')
+                axD.errorbar(rho, en/1e19, yerr=err/1e19,
+                             fmt='none', ecolor=col)
                 rho, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
                 axL.plot(rho, Lambda, '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
-                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                         ' I$_p$ = %2.1f' % ip.mean() + ' MA')
 
-        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        leg = ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        for handle, text in zip(leg.legendHandles, leg.get_texts()):
+            text.set_color(handle.get_facecolor()[0])
         ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
         ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
         ax1.set_ylim([0, 0.6])
@@ -1667,26 +1674,36 @@ while loop:
             axEnL[i].set_xlim([0.98, 1.05])
             axEnL[i].set_ylim([1e-1, 4])
             axEnL[i].set_yscale('log')
-            axEnL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            leg = axEnL[i].legend(loc='best', numpoints=0,
+                                  frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
 
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
             axDivL[i].set_xlim([0.98, 1.05])
-            axDivL[i].set_ylim([0, 5])
-            axDivL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            axDivL[i].set_ylim([0, 6])
+            leg = axDivL[i].legend(loc='best', numpoints=0,
+                                   frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
 
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-2, 15])
+            axLamL[i].set_ylim([1e-1, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
-            axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            leg = axLamL[i].legend(loc='best', numpoints=0,
+                                   frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
             axLamL[i].set_yscale('log')
-            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
+            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02)
+
         mpl.pylab.savefig('../pdfbox/IpConstantQ95_Profiles_UsDiv.pdf',
-                          bbox_to_inches='tight')    
+                          bbox_to_inches='tight')
 
 
     elif selection == 25:
@@ -1718,7 +1735,8 @@ while loop:
             shotList, colorLS, tList):
             # get the current and compute the average current in Ip
             Mag = dd.shotfile('MAG', shot)
-            _ii = np.where((Mag('Ipa').time >= 3) & (Mag('Ipa').time <= 3.3))[0]
+            _ii = np.where((Mag('Ipa').time >= 3) &
+                           (Mag('Ipa').time <= 3.3))[0]
             ip = Mag('Ipa').data[_ii]/1e6
             Mag.close()
             # this is the line average density
@@ -1726,7 +1744,8 @@ while loop:
             neEdge = diag('H-5')
             diag.close()
             ax1.plot(neEdge.time, neEdge.data/1e20, '-', color=col, lw=2,
-                     label = r'Shot # %5i' % shot +' I$_p$ = %2.1f' % ip.mean() +' MA')
+                     label = r'Shot # %5i' % shot +
+                     ' I$_p$ = %2.1f' % ip.mean() + ' MA')
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 4.5])
             # load the Li-Beam profiles
@@ -1746,11 +1765,12 @@ while loop:
                     S = UnivariateSpline(rhoP[n, ::-1],
                                          neLB[n, ::-1], s=0)
                     y[_iDummy, :] = S(rhoFake)/S(1)
-                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                _idx = np.where((neEdge.time >= t-0.02) &
+                                (neEdge.time <= t+0.02))[0]
                 enLabel = neEdge.data[_idx].mean()/1e20
                 ax.plot(rhoFake, np.mean(y, axis=0), '-', color=col,
-                              lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
-                          ' I$_p$ = %2.1f' % ip.mean() +' MA')
+                        lw=3, label=r'$\overline{n_e}$ = %3.2f' % enLabel +
+                        ' I$_p$ = %2.1f' % ip.mean() + ' MA')
                 ax.fill_between(rhoFake, np.mean(y, axis=0)-
                                       np.std(y, axis=0), np.mean(y, axis=0)+
                                       np.std(y, axis=0),
@@ -1761,21 +1781,25 @@ while loop:
             # Now we need to compute the profiles at the target
             Target = langmuir.Target(shot)
             for t, axD, axL in zip(tL, axDivL, axLamL):
-                _idx = np.where((neEdge.time >= t-0.02) & (neEdge.time <= t+0.02))[0]
+                _idx = np.where((neEdge.time >= t-0.02) &
+                                (neEdge.time <= t+0.02))[0]
                 enLabel = neEdge.data[_idx].mean()/1e20
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axD.plot(rho, en/1e19, 'o', ms=15, mec=col, mfc=col,
+                axD.plot(rho, en/1e19, '--o', ms=15, mec=col, mfc=col,
                         label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
-                axD.errorbar(rho, en/1e19, yerr=err/1e19, fmt='none', ecolor=col)
+                axD.errorbar(rho, en/1e19, yerr=err/1e19,
+                             fmt='none', ecolor=col)
                 rho, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
                 axL.plot(rho, Lambda, '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
 
-        ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        leg = ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        for handle, text in zip(leg.legendHandles, leg.get_texts()):
+            text.set_color(handle.get_facecolor()[0])
         ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
         ax1.set_title(r'I$_p$ scan at constant B$_{t}$')
         ax1.set_ylim([0, 0.6])
@@ -1785,22 +1809,31 @@ while loop:
             axEnL[i].set_xlim([0.98, 1.05])
             axEnL[i].set_ylim([1e-1, 4])
             axEnL[i].set_yscale('log')
-            axEnL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            leg = axEnL[i].legend(loc='best', numpoints=1,
+                                  frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
 
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
             axDivL[i].set_xlim([0.98, 1.05])
-            axDivL[i].set_ylim([0, 5])
-            axDivL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            axDivL[i].set_ylim([0, 6])
+            leg = axDivL[i].legend(loc='best', numpoints=1,
+                                   frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
 
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-2, 15])
+            axLamL[i].set_ylim([1e-1, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
-            axLamL[i].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+            leg = axLamL[i].legend(loc='best', numpoints=1,
+                                   frameon=False, fontsize=14)
+            for handle, text in zip(leg.legendHandles, leg.get_texts()):
+                text.set_color(handle.get_facecolor()[0])
             axLamL[i].set_yscale('log')
             axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
         mpl.pylab.savefig('../pdfbox/IpConstantBt_Profiles_UsDiv.pdf',
