@@ -194,7 +194,7 @@ while loop:
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')        
 
         fig, ax = mpl.pylab.subplots(figsize=(17, 15),
-                                     nrows=3, ncols=2, sharex=True)
+                                     nrows=4, ncols=2, sharex=True)
         fig.subplots_adjust(hspace=0.05, top=0.96, bottom=0.1)
         for shot, _col, _idx in zip(shotList,
                                     colorLS, range(len(shotList))):
@@ -213,11 +213,19 @@ while loop:
             ax[1, 0].set_ylim([0, 10])
 
             ax[2, 0].plot(diag('H-1').time, diag('H-5').data/1e19, color=_col, lw=3)
-            ax[2, 0].set_xlabel(r't [s]')
+ 
             ax[2, 0].set_ylabel(r'$\overline{n}_e$ H-5 [10$^{19}$]')
             diag.close
             ax[2, 0].set_xlim([0, 4.5])
             ax[2, 0].set_ylim([0, 6])
+            ax[2, 0].axes.get_xaxis().set_visible(False)
+
+            diag = dd.shotfile('TOT', shot)
+            ax[3, 0].plot(diag('P_TOT').time, diag('P_TOT').data/1e6, color=_col, lw=3)
+            ax[3, 0].set_ylabel('P$_{tot}$ [MW]')
+            ax[3, 0].set_xlim([0, 4.5])
+            ax[3, 0].set_ylim([0, .8])
+            diag.close()
 
             diag = dd.shotfile('BPD', shot)
             ax[0, 1].plot(diag('Prad').time, diag('Prad').data/1e6, color=_col, lw=3,
@@ -236,10 +244,18 @@ while loop:
 
             ax[2, 1].plot(Gas.signal['F01']['t'],
                           Gas.signal['F01']['data']/1e21, color=_col, lw=3)
-            ax[2, 1].set_xlabel(r't [s]')
             ax[2, 1].set_ylabel(r'F01 [10$^{21}$m$^{-2}$s$^{-1}$]')
+            ax[2, 1].axes.get_xaxis().set_visible(False)
             diag.close
             ax[2, 1].set_xlim([0, 4.5])
+            diag = dd.shotfile('MAC', shot)
+            ax[3, 1].plot(diag('Tdiv').time, diag('Tdiv').data, color=_col, lw=3)
+            ax[3, 1].set_ylabel(r'T$_{div}$')
+            ax[3, 1].set_xlim([0, 4.5])
+            ax[3, 1].set_ylim([-10, 30])
+            diag.close()
+        ax[3, 0].set_xlabel(r't [s]')
+        ax[3, 1].set_xlabel(r't [s]')
         ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
         mpl.pylab.savefig('../pdfbox/GeneralIpScanConstantq95.pdf',
                           bbox_to_inches='tight')
@@ -251,7 +267,7 @@ while loop:
         colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')        
 
         fig, ax = mpl.pylab.subplots(figsize=(17, 15),
-                                     nrows=3, ncols=2, sharex=True)
+                                     nrows=4, ncols=2, sharex=True)
         fig.subplots_adjust(hspace=0.05, top=0.96, bottom=0.1)
         for shot, _col, _idx in zip(shotList,
                                     colorLS, range(len(shotList))):
@@ -270,11 +286,18 @@ while loop:
             ax[1, 0].set_ylim([0, 10])
 
             ax[2, 0].plot(diag('H-5').time, diag('H-5').data/1e19, color=_col, lw=3)
-            ax[2, 0].set_xlabel(r't [s]')
+            ax[2, 0].axes.get_xaxis().set_visible(False)
             ax[2, 0].set_ylabel(r'$\overline{n}_e$ H-5 [10$^{19}$]')
             diag.close
             ax[2, 0].set_xlim([0, 4.5])
             ax[2, 0].set_ylim([0, 6])
+
+            diag = dd.shotfile('TOT', shot)
+            ax[3, 0].plot(diag('P_TOT').time, diag('P_TOT').data/1e6, color=_col, lw=3)
+            ax[3, 0].set_ylabel('P$_{tot}$ [MW]')
+            ax[3, 0].set_xlim([0, 4.5])
+            ax[3, 0].set_ylim([0, 3])
+            diag.close()
 
             diag = dd.shotfile('BPD', shot)
             ax[0, 1].plot(diag('Prad').time, diag('Prad').data/1e6, color=_col, lw=3,
@@ -293,10 +316,19 @@ while loop:
 
             ax[2, 1].plot(Gas.signal['F01']['t'],
                           Gas.signal['F01']['data']/1e21, color=_col, lw=3)
-            ax[2, 1].set_xlabel(r't [s]')
+
             ax[2, 1].set_ylabel(r'F01 [10$^{21}$m$^{-2}$s$^{-1}$]')
             diag.close
             ax[2, 1].set_xlim([0, 4.5])
+            ax[2, 1].axes.get_xaxis().set_visible(False)
+            diag = dd.shotfile('MAC', shot)
+            ax[3, 1].plot(diag('Tdiv').time, diag('Tdiv').data, color=_col, lw=3)
+            ax[3, 1].set_ylabel(r'T$_{div}$')
+            ax[3, 1].set_xlim([0, 4.5])
+            ax[3, 1].set_ylim([-10, 30])
+
+        ax[3, 0].set_xlabel(r't [s]')
+        ax[3, 1].set_xlabel(r't [s]')
         ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
         mpl.pylab.savefig('../pdfbox/GeneralIpScanConstantBt.pdf',
                           bbox_to_inches='tight')
@@ -1651,7 +1683,7 @@ while loop:
                 enLabel = neEdge.data[_idx].mean()/1e20
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axD.plot(rho, en/1e19, '--o', ms=15, mec=col, mfc=col,
+                axD.plot(rho, en/1e19, '--o', ms=15, c=col, mec=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                          ' I$_p$ = %2.1f' % ip.mean() + ' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
@@ -1664,7 +1696,8 @@ while loop:
 
         leg = ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
         for handle, text in zip(leg.legendHandles, leg.get_texts()):
-            text.set_color(handle.get_facecolor()[0])
+            text.set_color(handle.get_color())
+            handle.set_visible(False)
         ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
         ax1.set_title(r'I$_p$ scan at constant q$_{95}$')
         ax1.set_ylim([0, 0.6])
@@ -1674,33 +1707,35 @@ while loop:
             axEnL[i].set_xlim([0.98, 1.05])
             axEnL[i].set_ylim([1e-1, 4])
             axEnL[i].set_yscale('log')
-            leg = axEnL[i].legend(loc='best', numpoints=0,
+            leg = axEnL[i].legend(loc='best', numpoints=1,
                                   frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
 
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
             axDivL[i].set_xlim([0.98, 1.05])
             axDivL[i].set_ylim([0, 6])
-            leg = axDivL[i].legend(loc='best', numpoints=0,
+            leg = axDivL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
-
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
             axLamL[i].set_ylim([1e-1, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
-            leg = axLamL[i].legend(loc='best', numpoints=0,
+            leg = axLamL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
             axLamL[i].set_yscale('log')
-            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02)
+            axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
 
         mpl.pylab.savefig('../pdfbox/IpConstantQ95_Profiles_UsDiv.pdf',
                           bbox_to_inches='tight')
@@ -1786,7 +1821,7 @@ while loop:
                 enLabel = neEdge.data[_idx].mean()/1e20
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axD.plot(rho, en/1e19, '--o', ms=15, mec=col, mfc=col,
+                axD.plot(rho, en/1e19, '--o', ms=15, c=col, mec=col,
                         label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
@@ -1799,7 +1834,8 @@ while loop:
 
         leg = ax1.legend(loc='best', numpoints=1, frameon=False, fontsize=14)
         for handle, text in zip(leg.legendHandles, leg.get_texts()):
-            text.set_color(handle.get_facecolor()[0])
+            text.set_color(handle.get_color())
+            handle.set_visible(False)
         ax1.set_ylabel(r'$\overline{n_e} H-5 [10^{20}$m$^{-2}]$')
         ax1.set_title(r'I$_p$ scan at constant B$_{t}$')
         ax1.set_ylim([0, 0.6])
@@ -1812,8 +1848,8 @@ while loop:
             leg = axEnL[i].legend(loc='best', numpoints=1,
                                   frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
-
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
@@ -1822,18 +1858,19 @@ while loop:
             leg = axDivL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
-
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
             axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-1, 15])
+            axLamL[i].set_ylim([1e-2, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
             leg = axLamL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
             for handle, text in zip(leg.legendHandles, leg.get_texts()):
-                text.set_color(handle.get_facecolor()[0])
+                text.set_color(handle.get_color())
+                handle.set_visible(False)
             axLamL[i].set_yscale('log')
             axLamL[i].xaxis.set_ticks(np.arange(0.98, 1.05, 0.02))
         mpl.pylab.savefig('../pdfbox/IpConstantBt_Profiles_UsDiv.pdf',
