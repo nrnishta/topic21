@@ -139,14 +139,23 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
   \vspace{-1cm}
 \begin{columns}
   \begin{column}{0.65\textwidth}
-    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34277}}
-    \centering{\includegraphics<2-3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34277}}
+    \centering{\includegraphics<1>[height=0.85\textheight]{../../Experiments/AUG/analysis/pdfbox/PuffingLocation}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34277}}
+    \only<3>{
+      \begin{tikzonimage}[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34277}
+        \draw [->, ultra thick, white] (0.2, 0.45) -- (0.3, 0.55);
+        \draw [->, ultra thick, white] (0.62, 0.45) -- (0.72, 0.55);
+      \end{tikzonimage}   
+    }
   \end{column}
   \begin{column}{0.35\textwidth}
     \begin{itemize}
-      \item Similar puff from Lower and Upper divertor valves
+      \item<1-> Similar puff from Lower and Upper divertor valves
         (\alert{we asked for divertor/midplane valves})
-      \item<2-> Edge density profiles from Li-Beam evolution are
+      \item<2-> Discharge with a total amount 6.5 heating power
+        with equivalent behavior also in the lower divertor
+        independently from the puffing location
+      \item<3-> Edge density profiles from Li-Beam evolution are
         pretty similar
       \item<3|alert@3> Similar behavior observed from RIC Antenna 4
         for the available shot
@@ -162,16 +171,25 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \begin{columns}
   \begin{column}{0.65\textwidth}
     \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34278}}
-    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34278}}
-    \centering{\includegraphics<3>[height=.85\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOff}}
+    \centering{\includegraphics<2>[height=.65\textheight]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34278}}
+    \only<3>{
+    \begin{tikzonimage}[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34278}
+      \draw [->, ultra thick, white] (0.2, 0.45) -- (0.3, 0.55);
+      \draw [->, ultra thick, dashed, red] (0.62, 0.45) -- (0.72, 0.55);
+    \end{tikzonimage}}
+  \centering{\includegraphics<4>[height=.85\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOff}}
   \end{column}
   \begin{column}{0.35\textwidth}
     \begin{itemize}
-      \item<1-> Same fueling but with cryo-pumps. Clearly different in
-        terms of Edge density and Divertor pressure
-      \item<2-> Also with this amount of fueling no instance of SOL
+    \item<1-> Same fueling but with cryo-pumps
+      \item<1-> H-5 density is different and remain constant, both
+        divertor and midplane pressure are reduced (to 1/3
+        approximately) no sign of detachment
+      \item<2-> Different ELMy regimes reached with reduced size and
+        increased frequency without the crypumps
+      \item<3-> Also with this amount of fueling no instance of SOL
         saturation observed as confirmed by Li-Beam and by RIC (Antenna 4)
-      \item<3> Comparison of fluctuations during the plunge at higher
+      \item<4> Comparison of fluctuations during the plunge at higher
         density (\alert{ELM included}) reveal differences in
         fluctuations. \alert{ELM resolved measurement to be properly done}  
         
@@ -186,20 +204,25 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \begin{columns}
   \begin{column}{0.65\textwidth}
     \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34281}}
-    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34281}}
-    %\centering{\includegraphics<3>[height=0.9\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOffMatch}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34281}}
+    \centering{\includegraphics<3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34281}}
+    4\centering{\includegraphics<4>[height=0.9\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOffMatch}}
   \end{column}
   \begin{column}{0.35\textwidth}
     \begin{itemize}
       \item<1-> To match similar edge density and divertor pressure
         and to reach the same level of detachment we increase the
         fueling by almost a factor of 3, increasing also the rate. In
-        addition to that we also increase substantially the N puffing
-      \item<2-> Without cryopumps evidence of stronger SOL profile
+        addition to that we also increase substantially the N
+        puffing. \alert{Degraded H-Mode reached earlier in density
+          without the cryopumps}
+      \item<2-> Similar ELMy behavior obtained during the density ramp  
+      \item<3-> Without cryopumps evidence of stronger SOL profile
         flattening from Li-Be. \alert{To be compared with appropriate
           variation of $\Lambda_{div}$}
-      % \item<3> Clear difference in the shape of I$_s$ structure and in
-      %   PDF although it is not yet \alert{ELM resolved}
+       \item<4> The shape of the PDF is rather similar with closer
+         values of autocorrelation time at similar values of divertor
+         collisionality. \alert{Not yet ELM resolved}
     \end{itemize}
   \end{column}
 \end{columns}
@@ -207,6 +230,8 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 
 \begin{frame}{What is missing}
   \Fontvi
+  The analysis is still in progress and we are not ready yet to draw
+  final conclusions. Among the future on going analysis we can list:
   \begin{enumerate}
     \item RIC profiles with possible poloidal variation among the
       antennas in particular in H-Mode. \textcolor{red}{To be done}
@@ -216,33 +241,14 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
     \item Structures size and velocities in L-Mode
       \textcolor{orange}{In progress}
     \item Radiation front movement \textcolor{orange}{In progress}
-    \item Can we have from stark-broadening the movement of density
-      front towards the X-Point \textcolor{red}{To be done, maybe not
-        feasible}
-    \item Neutrals analysis from D$_{\alpha}$ camera
+    \item Evolution of divertor profiles from Spectroscopy
+      \textcolor{orange}{In progres}
+    \item Neutrals analysis from D$_{\alpha}$ camera combined with
+      KN1D code for evolution of neutrals
       \textcolor{orange}{In progress}
     \item Fast-camera \textcolor{red}{To be done}
-    \item Other?
   \end{enumerate}
 \end{frame}
 
-\begin{frame}{2018}
-  \textbf{Just a brainstorming exercise so far}
-  \begin{itemize}
-    \item X-point probe. Realistically there should be man-power for
-      proper operation and we need information below the midplane
-      before entering the divertor region
-    \item NPH evaluation of Ti
-    \item Parallel and perpendicular momentum variation at high
-      density. We already know there is a change in the perpendicular
-      flow to be complemented with parallel flow as well
-    \item Divertor modification? I guess SP movement is not feasible
-      in AUG but keeping the SP at the same position and moving the
-      X-point (vertically/radially) can induce some modification?
-    \item Increasing the density through pellet is feasible?
-    \item Isotope effect? In case campaign is foreseen we could change
-      parallel flow and recycling (?)
-  \end{itemize}
-\end{frame}
 \end{document}
 
