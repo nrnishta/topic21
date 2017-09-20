@@ -239,3 +239,26 @@
 
      
 	
+*** COMPASS meeting 19.09.17
+**** Participants:
+     N. Vianello, A. Hakola, M. Bernert, D. Carralero, J. Adamek,
+**** Presentation
+     - Presentation from J. Adamek on the COMPASS proposal
+       - Bt 1.38, Ip=160 kA Ohmic or NBI-heated L-Modes with constant gas puff
+**** Questions
+     - Measurements of the parallel flow is feasible? *Yes*
+     - Connection length in the private flux region?
+     - How many plunges for shot? *1*
+     - Density scan or density ramp? *density scan in between shots*
+     
+**** Notes
+     We agree on the following things:
+     - The probe head will be arranged with Jsat for measurement of parallel flow and changes
+       in between the shots to ensure both Fast Te and filaments velocity
+     - We have proposed to focus on L-Mode part only. In case of contingency shots are available we proposed
+       to make a different point in L_{parallel}. Given the short leg length in COMPASS it would be better
+       to increase the parallel connection lenght means reducint Bt at same current level
+     - Thomson profile available at 90 Hz
+     - Li-Be every 4 microsecond *Contact Hungarian people*
+     - Dalpha available HFS/LFS but not at the diverto
+     - No Infrared available
