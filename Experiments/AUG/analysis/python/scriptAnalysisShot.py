@@ -2356,11 +2356,12 @@ while loop:
             pufL):
             diag = dd.shotfile('MAC', shot)
             Gas = neutrals.Neutrals(shot)
-            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k',
-                          label='Cryo ' + lab)
+            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k')
             ax[_idx].set_ylabel(r'D$_2$ [10$^{21}$s$^{-1}$]')
+            ax[_idx].text(1, 16,'Cryo ' + lab, fontsize=16 )
             T = ax[_idx].twinx()
-            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3, color='red')
+            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3,
+                   color='red', rasterized=True)
             T.set_ylabel(r'Ipolsola [kA]', color='red')
             T.set_yticks([0, 10, 20, 30])
             T.set_ylim([-10, 30])
@@ -2384,11 +2385,12 @@ while loop:
             pufL):
             diag = dd.shotfile('MAC', shot)
             Gas = neutrals.Neutrals(shot)
-            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k',
-                          label='Cryo ' + lab)
+            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k')
             ax[_idx].set_ylabel(r'D$_2$ [10$^{21}$s$^{-1}$]')
+            ax[_idx].text(1, 16,'Cryo ' + lab, fontsize=16 )
             T = ax[_idx].twinx()
-            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3, color='red')
+            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3, color='red', 
+                   rasterized=True)
             T.set_ylabel(r'Ipolsola [kA]', color='red')
             T.set_yticks([0, 10, 20, 30])
             T.set_ylim([-10, 30])
