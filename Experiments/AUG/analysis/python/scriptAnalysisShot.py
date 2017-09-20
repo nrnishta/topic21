@@ -1688,9 +1688,10 @@ while loop:
                          ' I$_p$ = %2.1f' % ip.mean() + ' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
                              fmt='none', ecolor=col)
-                rho, Lambda = Target.computeLambda(
+                rhoL, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                axL.plot(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],
+                         '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                          ' I$_p$ = %2.1f' % ip.mean() + ' MA')
 
@@ -1704,7 +1705,7 @@ while loop:
         axEnL[0].set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
         for i in range(3):
             axEnL[i].axes.get_xaxis().set_visible(False)
-            axEnL[i].set_xlim([0.98, 1.05])
+            axEnL[i].set_xlim([0.98, 1.04])
             axEnL[i].set_ylim([1e-1, 4])
             axEnL[i].set_yscale('log')
             leg = axEnL[i].legend(loc='best', numpoints=1,
@@ -1716,7 +1717,7 @@ while loop:
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
-            axDivL[i].set_xlim([0.98, 1.05])
+            axDivL[i].set_xlim([0.98, 1.04])
             axDivL[i].set_ylim([0, 6])
             leg = axDivL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
@@ -1726,8 +1727,8 @@ while loop:
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
-            axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-1, 15])
+            axLamL[i].set_xlim([0.98, 1.04])
+            axLamL[i].set_ylim([1e-2, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
             leg = axLamL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
@@ -1826,9 +1827,10 @@ while loop:
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
                              fmt='none', ecolor=col)
-                rho, Lambda = Target.computeLambda(
+                rhoL, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                axL.plot(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],
+                         '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
 
