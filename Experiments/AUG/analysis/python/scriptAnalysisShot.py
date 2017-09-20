@@ -61,6 +61,8 @@ def print_menu():
     print "31. Fluctuations and PDF Cryo On/OFF"
     print "32. Fluctuations and PDF Match Cryo ON/OFF"
     print "33. Equilibria with arrow and location of Gas Puffing"
+    print "34. ELMs and puffing same fueling with/without cryopumps"
+    print "35. ELMS and puffing different fueling with/without cryompumps"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -2342,6 +2344,63 @@ while loop:
         ax.text(2.4, 1.35, str(shotList[0]), color=colorList[0], fontsize=16)
         ax.text(2.4, 1.2, str(shotList[1]), color=colorList[1], fontsize=16)
         mpl.pylab.savefig('../pdfbox/PuffingLocation.pdf', bbox_to_inches='tight')
+
+    elif selection == 34:
+        shotList = (34276, 34278)
+        pufL = ('Off', 'On')
+        colorList = ('#C90015', '#7B0Ce7')
+        fig, ax = mpl.pylab.subplots(figsize=(10, 8), nrows=2,
+                                     ncols=1, sharex=True)
+        for shot, col, _idx, lab in zip(
+            shotList, colorList, range(len(shotList)),
+            pufL):
+            diag = dd.shotfile('MAC', shot)
+            Gas = neutrals.Neutrals(shot)
+            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k',
+                          label='Cryo ' + lab)
+            ax[_idx].set_ylabel(r'D$_2$ [10$^{21}$s$^{-1}$]')
+            T = ax[_idx].twinx()
+            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3, color='red')
+            T.set_ylabel(r'Ipolsola [kA]', color='red')
+            T.set_yticks([0, 10, 20, 30])
+            T.set_ylim([-10, 30])
+            for t in T.yaxis.get_ticklabels(): t.set_color('red')
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[1].set_xlim([0, 7])
+        ax[1].set_xlabel(r't[s]')
+        mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
+                          '_%5i' %shotList[1]+'.pdf', bbox_to_inches='tight')
+
+    elif selection == 35:
+        shotList = (34276, 34281)
+        pufL = ('Off', 'On')
+        colorList = ('#C90015', '#7B0Ce7')
+        fig, ax = mpl.pylab.subplots(figsize=(10, 10), nrows=2,
+                                     ncols=1)
+        #fig.subplots_adjust(left=0.17, right=0.8)
+        for shot, col, _idx, lab in zip(
+            shotList,
+            colorList, range(len(shotList)),
+            pufL):
+            diag = dd.shotfile('MAC', shot)
+            Gas = neutrals.Neutrals(shot)
+            ax[_idx].plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21, 'k',
+                          label='Cryo ' + lab)
+            ax[_idx].set_ylabel(r'D$_2$ [10$^{21}$s$^{-1}$]')
+            T = ax[_idx].twinx()
+            T.plot(diag('Ipolsola').time, -diag('Ipolsola').data/1e3, color='red')
+            T.set_ylabel(r'Ipolsola [kA]', color='red')
+            T.set_yticks([0, 10, 20, 30])
+            T.set_ylim([-10, 30])
+            for t in T.yaxis.get_ticklabels(): t.set_color('red')
+
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[1].set_xlim([0, 7])
+        ax[0].set_xlim([0, 7])
+        ax[1].set_xlabel(r't[s]')
+        mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
+                          '_%5i' %shotList[1]+'.pdf', bbox_to_inches='tight')
+
 
     elif selection == 99:
         loop = False
