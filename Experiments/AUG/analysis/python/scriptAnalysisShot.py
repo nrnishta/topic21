@@ -60,6 +60,7 @@ def print_menu():
     print "30. Fluctuations and PDF during Ip scan constant Bt"
     print "31. Fluctuations and PDF Cryo On/OFF"
     print "32. Fluctuations and PDF Match Cryo ON/OFF"
+    print "33. Equilibria with arrow and location of Gas Puffing"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -2313,6 +2314,34 @@ while loop:
         mpl.pylab.savefig('../pdfbox/PdfStructureHmodeCryoOnOffMatch.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 33:
+        shotList = (34276, 34277)
+        pufL = ('Low Div', 'Up Mid')
+        colorList = ('#C90015', '#7B0Ce7')        
+        import map_equ
+        import equilibrium
+        rg, zg = map_equ.get_gc()
+        fig, ax = mpl.pylab.subplots(figsize=(5, 7), nrows=1, ncols=1)
+        fig.subplots_adjust(left=0.2)
+        for key in rg.iterkeys():
+            ax.plot(rg[key], zg[key], '-k')
+        for shot, col in zip(shotList, colorList):
+            Eq = equilibrium.equilibrium(device='AUG', time=3, shot=shot)
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       np.linspace(0, 0.95, 10), colors=col, linestyles='-')
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       np.linspace(1.01, 1.05, 5), colors=col, linestyles='--')
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       [1], colors=col, linestyles='-', linewidths=3)
+
+        ax.set_xlabel('R(m)')
+        ax.set_ylabel('Z(m)')
+        ax.set_aspect('equal')
+        ax.arrow(1.25, 1.4, 0, -0.3, lw=4, color=colorList[1])
+        ax.arrow(2, -1.4, 0, 0.3, lw=4, color=colorList[0])
+        ax.text(2.4, 1.35, str(shotList[0]), color=colorList[0], fontsize=16)
+        ax.text(2.4, 1.2, str(shotList[1]), color=colorList[1], fontsize=16)
+        mpl.pylab.savefig('../pdfbox/PuffingLocation.pdf', bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
