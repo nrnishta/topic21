@@ -60,6 +60,7 @@ def print_menu():
     print "30. Fluctuations and PDF during Ip scan constant Bt"
     print "31. Fluctuations and PDF Cryo On/OFF"
     print "32. Fluctuations and PDF Match Cryo ON/OFF"
+    print "33. Equilibria with arrow and location of Gas Puffing"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1688,9 +1689,10 @@ while loop:
                          ' I$_p$ = %2.1f' % ip.mean() + ' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
                              fmt='none', ecolor=col)
-                rho, Lambda = Target.computeLambda(
+                rhoL, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                axL.plot(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],
+                         '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                          ' I$_p$ = %2.1f' % ip.mean() + ' MA')
 
@@ -1704,7 +1706,7 @@ while loop:
         axEnL[0].set_ylabel(r'n$_e$/n$_e(\rho_p = 1)$')
         for i in range(3):
             axEnL[i].axes.get_xaxis().set_visible(False)
-            axEnL[i].set_xlim([0.98, 1.05])
+            axEnL[i].set_xlim([0.98, 1.04])
             axEnL[i].set_ylim([1e-1, 4])
             axEnL[i].set_yscale('log')
             leg = axEnL[i].legend(loc='best', numpoints=1,
@@ -1716,7 +1718,7 @@ while loop:
         axDivL[0].set_ylabel(r'n$_e[10^{19}$m$^{-3}]$')
         for i in range(3):
             axDivL[i].axes.get_xaxis().set_visible(False)
-            axDivL[i].set_xlim([0.98, 1.05])
+            axDivL[i].set_xlim([0.98, 1.04])
             axDivL[i].set_ylim([0, 6])
             leg = axDivL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
@@ -1726,8 +1728,8 @@ while loop:
         axLamL[0].set_ylabel(r'$\Lambda_{div}$')
         for i in range(3):
             axLamL[i].set_xlabel(r'$\rho_p$')
-            axLamL[i].set_xlim([0.98, 1.05])
-            axLamL[i].set_ylim([1e-1, 15])
+            axLamL[i].set_xlim([0.98, 1.04])
+            axLamL[i].set_ylim([1e-2, 15])
             axLamL[i].axhline(1, ls='--', color='grey', lw=3)
             leg = axLamL[i].legend(loc='best', numpoints=1,
                                    frameon=False, fontsize=14)
@@ -1826,9 +1828,10 @@ while loop:
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
                 axD.errorbar(rho, en/1e19, yerr=err/1e19,
                              fmt='none', ecolor=col)
-                rho, Lambda = Target.computeLambda(
+                rhoL, Lambda = Target.computeLambda(
                     trange=[t-0.015, t+0.015], Plot=False)
-                axL.plot(rho, Lambda, '-', lw=3, color=col,
+                axL.plot(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],
+                         '-', lw=3, color=col,
                          label=r'$\overline{n_e}$ = %3.2f' % enLabel +
                           ' I$_p$ = %2.1f' % ip.mean() +' MA')
 
@@ -2311,6 +2314,34 @@ while loop:
         mpl.pylab.savefig('../pdfbox/PdfStructureHmodeCryoOnOffMatch.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 33:
+        shotList = (34276, 34277)
+        pufL = ('Low Div', 'Up Mid')
+        colorList = ('#C90015', '#7B0Ce7')        
+        import map_equ
+        import equilibrium
+        rg, zg = map_equ.get_gc()
+        fig, ax = mpl.pylab.subplots(figsize=(5, 7), nrows=1, ncols=1)
+        fig.subplots_adjust(left=0.2)
+        for key in rg.iterkeys():
+            ax.plot(rg[key], zg[key], '-k')
+        for shot, col in zip(shotList, colorList):
+            Eq = equilibrium.equilibrium(device='AUG', time=3, shot=shot)
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       np.linspace(0, 0.95, 10), colors=col, linestyles='-')
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       np.linspace(1.01, 1.05, 5), colors=col, linestyles='--')
+            ax.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                       [1], colors=col, linestyles='-', linewidths=3)
+
+        ax.set_xlabel('R(m)')
+        ax.set_ylabel('Z(m)')
+        ax.set_aspect('equal')
+        ax.arrow(1.25, 1.4, 0, -0.3, lw=4, color=colorList[1])
+        ax.arrow(2, -1.4, 0, 0.3, lw=4, color=colorList[0])
+        ax.text(2.4, 1.35, str(shotList[0]), color=colorList[0], fontsize=16)
+        ax.text(2.4, 1.2, str(shotList[1]), color=colorList[1], fontsize=16)
+        mpl.pylab.savefig('../pdfbox/PuffingLocation.pdf', bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
