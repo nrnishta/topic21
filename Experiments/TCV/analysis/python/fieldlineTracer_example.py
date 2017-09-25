@@ -39,7 +39,7 @@ Tracer = get_fieldline_tracer(
     interp='quintic') 
 # now build a list of field lines as a 
 # To trace a field line, call the trace method
-my_fieldlines = [Tracer.trace(r,0.0,mxstep=10000,ds=1e-2,tor_lim=20.0*np.pi) for r in Rarray]
+my_fieldlines = [Tracer.trace(r,0.0,mxstep=1000000,ds=1e-2,tor_lim=20.0*np.pi) for r in Rarray]
 # Here the first two arguments are the R and Z starting points 
 # mxstep is the maximum number of steps to take
 # ds is the distance between each step along the field line
