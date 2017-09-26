@@ -36,7 +36,7 @@ else:
 
 Tracer = get_fieldline_tracer(
     'RK4', machine='TCV', shot=57418, time=1, remote=True,
-    interp='quintic') 
+    interp='quintic', rev_bt=True) 
 # now build a list of field lines as a 
 # To trace a field line, call the trace method
 my_fieldlines = [Tracer.trace(r,0.0,mxstep=1000000,ds=1e-2,tor_lim=20.0*np.pi) for r in Rarray]

@@ -1,0 +1,238 @@
+\documentclass[10pt, compress]{beamer}
+\usetheme[conference=Topic 21,venue=Remote, date=15/09/2017, titleprogressbar, logo=RFX-logo]{Eurof}
+\usepackage{listings,amsmath,multimedia, amssymb}
+\usepackage{../beamerclass/tangocolors}
+\usepackage{../beamerclass/rfxcolor}
+% for drawing
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,backgrounds}
+\usepackage{../beamerclass/onimage}
+\usepackage[export]{adjustbox}
+\usepackage{bm}
+% for font
+\usepackage[absolute,overlay]{textpos}
+  \setlength{\TPHorizModule}{1mm}
+  \setlength{\TPVertModule}{1mm}
+
+\usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
+uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
+\bibliography{biblio}
+\renewcommand*{\bibfont}{\footnotesize}
+\renewcommand*{\citesetup}{\footnotesize}
+\usepackage[export]{adjustbox}
+\makeatother
+\mode<presentation>
+\makeatletter
+% add a macro that saves its argument
+\newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
+\newbox\footlineextrabox
+% for reducing font on a single slide
+\newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
+\title{{\small Topic 21: AUG experiment analsysis meeting }}
+\date{15 September 2017}
+\author[N. Vianello]{N. Vianello and V. Naulin for the
+  Topic 21 Scientific Team}
+\begin{document}
+\tikzstyle{every picture}+=[remember picture]
+\maketitle
+\begin{frame}{Summary of the campaigns}
+  \begin{itemize}[<+-|alert@+>]
+  \item L-Mode experiment, CW 17.
+    \begin{enumerate}
+      \item<1-> Performed similar density ramps in an I$_p$ scan at constant q$_{95}$
+      \item<1-> Performed similar density ramps in an I$_p$ scan at constant B$_t$ 
+    \end{enumerate}    
+    \item H-Mode experiment, CW 21. 
+      \begin{enumerate}
+    \item<2> Compare divertor/midplane fueling effect on filamentary
+      transport and profiles without cryo-pumps
+    \item<2> Compare profiles with the same fueling with/without cryopums
+    \item<2> Determine an H-Mode with the cryopumps matching similar
+      divertor pressure and SOL profiles
+    \end{enumerate}
+  \end{itemize}    
+\end{frame}
+
+\begin{frame}{L-Mode analysis: I$_p$ scan at constant q$_{95}$}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[height=.8\textheight]{../../Experiments/AUG/analysis/pdfbox/EquilibraLparallelConstantQ95}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}}
+    \centering{\includegraphics<3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/IpConstantQ95_Profiles_UsDiv}}
+    \centering{\includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PdfStructureCurrentScan_ConstantQ95}}
+
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1|only@1> We matched correctly the shape and the L$_{\parallel}$
+        here shown from outer divertor plate up to X-point 
+      \item<2|only@2> The scan was performed with similar puffing rate (0.8-1
+        MA) whereas we reduced it at lower current to avoid early disruption
+      \item<2|only@2> We have comparable edge density and divertor neutral
+        pressure 
+      \item<3|only@3> At comparable edge density Upstream profiles are
+        different with the tendency to develop shoulder easier at
+        lower current
+      \item<3|only@3> Still need to provide detail evolution of edge
+        profiles as a function
+        of $\Lambda_{div}$ which are different at different current
+        although same L$_{\parallel}$
+      \item<4|only@4> No sensible difference of PDFs of J$_{sat}$ at
+        different current even though obtained at different values of $\Lambda_{div}$. 
+      \item<4|only@4> Autocorrelation time $\tau_{ac}$ increases with
+        $\Lambda_{div}$ without sensible difference among the current
+      \end{itemize}
+    \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{L-Mode analysis: I$_p$ scan at constant B$_t$}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[height=.8\textheight]{../../Experiments/AUG/analysis/pdfbox/EquilibraLparallelConstantBt}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}}
+    \centering{\includegraphics<3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/IpConstantBt_Profiles_UsDiv}}
+    \centering{\includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PdfStructureCurrentScan_ConstantBt}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1|only@1> We matched correctly the shape the parallel
+        connection length L$_{\parallel}$ is modified consistently
+      \item<2|only@2> The scan was performed with similar puffing rate (0.8-1
+        MA) whereas we reduced it at lower current to avoid early disruption
+      \item<2|only@2> We have comparable edge density and divertor neutral
+        pressure even though pressure increase earlier at higher current
+      \item<3|only@3> At comparable edge density Upstream profiles are
+        different with the tendency to develop shoulder easier at
+        lower current
+      \item<3|only@3> Still need to provide detail evolution of edge
+        profiles as a function
+        of $\Lambda_{div}$ which are different at different current
+        although same L$_{\parallel}$
+      \item<4|only@4> No sensible difference of PDFs of J$_{sat}$ at
+        different current even though obtained at different values of $\Lambda_{div}$. 
+      \item<4|only@4> Remarkable difference in the shape of typical
+        structure,  even though $\tau_{ac}$ follow usual trend apart
+        from very last points. \alert{To be double-checked}
+      \end{itemize}
+    \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{H-Mode investigation: puffing location}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34277}}
+    \centering{\includegraphics<2-3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34277}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item Similar puff from Lower and Upper divertor valves
+        (\alert{we asked for divertor/midplane valves})
+      \item<2-> Edge density profiles from Li-Beam evolution are
+        pretty similar
+      \item<3|alert@3> Similar behavior observed from RIC Antenna 4
+        for the available shot
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{Compare Similar fueling with/without cryopumps}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34278}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34278}}
+    \centering{\includegraphics<3>[height=.85\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOff}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1-> Same fueling but with cryo-pumps. Clearly different in
+        terms of Edge density and Divertor pressure
+      \item<2-> Also with this amount of fueling no instance of SOL
+        saturation observed as confirmed by Li-Beam and by RIC (Antenna 4)
+      \item<3> Comparison of fluctuations during the plunge at higher
+        density (\alert{ELM included}) reveal differences in
+        fluctuations. \alert{ELM resolved measurement to be properly done}  
+        
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Matching scenarios with cryo-pumps}
+\Fontvi
+  \vspace{-1cm}
+\begin{columns}
+  \begin{column}{0.65\textwidth}
+    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34281}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34281}}
+    %\centering{\includegraphics<3>[height=0.9\textheight]{../../Experiments/AUG/analysis/pdfbox/PdfStructureHmodeCryoOnOffMatch}}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+    \begin{itemize}
+      \item<1-> To match similar edge density and divertor pressure
+        and to reach the same level of detachment we increase the
+        fueling by almost a factor of 3, increasing also the rate. In
+        addition to that we also increase substantially the N puffing
+      \item<2-> Without cryopumps evidence of stronger SOL profile
+        flattening from Li-Be. \alert{To be compared with appropriate
+          variation of $\Lambda_{div}$}
+      % \item<3> Clear difference in the shape of I$_s$ structure and in
+      %   PDF although it is not yet \alert{ELM resolved}
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{What is missing}
+  \Fontvi
+  \begin{enumerate}
+    \item RIC profiles with possible poloidal variation among the
+      antennas in particular in H-Mode. \textcolor{red}{To be done}
+    \item Li-Be ELM resolved profile variation with $\Lambda_{div}$
+      \textcolor{red}{To be done}
+    \item Li-Be fluctuations \textcolor{red}{To be done}
+    \item Structures size and velocities in L-Mode
+      \textcolor{orange}{In progress}
+    \item Radiation front movement \textcolor{orange}{In progress}
+    \item Can we have from stark-broadening the movement of density
+      front towards the X-Point \textcolor{red}{To be done, maybe not
+        feasible}
+    \item Neutrals analysis from D$_{\alpha}$ camera
+      \textcolor{orange}{In progress}
+    \item Fast-camera \textcolor{red}{To be done}
+    \item Other?
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{2018}
+  \textbf{Just a brainstorming exercise so far}
+  \begin{itemize}
+    \item X-point probe. Realistically there should be man-power for
+      proper operation and we need information below the midplane
+      before entering the divertor region
+    \item NPH evaluation of Ti
+    \item Parallel and perpendicular momentum variation at high
+      density. We already know there is a change in the perpendicular
+      flow to be complemented with parallel flow as well
+    \item Divertor modification? I guess SP movement is not feasible
+      in AUG but keeping the SP at the same position and moving the
+      X-point (vertically/radially) can induce some modification?
+    \item Increasing the density through pellet is feasible?
+    \item Isotope effect? In case campaign is foreseen we could change
+      parallel flow and recycling (?)
+  \end{itemize}
+\end{frame}
+\end{document}
+

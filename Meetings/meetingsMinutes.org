@@ -204,3 +204,61 @@
     - [ ] Search of possible combination of H-Mode part together with Topic 24 which will be performed in the
           same week.
     - [ ] Circulate new program and new ideas by the end of next week
+*** AUG-Data analysis meeting 15.09.2017
+**** Agenda
+     1. Introduction and Data evaluation (N. Vianello)
+     2. Neutrals data analysis from camera (M. Agostini)
+     3. Evaluation of wall mounted probes (S. Costea)
+     4. Modelling of fast electrons associated with ELM filament eruption in AUG (K. McClements)
+     5. Discussion and determination of task-lists
+     6. Brainstorming on 2018 AUG campaign
+**** Connection details
+     SUMMARY for Channel 2 / 15Sep2017: AUG topic 21 Meeting: 
+     Presentation: https://tv.euro-fusion.org/channel2/home 
+     Presentation Password: topic21 
+     Video-conference nr. (H.323): 004910097920062 
+     ISDN: +49-30-20097920062 (ConferenceID = 97920062) 
+**** Participants
+     N. Vianello, M. Agostini, A. Hakkola, C.Tsui, J. Vicente, K. McClements, J.J.Rasmussen, C. Tsui,
+     M. Spolaore, S. Costea,  F. Militello, V. Naulin
+**** Minutes
+     - Presentations
+       1. N. Vianello: Presentation on the status of analysis. F. Militello asked clarification on the
+	  differences in H-mod with/without cryopumps and pointed out the similarity with JET results
+	  in corner configuration.
+       2. M. Agostini: Presentation on Dalpha and KN1D. Suggestion to use divertor information on density and
+	  temperatures (Probes/stark broadening other??)
+       3. S. Costea: Presentation from wall mounted probe. Change of PDF shape at different Lambda. Mean and std
+	  as a function of Lambda. Argued that the signal are too noisy check if they are in the limiter shadow.
+       4. K. McClements: Possible hints on fast electrons coming from langmuir probes characteristics?
+     - Brainstorming for 2018 campaign postponed. The SCs again ask for possible ideas on 2018 AUG campaigns. A. Hakola
+       suggests that 2018 experimental time will not be sensibly shortened next year for MST1 as well as manpower for which
+       a modest reduction is foreseen
+     - N. Vianello restate the necessity to distribute the ideas for analysis and interpretation using all the possible
+       communication channels
+
+     
+	
+*** COMPASS meeting 19.09.17
+**** Participants:
+     N. Vianello, A. Hakola, M. Bernert, D. Carralero, J. Adamek,
+**** Presentation
+     - Presentation from J. Adamek on the COMPASS proposal
+       - Bt 1.38, Ip=160 kA Ohmic or NBI-heated L-Modes with constant gas puff
+**** Questions
+     - Measurements of the parallel flow is feasible? *Yes*
+     - Connection length in the private flux region?
+     - How many plunges for shot? *1*
+     - Density scan or density ramp? *density scan in between shots*
+     
+**** Notes
+     We agree on the following things:
+     - The probe head will be arranged with Jsat for measurement of parallel flow and changes
+       in between the shots to ensure both Fast Te and filaments velocity
+     - We have proposed to focus on L-Mode part only. In case of contingency shots are available we proposed
+       to make a different point in L_{parallel}. Given the short leg length in COMPASS it would be better
+       to increase the parallel connection lenght means reducint Bt at same current level
+     - Thomson profile available at 90 Hz
+     - Li-Be every 4 microsecond *Contact Hungarian people*
+     - Dalpha available HFS/LFS but not at the diverto
+     - No Infrared available
