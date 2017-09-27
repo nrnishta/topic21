@@ -232,11 +232,12 @@ class Tree(object):
                                (timeEq <= time.max()))[0]
             S = interpolate.UnivariateSpline(
                 time, data, s=0)(timeEq[_idx])
+            _time = timeEq[_idx]
             # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t)
+            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
                                      for s, t in zip(S, timeEq[_idx])])
 
-            Srho = interpolatoe.interp1d(
+            Srho = interpolate.interp1d(
                 _time, _rhoTmp, kind='linear',
                 fill_value='extrapolate')
             self.RhoT1 = Srho(time)
@@ -263,7 +264,7 @@ class Tree(object):
             S = interpolate.UnivariateSpline(
                 time, data, s=0)(timeEq[_idx])
             # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t)
+            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
                                      for s, t in zip(S, timeEq[_idx])])
 
             Srho = interpolate.interp1d(
@@ -323,8 +324,10 @@ class Tree(object):
                                (timeEq <= time.max()))[0]
             S = interpolate.UnivariateSpline(
                 time, data, s=0)(timeEq[_idx])
+            _time = timeEq[_idx]
             # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t)
+            _rhoTmp = numpy.asarray([self.Eq.rz2rmid(s, 0, t) -
+                                     self.Eq.getRmidOutSpline()(t)
                                      for s, t in zip(S, timeEq[_idx])])
 
             Srho = interpolate.interp1d(
@@ -419,11 +422,14 @@ class Tree(object):
                                  self.teU1, self.tU1))
             dummy.setUnits('eV')
 
-            dummy = self.saveTree.getNode(r'\FP_1PL_TEERR')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.teU1Err, self.tU1))
-            dummy.setUnits('eV')
+            try:
+                dummy = self.saveTree.getNode(r'\FP_1PL_TEERR')
+                dummy.putData(
+                    mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
+                                     self.teU1Err, self.tU1))
+                dummy.setUnits('eV')
+            except:
+                pass
             # jsat
             dummy = self.saveTree.getNode(r'\FP_1PL_JS')
             dummy.putData(
@@ -492,12 +498,15 @@ class Tree(object):
                 mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
                                  self.teU2, self.tU2))
             dummy.setUnits('eV')
+            try:
+                dummy = self.saveTree.getNode(r'\FP_2PL_TEERR')
+                dummy.putData(
+                    mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
+                                     self.teU2Err, self.tU2))
+                dummy.setUnits('eV')
+            except:
+                pass
 
-            dummy = self.saveTree.getNode(r'\FP_2PL_TEERR')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.teU2Err, self.tU2))
-            dummy.setUnits('eV')
             # jsat
             dummy = self.saveTree.getNode(r'\FP_2PL_JS')
             dummy.putData(

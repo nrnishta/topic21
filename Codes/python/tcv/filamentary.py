@@ -1,5 +1,5 @@
 """
-Global class for the analysis of the shot for TCV15.2.2-3
+Global class for the analysis of the shot for Topic 21
 experiment based on the structure, lambda and profile analysis
 """
 from __future__ import print_function
@@ -84,10 +84,11 @@ class Turbo(object):
         self._tree = mds.Tree('tcv_shot', shot)
         # average density node
         self._enavgNode = self._tree.getNode(r'\results::fir:n_average')
-        # now define the folders for the other analysis
-        self._doubleDir = '/home/tsui/idl/library/data/double/dpm' + \
-                          str(int(self.shot)) + '_'
-        self._connection = '/home/vianello/work/tcv15.2.2.3/data/connection/'
+        # now define the tree where the probe data are saved
+        self._filament = mds.Tree('tcv_topic21', shot)
+#        self._doubleDir = '/home/tsui/idl/library/data/double/dpm' + \
+#                          str(int(self.shot)) + '_'
+#        self._connection = '/home/vianello/work/tcv15.2.2.3/data/connection/'
         # this can be done one single time and then accordingly
         # to analysis region we choose the appropriate timing
         try:
@@ -95,8 +96,7 @@ class Turbo(object):
         except:
             print('Langmuir probe data not found')
             self.Target = None
-            # load the database
-        self.database = pd.read_csv('../data/DatabaseComplete.csv')
+
 
     def blob(self, plunge=1, rrsep=None, rho=None,
              gas='D2', Z=1, iwin=125, thr=3, normalize=True,
@@ -295,13 +295,15 @@ class Turbo(object):
         iS = FastRP.iSTimefromshot(self.shot, stroke=self.plunge)
         vF = FastRP.VfTimefromshot(self.shot, stroke=self.plunge)
         R = FastRP._getpostime(self.shot, stroke=self.plunge)
-        # this is upstream remapped
-        RRsep = FastRP.Rrsepfromshot(self.shot, stroke=self.plunge)
+        # this is upstream remapped I load the node not the data
+        RRsep = self._filament.getNode(r'\FP_%1i' % plunge + '_RRSEPT')
         # this is in Rhopoloidal
-        Rhop = FastRP.rhofromshot(self.shot, stroke=self.plunge)
+        Rhop = self._filament.getNode(r'\FP_%1i' % plunge + '_RHOT')
         # limit to the timing where we insert the
-        ii = ((iS.time >= R.time.min().item()) &
-              (iS.time <= R.time[R.argmin().item()]))
+        ii = ((iS.time >= RRsep.getDimensionAt().data()[
+            RRsep.data().argmin()]) &
+              (iS.time <= RRsep.getDimensionAt().data()[
+                  RRsep.data().argmin()]))
         self.iS = iS[ii]
         self.vF = vF[:, ii]
         # in case we set outlier we eliminate outlier with NaN
@@ -318,9 +320,10 @@ class Turbo(object):
                             self.vF[_probe, t-40:-1 ] = np.nan
                         # perform a median filter to get rid of possible
         # oscillations
-        self.Rhop = Rhop.rolling(time=20).mean()[:R.argmin().item()]
-        self.RRsep = RRsep.rolling(time=20).mean()[:R.argmin().item()]
-        self.R = R.rolling(time=20).mean()[:R.argmin().item()]
+        self.Rhop = Rhop.data()[:RRsep.data().argmin()]
+        self.RRsep = RRsep.data()[:RRsep.data().argmin()]
+        self.Rtime = Rhop.getDimensionAt().data()[:RRsep.data().argmin()]
+#        self.R = R.rolling(time=20).mean()[:R.argmin().item()]
         self.Epol = (vF.sel(Probe='VFT_' + str(int(self.plunge))) -
                      vF.sel(Probe='VFM_' + str(int(self.plunge))))/4e-3
         self.Erad = (vF.sel(Probe='VFM_' + str(int(self.plunge))) -
@@ -334,48 +337,63 @@ class Turbo(object):
         lambda decay length
         """
 
-        if self.R is None:
+        if self.Rhop is None:
             self._loadProbe(plunge=plunge)
-        
-        doubleP = pd.read_table(self._doubleDir +
-                               str(int(self.plunge))+'.tab',
-                               skiprows=1, header=0)
-        ii = (doubleP['Time(s)'] < self.R.time.max().item())
+
+        # load the time basis of the profile
+        _data = self._filament.getNode(
+            r'\FP_%1i' % plunge + '_EN').data()
+        _rho = self._filament.getNode(
+            r'\FP_%1i' % plunge + '_RRSEP').data()
+        _err = self._filament.getNode(
+            r'\FP_%1i' % plunge + '_ENERR').data()
+        _time = self._filament.getNode(
+            r'\FP_%1i' % plunge + '_EN').getDimensionAt().data()
+        _ii = np.where(_time <= self.Rtime.max())[0]
+
         # in case the number of point is already low we use
         # directly the part saved in the doubleP
-        if np.count_nonzero(ii) < npoint:
+        if _ii.size < npoint:
             self.profileEn = xray.DataArray(
-                doubleP['Dens(m-3)'][ii]/1e19,
-                coords={'rho': doubleP['rrsep(m)'][ii]})
-            self.profileEn.attrs['err'] = doubleP['DensErr(cm-3)']*1e6
+                _data[_ii]/1e19,
+                coords={'rho': _rho[_ii]})
+            self.profileEn.attrs['err'] = _err[_ii]/1e19
         else:
         # density profile and corresponding spline
             self.profileEn = FastRP._getprofileR(
-                doubleP['rrsep(m)'][ii],
-                doubleP['Dens(m-3)'][ii]/1e19,
+                _rho[_ii],
+                _data[_ii]/1e19,
                 npoint=npoint)
         self.splineEn = UnivariateSpline(self.profileEn.rho.values,
                                          self.profileEn.values,
                                          w=1./self.profileEn.err,
                                          ext=0)
         # compute also the profile of Te
-        if np.count_nonzero(ii) < npoint:
+        _data = self._filament.getNode(
+            r'\FP_%1i' % plunge + '_TE').data()
+        try:
+            _err = self._filament.getNode(
+                r'\FP_%1i' % plunge + '_TEERR').data()
+        except:
+            _err = None
+        if _ii.size < npoint:
             self.profileTe = xray.DataArray(
-                doubleP['Temp(eV)'][ii],
-                coords={'rho': doubleP['rrsep(m)'][ii]})
-            self.profileEn.attrs['err'] = doubleP['TempErr(eV)']
+                _data[_ii],
+                coords={'rho': _rho[_ii]})
+            if _err:
+                self.profileEn.attrs['err'] = _err[_ii]
         else:
             self.profileTe = FastRP._getprofileR(
-                doubleP['rrsep(m)'][ii],
-                doubleP['Temp(eV)'][ii],
+                _rho[_ii],
+                _data[_ii],
                 npoint=npoint)
         self.splineTe = UnivariateSpline(self.profileTe.rho.values,
                                          self.profileTe.values,
                                          w=1./self.profileTe.err,
                                          ext=0)
         # compute the Efolding length
-        self.rhoArray = np.linspace(doubleP['rrsep(m)'][ii].min(),
-                                    doubleP['rrsep(m)'][ii].max(),
+        self.rhoArray = np.linspace(_rho[_ii].min(),
+                                    _rho[_ii].max(),
                                     100)
         self.Efolding = np.abs(self.splineEn(self.rhoArray) /
                                self.splineEn.derivative()(self.rhoArray))

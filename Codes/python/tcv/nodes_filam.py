@@ -1,6 +1,6 @@
 # For the creation of pulse file for the TCV Topic 21 Experiment
 import MDSplus as mds
-shot = 1
+shot = -1
 # boolean for the creation of the pulse file
 # we need to create the tags list for the
 create_nodes = True
