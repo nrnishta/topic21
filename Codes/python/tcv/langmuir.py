@@ -4,6 +4,7 @@ from scipy import interpolate
 from scipy import constants
 import numpy as np
 import MDSplus as mds
+from cyfieldlineTracer import get_fieldline_tracer
 
 
 class LP:
@@ -141,11 +142,11 @@ class LP:
                     ('teInt', teInt)])
         return out
 
-    def Lambda(self, xCl, yCl, gas='D2', trange=[0.6, 0.8]):
+    def Lambda(self, gas='D2', trange=[0.6, 0.8]):
         """
         Compute the Lambda divertor profile given the
         array of connection length, the gas and the trange
-        to perform the computation of the profile
+        to perform the computation of the profile. It uses 
 
         """
 

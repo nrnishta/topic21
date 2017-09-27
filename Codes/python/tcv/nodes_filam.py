@@ -1,6 +1,6 @@
 # For the creation of pulse file for the TCV Topic 21 Experiment
 import MDSplus as mds
-shot = -1
+shot = 1
 # boolean for the creation of the pulse file
 # we need to create the tags list for the
 create_nodes = True
@@ -25,6 +25,12 @@ if create_nodes:
     tree.addNode('RHO', "SIGNAL").addTag('FP_1PL_RHO')
     tree.addNode('RRSEP', "SIGNAL").addTag('FP_1PL_RRSEP')
 
+    # add now the nodes for the position as a function of time
+    tree.setDefault(tree.getNode('-'))
+    tree.addNode('.POSITION', 'STRUCTURE')
+    tree.setDefault(tree.getNode('.POSITION'))
+    tree.addNode('RHOT', "SIGNAL").addTag('FP_1PL_RHOT')
+    tree.addNode('RRSEPT', "SIGNAL").addTag('FP_1PL_RRSEPT')
     # --------------------
     # 2nd Plunge structure
     tree.setDefault(tree.getNode('--'))
@@ -41,6 +47,12 @@ if create_nodes:
     tree.addNode('JS', "SIGNAL").addTag('FP_2PL_JS')
     tree.addNode('RHO', "SIGNAL").addTag('FP_2PL_RHO')
     tree.addNode('RRSEP', "SIGNAL").addTag('FP_2PL_RRSEP')
+    # add now the nodes for the position as a function of time
+    tree.setDefault(tree.getNode('-'))
+    tree.addNode('.POSITION', 'STRUCTURE')
+    tree.setDefault(tree.getNode('.POSITION'))
+    tree.addNode('RHOT', "SIGNAL").addTag('FP_2PL_RHOT')
+    tree.addNode('RRSEPT', "SIGNAL").addTag('FP_2PL_RRSEPT')
 
     # ----------------------
     # Now the Lambda
