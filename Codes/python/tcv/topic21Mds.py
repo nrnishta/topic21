@@ -217,8 +217,12 @@ class Tree(object):
             # load the 1st plunge position
             _node = self.TcvTree.getNode(r'\fpcalpos_1')
             time = _node.getDimensionAt().data()
+            # there is the big issue of not homogeneous
+            # time step so we redefine it
+            time = numpy.linspace(time.min(),time.max(),
+                                  time.size,dtype='float64')
             # the position is saved in [cm]
-            data = _node.data()/1e2 
+            data = _node.data()[:time.size]/1e2
             # limit to the range less then the maximum value
             # of psi grid
             time = time[data <= self.Eq.getRGrid().max()]
@@ -247,8 +251,10 @@ class Tree(object):
             # load the 1st plunge position
             _node = self.TcvTree.getNode(r'\fpcalpos_2')
             time = _node.getDimensionAt().data()
+            time = numpy.linspace(time.min(),time.max(),
+                                  time.size,dtype='float64')
             # the position is saved in [cm]
-            data = _node.data()/1e2
+            data = _node.data()[:time.size]/1e2
             # limit to the range less then the maximum value
             # of psi grid
             time = time[data <= self.Eq.getRGrid().max()]
@@ -465,21 +471,31 @@ class Tree(object):
                 mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
                                  self.drUsU1, self.tU1))
             dummy.setUnits('m')
-
             # R-Rsep time
             dummy = self.saveTree.getNode(r'\FP_1PL_RRSEPT')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.RRsepT1, self.RRsepT1Time))
+            dt = numpy.diff(self.RRsepT1Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"m"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RRsepT1Time.size - 1) + ',' + \
+                     str(self.RRsepT1Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RRsepT1))
+            dummy.putData(expr)
             dummy.setUnits('m')
 
             # Rho time
             dummy = self.saveTree.getNode(r'\FP_1PL_RHOT')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.RhoT1, self.RhoT1Time))
+            dt = numpy.diff(self.RhoT1Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"rho"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RhoT1Time.size - 1) + ',' + \
+                     str(self.RhoT1Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RhoT1))
+            dummy.putData(expr)
             dummy.setUnits(' ')
-            
         if self._Plunge2:
             dummy = self.saveTree.getNode(r'\FP_2PL_EN')
             dummy.putData(
@@ -545,15 +561,26 @@ class Tree(object):
 
             # R-Rsep time
             dummy = self.saveTree.getNode(r'\FP_2PL_RRSEPT')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.RRsepT2, self.RRsepT2Time))
+            dt = numpy.diff(self.RRsepT2Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"m"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RRsepT2Time.size - 1) + ',' + \
+                     str(self.RRsepT2Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RRsepT2))
+            dummy.putData(expr)
             dummy.setUnits('m')
 
             # Rho time
             dummy = self.saveTree.getNode(r'\FP_2PL_RHOT')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.RhoT2, self.RhoT2Time))
+            dt = numpy.diff(self.RhoT2Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"rho"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RhoT2Time.size - 1) + ',' + \
+                     str(self.RhoT2Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RhoT2))
+            dummy.putData(expr)
             dummy.setUnits(' ')
-            
