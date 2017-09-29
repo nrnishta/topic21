@@ -13,7 +13,7 @@ from scipy import constants
 import eqtools
 from langmuir import LP
 import tcv.diag.frp as frp
-import pycwt
+import timeseries
 import xarray as xray
 import bottleneck
 import quickspikes as qs
@@ -101,7 +101,6 @@ class Turbo(object):
              gas='D2', Z=1, iwin=125, thr=3, normalize=True,
              detrend=False, outlier=False, outThr=150):
         """
-
         Given the plunge stated and the region defined in
         R-Rsep or rho it computes various quantities for the
         blob, including the auto-correlation time,
@@ -109,43 +108,26 @@ class Turbo(object):
         as computed from Epoloidal, and also the perpendicular
         velocity as computed according to propagation of
         floating potential corresponding structure
-
-        Parameters:
-        -----------
-        plunge
-           Plunge number, default is 1
-        rrsep
-           2D array indicating the minimum and maximum
+        :param plunge: Plunge number, default is 1
+        :param rrsep: 2D array indicating the minimum and maximum
            for the computation of the CAS in R-R_sep
-        rho
-           2D array indicating the minimum and maximum
+        :param rho: 2D array indicating the minimum and maximum
            for the computation of the CAS in rho poloidal
-        gas
-           string. Gas used, default is Deuterium
-        Z
-           int. Effective charge
-        iwin
-           int. Half of the window for Conditional Average Sampling
+        :param gas: string. Gas used, default is Deuterium
+        :param Z: int. Effective charge
+        :param iwin: int. Half of the window for Conditional Average Sampling
            in number of points
-        normalize
-           Boolean. If True (default) normalize to local std
+        :param thr: Threshold for the evaluation of the blob
+        :param normalize: Boolean. If True (default) normalize to local std
            each of the window before average
-        detrend
-           Boolean. If False (default) does not perform a linear
+        :param detrend: Boolean. If False (default) does not perform a linear
            detrending on each window before averaging
-        outlier
-           Boolean. If False (default) does not eliminate the
+        :param outlier: Boolean. If False (default) does not eliminate the
            outliers to signals (specified by outThr)
-        outThr
-           Threshold for outliers
-          
-        Returns
-        -------
-        blob
-           Xarray dataset containing all the information
+        :param outThr: Threshold for outliers
+        :return: Xarray dataset containing all the information
            needed for the computation of filament properties including
            Lambda and Theta
-
         """
         # in case the quantities are not loaded let load it
         try:
@@ -157,63 +139,62 @@ class Turbo(object):
         except:
             self._loadProbe(plunge=plunge, outlier=outlier, outThr=outThr)
             self._loadProfile()
-            
+
         # now check if we have define the distances in
         # rho or rrsep
         if (rho is None) and (rrsep is not None):
-            _drmn = rrsep[0]
-            _drmx = rrsep[1]
+            _idx = np.where(
+                ((self.RRsep >= rrsep[0]) &
+                 (self.RRsep <= rrsep[1])
+            ))[0]
+            tmin = self.Rtime[_idx].min()
+            tmax = self.Rtime[_idx].max()
         elif (rrsep is None) and (rho is not None):
-            _drmn = (self._eq.psinorm2rmid(np.power(rho[0], 2),
-                                           self.iS.time.mean().item()) -
-                     self._eq.getRmidOutSpline()(self.iS.time.mean().item()))
-            _drmx = (self._eq.psinorm2rmid(np.power(rho[1], 2),
-                                           self.iS.time.mean().item()) -
-                     self._eq.getRmidOutSpline()(self.iS.time.mean().item()))
+            _idx = np.where(
+                ((self.Rhop >= rrsep[0]) &
+                 (self.Rhop <= rrsep[1])
+            ))[0]
+            tmin = self.Rtime[_idx].min()
+            tmax = self.Rtime[_idx].max()
         else:
             print('You must specify region in the profile')
 
-        tmin = self.RRsep[
-            ((self.RRsep.values >= _drmn) &
-             (self.RRsep.values <= _drmx))].time.min().item()
-        tmax = self.RRsep[ 
-            ((self.RRsep.values >= _drmn) &
-             (self.RRsep.values <= _drmx))].time.max().item()
         # we can also compute the absolute radial position
         # which can be used to save the Btot
-        Ravg = self.R.where(((self.R.time >= tmin) &
-                             (self.R.time <= tmax))).mean().item()
+        Ravg = self.R[_idx].mean()
         Btot = self._eq.rz2B(Ravg, 0, (tmax+tmin)/2)
         # limit to this time interval
         sIs = self.iS[((self.iS.time >= tmin) &
                        (self.iS.time <= tmax))].values
         sVf = self.vF[:, ((self.vF.time >= tmin) &
                           (self.vF.time <= tmax))].values
-        
+
         sEp = self.Epol[((self.Epol.time >= tmin) &
                          (self.Epol.time <= tmax))].values
         sEr = self.Erad[((self.Erad.time >= tmin) &
                          (self.Erad.time <= tmax))].values
-        _n = np.min([sIs.size, sVf.shape[1], sEp.size, sEr.size])
-        sigIn = np.vstack((sIs[:_n], sEp[:_n], sEr[:_n], sVf[:,:_n]))
+        sigIn = np.vstack((sEp, sEr, sVf))
         self.dt = (self.iS.time.max().item()-
                    self.iS.time.min().item()) / (self.iS.size-1)
-        # this is the determination of the corresponding 
-        cs, tau, err, amp = self.casMultiple(
+        self.Structure = timeseries.Timeseries(
+            sIs,
+            self.iS.time.values[((self.iS.time >= tmin) & (self.iS.time <= tmax))])
+        # this is the determination of the correspondingreload
+        cs, tau, err, amp = self.Structure(
             sigIn, thr=thr, normalize=normalize, detrend=detrend,
             iwin=iwin)
         # the output will be an xray DataArray containing
         # the results of CAS plus additional informations
         names = np.append(['Is', 'Epol', 'Erad'], self.vF.Probe.values)
-        data = xray.DataArray(cs, coords={'t':tau, 'sig':names})
+        data = xray.DataArray(cs, coords=[tau,names],dims=['t','sig'])
         # add the errorss
         data.attrs['err'] = err
         # position, time
         data.attrs['R'] = Ravg
         data.attrs['tmin'] = tmin
         data.attrs['tmax'] = tmax
-        data.attrs['RrsepMin'] = _drmn
-        data.attrs['RrsepMax'] = _drmx
+        data.attrs['RrsepMin'] = self.RRsep[_idx].min()
+        data.attrs['RrsepMax'] = self.RRsep[_idx].max()
         # start adding the interesting quantities
         # the FWHM
         delta, errDelta = self._computeDeltaT(tau, cs[0, :],
@@ -229,7 +210,7 @@ class Turbo(object):
         data.attrs['vpExBerr'] = out['ErErr']/Btot
         # now compute the v_perp according using the propagation
         # along theta and r from floating potential pins. Consider
-        # that VFM_1 and VFR_1 are distant in the Z direction of 
+        # that VFM_1 and VFR_1 are distant in the Z direction of
         # less than 1mm
         out = self._computeVperp(data)
         data.attrs['vperp'] = out['vperp']
@@ -304,12 +285,18 @@ class Turbo(object):
 
     def _loadProbe(self, plunge=1, outlier=False, outThr=150):
         """
-
         Load the signal from the Probe and ensure
         we are using exclusively the insertion part of the
         plunge. If it has not been already loaded the profile
         it loads also the profile
 
+        :param plunge: Integer indicating the plunge number
+        :param outlier: Boolean for indicating if outlier should be
+                        eliminated
+        :param outThr: Threshold for eliminating the outlier
+        :return: Save as attributes for the class the Ion saturation current
+                 and the floating potential (as xarray.DataSet) plus the
+                 values of rho and drSep as function of time
         """
         self.plunge = plunge
         # now load the data and save them in the appropriate xarray
@@ -342,6 +329,7 @@ class Turbo(object):
         RRsep = self._filament.getNode(r'\FP_%1i' % plunge + 'PL_RRSEPT')
         # this is in Rhopoloidal
         Rhop = self._filament.getNode(r'\FP_%1i' % plunge + 'PL_RHOT')
+        R = self._tree.getNode(r'\FPCALPOS_%1i' % self.plunge)
         # limit to first insertion of the probe
         Rtime = Rhop.getDimensionAt().data()[:RRsep.data().argmin()]
         Rhop = Rhop.data()[:RRsep.data().argmin()]
@@ -366,6 +354,8 @@ class Turbo(object):
             self.Rhop = Rhop
             self.RRsep = RRsep
             self.Rtime = Rtime
+        S = UnivariateSpline(R.getDimensionAt().data(),R.data()/1e2,s=0)
+        self.R = S(self.iS.time.values)
         # in case we set outlier we eliminate outlier with NaN
         if outlier:
             det = qs.detector(outThr, 40)
@@ -487,7 +477,7 @@ class Turbo(object):
             r2 = a[a>0][0]
         else:
             r1, r2 = spline.roots()
-        deltaDown = (r2-r1) 
+        deltaDown = (r2-r1)
         err = np.asarray([np.abs(delta),
                           np.abs(deltaUp),
                           np.abs(deltaDown)]).std()
@@ -661,7 +651,7 @@ class Turbo(object):
         ------
             inputS = Array of signals to be analyzed (not the one already used)
                      in the form (#sign, #sample). The reference signal is
-                     assumed to be the first one 
+                     assumed to be the first one
             iwin   = dimension of the window for the CAS in
                      number of points. Default is 125
             thr = Threshold.  If set it computes the CAS using the
@@ -836,7 +826,7 @@ class Turbo(object):
         amplitude of the Isat conditional average structure
 
         """
-        
+
         signal = data.sel(sig='Is') - data.sel(sig='Is').min()
         spline = UnivariateSpline(
             data.t, signal.values-signal.max().item()/6., s=0)
@@ -855,14 +845,14 @@ class Turbo(object):
         Epol = np.abs(_Epol[ii].max().item() -
                       _Epol[ii].min().item())
         Erad = np.abs(data.sel(sig='Erad')[ii].max().item() -
-                      data.sel(sig='Erad')[ii].min().item())       
+                      data.sel(sig='Erad')[ii].min().item())
         EpolErr = np.abs(
             np.max(data.sel(sig='Epol').values[ii]+data.err[1, ii]).item() -
             np.min(data.sel(sig='Epol').values[ii]-data.err[1, ii]).item())
         EradErr = np.abs(
             np.max(data.sel(sig='Erad').values[ii]+data.err[2, ii]).item() -
             np.min(data.sel(sig='Erad').values[ii]-data.err[2, ii]).item())
-        
+
         out = {'Er': Erad, 'ErErr': EradErr,
                'Epol': Epol, 'EpolErr': EpolErr}
         return out
