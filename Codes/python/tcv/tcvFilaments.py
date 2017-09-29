@@ -174,19 +174,21 @@ class Turbo(object):
         sEr = self.Erad[((self.Erad.time >= tmin) &
                          (self.Erad.time <= tmax))].values
         sigIn = np.vstack((sEp, sEr, sVf))
-        self.dt = (self.iS.time.max().item()-
+        self.dt = (self.iS.time.max().item() -
                    self.iS.time.min().item()) / (self.iS.size-1)
         self.Structure = timeseries.Timeseries(
             sIs,
-            self.iS.time.values[((self.iS.time >= tmin) & (self.iS.time <= tmax))])
+            self.iS.time.values[((self.iS.time >= tmin) &
+                                 (self.iS.time <= tmax))])
         # this is the determination of the correspondingreload
-        cs, tau, err, amp = self.Structure(
-            sigIn, thr=thr, normalize=normalize, detrend=detrend,
-            iwin=iwin)
+        cs, tau, err, amp = self.Structure.casMultiple(
+            sigIn, Type='THRESHOLD',
+            thresh=thr, normalize=normalize, detrend=detrend,
+            nw=iwin)
         # the output will be an xray DataArray containing
         # the results of CAS plus additional informations
         names = np.append(['Is', 'Epol', 'Erad'], self.vF.Probe.values)
-        data = xray.DataArray(cs, coords=[tau,names],dims=['t','sig'])
+        data = xray.DataArray(cs, coords=[tau, names], dims=['t', 'sig'])
         # add the errorss
         data.attrs['err'] = err
         # position, time
