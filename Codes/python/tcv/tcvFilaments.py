@@ -5,8 +5,6 @@ experiment based on the structure, lambda and profile analysis
 from __future__ import print_function
 import MDSplus as mds
 import numpy as np
-from tcv.diag.frp import FastRP
-import pandas as pd
 from scipy.interpolate import UnivariateSpline
 from scipy import io
 from scipy import stats
@@ -14,6 +12,7 @@ from scipy.signal import detrend as Detrend
 from scipy import constants
 import eqtools
 from langmuir import LP
+import tcv.diag.frp as frp
 import pycwt
 import xarray as xray
 import bottleneck
@@ -282,6 +281,27 @@ class Turbo(object):
 
         return data
 
+    def _getNames(self, plunge=1):
+        """
+        Get the probes name for floating potential
+        and ion saturation current. They are defined as
+        attributes to the class
+        :param plunge:
+        :return: None
+        """
+        # determine the available probe names
+        _string = 'getnci(getnci(\\TOP.DIAGZ.MEASUREMENTS.UCSDFP,"MEMBER_NIDS"),"NODE_NAME")'
+        _nameProbe = np.core.defchararray.strip(mds.Data.compile(_string).evaluate().data())
+        # determine the names corresponding to the strokes
+        _nameProbe = _nameProbe[
+            np.asarray([int(n[-1:]) for n in _nameProbe]) == plunge]
+        self.vfNames = _nameProbe[np.asarray([n[:2] for n in _nameProbe]) == 'VF']
+        isNames = _nameProbe[
+            np.asarray([n[:2] for n in _nameProbe]) == 'IS']
+        # we need to eliminate the IS of the single probe
+        self.isNames = isNames[
+            (np.asarray(map(lambda n:n[3],isNames)) == '_')]
+
     def _loadProbe(self, plunge=1, outlier=False, outThr=150):
         """
 
@@ -292,26 +312,66 @@ class Turbo(object):
 
         """
         self.plunge = plunge
-        iS = FastRP.iSTimefromshot(self.shot, stroke=self.plunge)
-        vF = FastRP.VfTimefromshot(self.shot, stroke=self.plunge)
-        R = FastRP._getpostime(self.shot, stroke=self.plunge)
+        # now load the data and save them in the appropriate xarray
+        self._getNames(plunge=plunge)
+        # now we load the floating potential and save them in an xarray
+        vF = []
+        for name in self.vfNames:
+            vF.append(self._tree.getNode(r'\FP'+name).data())
+        # convert in a numpy array
+        vF = np.asarray(vF)
+        # get the time basis
+        time = self._tree.getNode(r'\FP'+self.vfNames[0]).getDimensionAt().data()
+        # we need to build an appropriate time basis since it has not a
+        # constant time step
+        time = np.linspace(time.min(),time.max(),time.size,dtype='float64')
+        vF = xray.DataArray(vF,coords=[self.vfNames,time],dims=['Probe','time'])
+        # repeat for the ion saturation current
+        if self.isNames.size == 1:
+            iS = self._tree.getNode(r'\FP'+self.isNames[0]).data()
+            iS = xray.DataArray(iS,coords=[time],dims=['time'])
+        else:
+            iS = []
+            for name in self.isNames:
+                iS.append(self._tree.getNode(r'\FP'+name).data())
+            # convert in a numpy array
+            iS = np.asarray(iS)
+            # save an xarray dataset
+            iS = xray.DataArray(iS,coords=[self.isNames,time],dims=['Probe','time'])
         # this is upstream remapped I load the node not the data
-        RRsep = self._filament.getNode(r'\FP_%1i' % plunge + '_RRSEPT')
+        RRsep = self._filament.getNode(r'\FP_%1i' % plunge + 'PL_RRSEPT')
         # this is in Rhopoloidal
-        Rhop = self._filament.getNode(r'\FP_%1i' % plunge + '_RHOT')
+        Rhop = self._filament.getNode(r'\FP_%1i' % plunge + 'PL_RHOT')
+        # limit to first insertion of the probe
+        Rtime = Rhop.getDimensionAt().data()[:RRsep.data().argmin()]
+        Rhop = Rhop.data()[:RRsep.data().argmin()]
+        RRsep = RRsep.data()[:RRsep.data().argmin()]
         # limit to the timing where we insert the
-        ii = ((iS.time >= RRsep.getDimensionAt().data()[
-            RRsep.data().argmin()]) &
-              (iS.time <= RRsep.getDimensionAt().data()[
-                  RRsep.data().argmin()]))
-        self.iS = iS[ii]
+        ii = np.where((iS.time >= Rtime.min()) &
+              (iS.time <= Rtime.max()))[0]
+        if 1 == self.isNames.size:
+            self.iS = iS[ii]
+        else:
+            self.iS = iS[:,ii]
         self.vF = vF[:, ii]
+        # now check if the number of size between position and signal
+        # are the same otherwise univariate interpolate the position
+        if Rtime.size != self.iS.time.size:
+            S = UnivariateSpline(Rtime,Rhop,s=0)
+            self.Rhop = S(self.iS.time.values)
+            S = UnivariateSpline(Rtime,RRsep,s=0)
+            self.RRsep = S(self.iS.time.values)
+            self.Rtime = self.iS.time.values
+        else:
+            self.Rhop = Rhop
+            self.RRsep = RRsep
+            self.Rtime = Rtime
         # in case we set outlier we eliminate outlier with NaN
         if outlier:
             det = qs.detector(outThr, 40)
             for _probe in range(self.vF.shape[0]):
                 times = det.send(np.abs(
-                    self.vF[_probe, :]).values.astype('double'))
+                    self.vF[_probe, :]).values.astype('float64'))
                 if len(times) != 0:
                     for t in times:
                         if t+40 < self.vF.shape[1]:
@@ -319,10 +379,6 @@ class Turbo(object):
                         else:
                             self.vF[_probe, t-40:-1 ] = np.nan
                         # perform a median filter to get rid of possible
-        # oscillations
-        self.Rhop = Rhop.data()[:RRsep.data().argmin()]
-        self.RRsep = RRsep.data()[:RRsep.data().argmin()]
-        self.Rtime = Rhop.getDimensionAt().data()[:RRsep.data().argmin()]
 #        self.R = R.rolling(time=20).mean()[:R.argmin().item()]
         self.Epol = (vF.sel(Probe='VFT_' + str(int(self.plunge))) -
                      vF.sel(Probe='VFM_' + str(int(self.plunge))))/4e-3
@@ -342,13 +398,13 @@ class Turbo(object):
 
         # load the time basis of the profile
         _data = self._filament.getNode(
-            r'\FP_%1i' % plunge + '_EN').data()
+            r'\FP_%1i' % plunge + 'PL_EN').data()
         _rho = self._filament.getNode(
-            r'\FP_%1i' % plunge + '_RRSEP').data()
+            r'\FP_%1i' % plunge + 'PL_RRSEP').data()
         _err = self._filament.getNode(
-            r'\FP_%1i' % plunge + '_ENERR').data()
+            r'\FP_%1i' % plunge + 'PL_ENERR').data()
         _time = self._filament.getNode(
-            r'\FP_%1i' % plunge + '_EN').getDimensionAt().data()
+            r'\FP_%1i' % plunge + 'PL_EN').getDimensionAt().data()
         _ii = np.where(_time <= self.Rtime.max())[0]
 
         # in case the number of point is already low we use
@@ -360,7 +416,7 @@ class Turbo(object):
             self.profileEn.attrs['err'] = _err[_ii]/1e19
         else:
         # density profile and corresponding spline
-            self.profileEn = FastRP._getprofileR(
+            self.profileEn = frp.FastRP._getprofileR(
                 _rho[_ii],
                 _data[_ii]/1e19,
                 npoint=npoint)
@@ -370,10 +426,10 @@ class Turbo(object):
                                          ext=0)
         # compute also the profile of Te
         _data = self._filament.getNode(
-            r'\FP_%1i' % plunge + '_TE').data()
+            r'\FP_%1i' % plunge + 'PL_TE').data()
         try:
             _err = self._filament.getNode(
-                r'\FP_%1i' % plunge + '_TEERR').data()
+                r'\FP_%1i' % plunge + 'PL_TEERR').data()
         except:
             _err = None
         if _ii.size < npoint:
@@ -383,7 +439,7 @@ class Turbo(object):
             if _err:
                 self.profileEn.attrs['err'] = _err[_ii]
         else:
-            self.profileTe = FastRP._getprofileR(
+            self.profileTe = frp.FastRP._getprofileR(
                 _rho[_ii],
                 _data[_ii],
                 npoint=npoint)
@@ -713,9 +769,9 @@ class Turbo(object):
         imin = 0
         for i in range(maxima.size - 1):
             i += 1
-            if signal[i] >= threshold and signal[i - 1] < threshold:
+            if signal[i] >= threshold > signal[i - 1]:
                 imin = i
-            if signal[i] < threshold and signal[i - 1] >= threshold:
+            if signal[i] < threshold <= signal[i - 1]:
                 imax = i - 1
                 if imax == imin:
                     d = 0
