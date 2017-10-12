@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __author__ = 'N. Vianello and N. Walkden'
 __version__ = '0.2'
 __data__ = '19.04.2017'
@@ -7,39 +9,36 @@ import scipy
 import pycwt as wav
 import astropy.stats as Astats
 from scipy.interpolate import UnivariateSpline
+from scipy import signal
 import copy
+import bottleneck
 
 
 class Timeseries(object):
-    """
-    Python class for turbulent signal analysis
+    def __init__(self, signal, time, dtS=0.0002):
+        """
 
-    The class implement standard and non standard
-    methods for turbulent signal analysis
-
-    Parameters
-    ----------
-    signal : :obj:`ndarray`
-      signal to be analyzed
-    time  : :obj:`ndarray`
-      time basis
-
-
-    Attributes
-    ----------
-    dt : Floating. Sampling rate of the signal
-    nsamp : :obj:`int`. Size of the signal
-    signorm : :obj: `ndarray`
-        Normalized copy of the signal (signal-<signal>)/std(signal)
-    Dependences
-    -----------
-    numpy
-    scipy
-    pycwt https://github.com/regeirk/pycwt.git
-    astropy for better histogram function
-    """
-
-    def __init__(self, signal, time):
+        Parameters
+        ----------
+        signal : ndarray
+            signal to be analyzed
+        time : ndarray
+            time basis
+        dtS : floating
+            At the init we also compute a normalize
+            signal where normalization is of the form
+            (x-<x>)/std(x) where the mean and average
+            is a rolling mean and standard deviation on
+            a window of the time dtS/dt
+        Dependences
+        -----------
+            numpy
+            scipy
+            pycwt https://github.com/regeirk/pycwt.git
+            astropy for better histogram function
+            bottleneck (https://pypi.python.org/pypi/Bottleneck)
+            for moving average
+        """
 
         self.sig = copy.deepcopy(signal)
         self.time = copy.deepcopy(time)
@@ -50,6 +49,11 @@ class Timeseries(object):
         # foundamental quantities we compute them
         # at the initial
         self.moments()
+        _nPoint = int(dtS / self.dt)
+        self.rmsnorm = (
+                           self.sig -
+                           bottleneck.move_mean(self.sig, window=_nPoint)) / \
+                       bottleneck.move_std(self.sig, window=_nPoint)
 
     def moments(self):
         """
@@ -87,37 +91,45 @@ class Timeseries(object):
         except BaseException:
             return False
 
-    def identify_bursts(self, thresh, analysis=True):
+    def identify_bursts(self, thresh, rmsNorm=False):
         """
         Identify the windows in the time series where the signal
         is above a given threshold
 
         Parameters
         ----------
-        thresh: :obj: `float`
+        thresh : float
             Threshold value
+        rmsNorm : Boolean default False
+            if set to True it normalize the signal in as
+            If set the reference signal is normalized
+            as (x-<x>)/rms(x) where the mean and the rms are
+            moving average and rms on a dtS
 
         Returns
         -------
-        nbursts: :obj: `int`
+        nbursts: int
             Number of bursts identified
-        ratio: :obj: `float`
+        ratio: float
             Ratio between number of samples and number of bursts
-        avwin: :obj: `float`
+        avwin: float
             mean window size of the burst
-        windows: :obj: `tuple`
+        windows: tuple
             a list of tuples that contains indices that
             bracket each of the burst detected
         """
-
-        crossings = np.where(np.diff(np.signbit(self.sig - thresh)))[0]
+        if not rmsNorm:
+            crossings = np.where(np.diff(np.signbit(self.sig - thresh)))[0]
+        else:
+            crossings = np.where(np.diff(np.signbit(self.rmsnorm - thresh)))[0]
         windows = list(zip(crossings[::2], crossings[1::2] + 1))
         nbursts = len(windows)
         ratio = float(self.nsamp) / nbursts
         avwin = np.mean([y - x for x, y in windows])
         return nbursts, ratio, avwin, windows
 
-    def limStructure(self, frequency, wavelet='Mexican',
+    def limStructure(self, frequency=100e3,
+                     wavelet='Mexican',
                      peaks=False, valleys=False):
         """
         Determination of the time location of the intermittent
@@ -128,7 +140,7 @@ class Timeseries(object):
         ----------
         frequency : :obj: `float`
             Fourier frequency considered for the analysis
-        mother : :obj: `string`
+        wavelet : :obj: `string`
             Mother wavelet for the continuous wavelet analysis
             possibilityes are *Mexican [default]*,  *DOG1* or
             *Morlet*
@@ -161,7 +173,7 @@ class Timeseries(object):
         elif wavelet == 'Morlet':
             self.mother = wav.Morlet()
         else:
-            print 'Not a valid wavelet using Mexican'
+            print('Not a valid wavelet using Mexican')
             self.mother = wav.Mexican_hat()
 
         self.freq = frequency
@@ -183,9 +195,9 @@ class Timeseries(object):
             threshold -= 0.2
             d_ev = (self.lim > threshold)
             count = np.count_nonzero(d_ev)
-            if count > 0 and count < self.lim.size:
+            if 0 < count < self.lim.size:
                 newflat = np.mean(wt[~d_ev] ** 4) / \
-                    np.mean(wt[~d_ev] ** 2) ** 2
+                          np.mean(wt[~d_ev] ** 2) ** 2
 
         # now we have identified the threshold
         # we need to find the maximum above the treshold
@@ -195,9 +207,9 @@ class Timeseries(object):
         imin = 0
         for i in range(maxima.size - 1):
             i += 1
-            if self.lim[i] >= threshold and self.lim[i - 1] < threshold:
+            if self.lim[i] >= threshold > self.lim[i - 1]:
                 imin = i
-            if self.lim[i] < threshold and self.lim[i - 1] >= threshold:
+            if self.lim[i] < threshold <= self.lim[i - 1]:
                 imax = i - 1
                 if imax == imin:
                     d = 0
@@ -213,149 +225,9 @@ class Timeseries(object):
             maxima[~ddPeak] = 0
         return maxima, allmax
 
-    def cas(
-            self,
-            Type='LIM',
-            nw=None,
-            detrend=True,
-            normalize=False,
-            thresh=None,
-            **kwargs):
-        """
-        Conditional Average Sampling
-
-        Parameters
-        ----------
-        Type :obj: `str`
-            String indicating the method used to identify the structure.
-            Can be the 'LIM' method or the standard 'THRESHOLD' method
-        nw : :obj: `int`
-            dimension of the window for the CAS. Can be optional if type
-            is LIM. In this case it is assumed 6 times the corresponding
-            wavelet structure
-        detrend: :obj: `Boolean`
-            Boolean to implement linear detrend in each of the time window
-            before computing the average. Default is True
-        normalize : :obj: `Boolean`
-            Boolean to implement normalization (signal-<signal>)/sigma in
-            each of the time window before normalization. Otherwise
-            in each time window the signal is only mean subtracted.
-            Default is False
-        **kwargs
-           These are the same as defined in the *limStructure* method or
-           *identify_bursts* method according to the method used
-
-        Results
-        -------
-        cs : :obj: `ndarray`
-            Conditional Sampled Structure. **In case normalize is True it is
-            not in physical unit**
-        tau : :obj: `ndarray`
-            Appropriate time basis for the CAS
-        err : :obj: `ndarray`
-            Standard error
-
-        Attributes
-        ----------
-        location : :obj: 'ndarray'
-            Time location where the structure are determined
-
-        """
-        cut = False
-        if Type == 'LIM':
-            peaks = kwargs.get('peaks', False)
-            valleys = kwargs.get('valleys', False)
-            maxima, allmax = self.limStructure(
-                kwargs.get('frequency', 100e3),
-                wavelet=kwargs.get('wavelet', 'Mexican'),
-                peaks=peaks, valleys=valleys)
-            self.location = self.time[maxima == 1]
-            self.__locationindex = (maxima == 1)
-            self.__allmaxima = allmax
-            if nw is None:
-                nw = np.int(np.round(2. / self.freq / self.dt))
-            if nw % 2 == 0:
-                iwin = nw / 2
-                nw += 1
-            else:
-                iwin = (nw - 1) / 2
-            iwin = np.int(iwin)
-            maxima[0: iwin - 1] = 0
-            maxima[-iwin:] = 0
-            print 'Number of structures mediated ' + str(maxima.sum())
-            csTot = np.ones((int(nw), np.sum(maxima, dtype='int')))
-            d_ev = np.asarray(np.where(maxima >= 1))
-            for i in range(d_ev.size):
-                if detrend is True:
-                    _dummy = scipy.signal.detrend(
-                        self.sig[
-                            d_ev[0][i] -
-                            iwin: d_ev[0][i] +
-                            iwin +
-                            1], type='linear')
-                else:
-                    _dummy = self.sig[
-                        d_ev[0][i] -
-                        iwin: d_ev[0][i] +
-                        iwin +
-                        1]
-                _dummy -= _dummy.mean()
-                if normalize is True:
-                    _dummy /= _dummy.std()
-
-                csTot[:, i] = _dummy
-
-        else:
-            if thresh is None:
-                thresh = 3*np.sqrt(self.variance)+self.mean
-            if nw is None:
-                print('Window length not set assumed 501 points')
-                nw = 501
-            if nw % 2 == 0:
-                nw += 1
-            Nbursts, ratio, av_width, windows = self.identify_bursts(thresh)
-            csTot = np.ones((nw, Nbursts))
-            inds = []
-            self.__allmaxima = np.zeros(self.nsamp)
-            for window, i in zip(windows, range(Nbursts)):
-                self.__allmaxima[window[0]:window[1]] = 1
-                ind_max = np.where(
-                    self.sig[window[0]:window[1]] ==
-                    np.max(self.sig[window[0]:window[1]]))[0][0]
-                if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
-                   (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
-                    _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
-                                      window[0] + ind_max + (nw - 1) / 2 + 1]
-                    if detrend is True:
-                        _dummy = scipy.signal.detrend(
-                            _dummy, type='linear')
-                    _dummy -= _dummy.mean()
-                    if normalize is True:
-                        _dummy /= _dummy.std()
-                    csTot[:, i] = _dummy
-                    inds.append(window[0] + ind_max)
-                else:
-                    cut = True
-            self.location = self.time[inds]
-            self.__locationindex = inds
-        # now compute the cas
-        if cut:
-            csTot = csTot[:, :-1]
-        self.nw = nw
-        self.iwin = (nw - 1) / 2
-        cs = np.mean(csTot, axis=1)
-        tau = np.linspace(- self.iwin, self.iwin, self.nw) * self.dt
-        err = scipy.stats.sem(csTot, axis=1)
-
-        return cs, tau, err
-
     def casMultiple(
             self,
             inputS,
-            Type='LIM',
-            nw=None,
-            detrend=True,
-            normalize=False,
             **kwargs):
         """
         Conditional average sampling on multiple signals
@@ -370,21 +242,8 @@ class Timeseries(object):
         Type :obj: `str`
             String indicating the method used to identify the structure.
             Can be the 'LIM' method or the standard 'THRESHOLD' method
-        nw : :obj: `int`
-            dimension of the window for the CAS. Can be optional if type
-            is LIM. In this case it is assumed 6 times the corresponding
-            wavelet structure
-        detrend: :obj: `Boolean`
-            Boolean to implement linear detrend in each of the time window
-            before computing the average. Default is True
-        normalize : :obj: `Boolean`
-            Boolean to implement normalization (signal-<signal>)/sigma in
-            each of the time window before normalization. Otherwise
-            in each time window the signal is only mean subtracted.
-            Default is False
         **kwargs
-           These are the same as defined in the *limStructure* method or
-           *identify_bursts* method according to the method used
+           These are the same as defined in the cas method
 
         Results
         -------
@@ -401,56 +260,103 @@ class Timeseries(object):
             with respect to the mean of each of the signal in the time
             window around the event are given
         """
-        Shape = inputS.shape
-        nSig = Shape[0]
+        if 'detrend' in kwargs:
+            detrend = kwargs['detrend']
+        else:
+            detrend = False
+        if 'normalize' in kwargs:
+            normalize = kwargs['normalize']
+        else:
+            normalize = False
+        if 'rmsNorm' in kwargs:
+            rmsNorm = kwargs['rmsNorm']
+        else:
+            rmsNorm = False
+        if 'threshold' in kwargs:
+            threshold = kwargs['threshold']
+        else:
+            if rmsNorm:
+                threshold = 3
+ #               print('Threshold is 3 in rmsNormalized')
+            else:
+                threshold = 3 * np.sqrt(self.variance) + self.mean
+ #               print('Threshold is 3 sigma in signal not normalized')
+        if 'nw' in kwargs:
+            nw = kwargs['nw']
+        else:
+            nw = 501
+        if 'Type' in kwargs:
+            Type = kwargs['Type']
+        else:
+            Type='THRESHOLD'
+
+        nSig = inputS.shape[0]
         if Type == 'LIM':
-            peak = kwargs.get('peak', False)
-            valley = kwargs.get('valley', False)
+            if 'frequency' in kwargs:
+                frequency = kwargs['frequency']
+            else:
+                frequency = 100e3
+            if 'wavelet' in kwargs:
+                wavelet = kwargs['wavelet']
+            else:
+                wavelet = 'Mexican'
+            if 'peaks' in kwargs:
+                peaks = kwargs['peaks']
+            else:
+                peaks = False
+            if 'valleys' in kwargs:
+                valleys = kwargs['valleys']
+            else:
+                valleys = False
             csO, tau, errO = self.cas(
                 Type='LIM',
-                frequency=kwargs.get('frequency', 100e3),
-                mother=kwargs.get('mother', 'Mexican'),
-                peak=peak, valley=valley,
-                detrend=detrend,
-                normalize=normalize)
+                frequency=frequency,
+                wavelet= wavelet,
+                peaks=peaks,valleys=valleys,
+                detrend=detrend)
         else:
             csO, tau, errO = self.cas(
                 Type='THRESHOLD',
-                nw=kwargs.get('nw', 501),
-                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 2.5),
-                normalize=normalize,
-                detrend=detrend)
-
-        maxima = np.zeros(self.nsamp)
-        maxima[self.__locationindex] = 1
-        csTot = np.ones((nSig + 1, self.nw, maxima.sum()))
-        d_ev = np.asarray(np.where(maxima >= 1))
+                normalize=normalize, detrend=detrend,
+                rmsNorm=rmsNorm, threshold=threshold,nw=nw)
+        maxima = np.zeros(self.nsamp, dtype='intp')
+        maxima[self._locationindex] = 1
+        # we need to ensure that we have 0 up to iwin
+        maxima[-self.iwin-1:] = 0
+        maxima[:self.iwin]=0
+        csTot = np.zeros((nSig + 1, self.nw,
+                          maxima.sum()))
+        print('Number of structure mediated %4i' % maxima.sum())
+        d_ev = np.asarray(np.where(maxima >= 1)[0])
         ampTot = np.zeros((nSig + 1, int(maxima.sum())))
         for i in range(d_ev.size):
             for n in range(nSig):
-                dummy = scipy.signal.detrend(
-                    inputS[n, d_ev[0][i] - self.iwin:
-                           d_ev[0][i] + self.iwin + 1])
-                if detrend is True:
+                dummy = inputS[n,
+                        d_ev[i] - self.iwin:d_ev[i] + self.iwin + 1]
+                if detrend:
                     dummy = scipy.signal.detrend(dummy, type='linear')
-                dummy -= dummy.mean()
+                else:
+                    dummy -= dummy.mean()
                 ampTot[n + 1, i] = dummy[
-                    int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
-                    dummy[int(self.iwin / 2):
-                          int(3 * self.iwin / 2)].min()
+                                   int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
+                                   dummy[int(self.iwin / 2):
+                                   int(3 * self.iwin / 2)].min()
                 if normalize:
                     dummy /= dummy.std()
                 csTot[n + 1, :, i] = dummy
-                # add also the amplitude of the reference signal
-                dummy = scipy.signal.detrend(
-                    self.sig[d_ev[0][i] -
-                             self.iwin: d_ev[0][i] + self.iwin + 1])
-                if detrend is True:
-                    dummy = scipy.signal.detrend(dummy, type='linear')
-                ampTot[0, i] = dummy[
-                    int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
-                    dummy[int(self.iwin / 2):
-                          int(3 * self.iwin / 2)].min()
+            # add also the amplitude of the reference signal
+            dummy = copy.deepcopy(self.sig)[
+                    d_ev[i] - self.iwin:
+                    d_ev[i] + self.iwin + 1]
+
+            if detrend:
+                dummy = scipy.signal.detrend(dummy, type='linear')
+            else:
+                dummy -= dummy.mean()
+            ampTot[0, i] = dummy[
+                            int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
+                            dummy[int(self.iwin / 2):
+                            int(3 * self.iwin / 2)].min()
         # now compute the cas
         cs = np.mean(csTot, axis=2)
         cs[0, :] = csO
@@ -458,7 +364,7 @@ class Timeseries(object):
         err[0, :] = errO
         return cs, tau, err, ampTot
 
-    def waitingTimes(self, Type='LIM', detrend=True, **kwargs):
+    def waitingTimes(self, Type='LIM', **kwargs):
         """
         Waiting time distribution for events identified with different
         methods
@@ -484,28 +390,15 @@ class Timeseries(object):
         """
 
         if Type == 'LIM':
-            peak = kwargs.get('peak', False)
-            valley = kwargs.get('valley', False)
             csO, tau, errO = self.cas(
-                Type='LIM',
-                frequency=kwargs.get('frequency', 100e3),
-                mother=kwargs.get('mother', 'Mexican'),
-                peak=peak, valley=valley,
-                detrend=kwargs.get('detrend', True),
-                normalize=kwargs.get('normalize', True))
+                Type='LIM', **kwargs)
         else:
             csO, tau, errO = self.cas(
-                Type='THRESHOLD',
-                nw=kwargs.get('nw', 501),
-                thrs=kwargs.get('thresh', np.sqrt(self.variance) * 3 +
-                                self.mean),
-                normalize=kwargs.get('normalize', False),
-                detrend=kwargs.get('detrend', True))
-
+                Type='THRESHOLD', **kwargs)
         # in this case
         # compute maxima derivative
         maxima = np.zeros(self.nsamp)
-        maxima[self.__locationindex] = 1
+        maxima[self._locationindex] = 1
         dEv = np.diff(maxima)
         # starting and ending time
         ti = np.asarray(np.where(dEv > 0))[0][:]
@@ -540,6 +433,155 @@ class Timeseries(object):
                 quiescent_times = ti[:] - te[:]
 
         return waiting_times * self.dt, quiescent_times * self.dt
+
+    def cas(
+            self,
+            Type='LIM',
+            nw=None,
+            **kwargs):
+        """
+        Conditional Average Sampling
+
+        Parameters
+        ----------
+        Type :obj: `str`
+            String indicating the method used to identify the structure.
+            Can be the 'LIM' method or the standard 'THRESHOLD' method
+        nw : :obj: `int`
+            dimension of the window for the CAS. Can be optional if type
+            is LIM. In this case it is assumed 6 times the corresponding
+            wavelet structure
+        **kwargs
+           These are the same as defined in the *limStructure* method or
+           *identify_bursts* method according to the method used
+
+        Results
+        -------
+        cs : :obj: `ndarray`
+            Conditional Sampled Structure. **In case normalize is True it is
+            not in physical unit**
+        tau : :obj: `ndarray`
+            Appropriate time basis for the CAS
+        err : :obj: `ndarray`
+            Standard error
+
+        Attributes
+        ----------
+        location : :obj: 'ndarray'
+            Time location where the structure are determined
+
+        """
+        cut = False
+        if 'detrend' in kwargs:
+            detrend = kwargs['detrend']
+        else:
+            detrend = False
+        if 'normalize' in kwargs:
+            normalize = kwargs['normalize']
+        else:
+            normalize = False
+        if 'rmsNorm' in kwargs:
+            rmsNorm = kwargs['rmsNorm']
+        else:
+            rmsNorm = False
+
+        if Type == 'LIM':
+            peaks = kwargs.get('peaks', False)
+            valleys = kwargs.get('valleys', False)
+            frequency = kwargs.get('frequency',100e3)
+            maxima, allmax = self.limStructure(
+                frequency=frequency,
+                peaks=peaks,
+                valleys=valleys,
+                wavelet=kwargs.get('wavelet','Mexican'))
+            self.location = self.time[maxima == 1]
+            self._locationindex = np.where(maxima == 1)[0]
+            self._allmaxima = allmax
+            if nw is None:
+                nw = np.int(np.round(2. / self.freq / self.dt))
+            if nw % 2 == 0:
+                iwin = nw / 2
+                nw += 1
+            else:
+                iwin = (nw - 1) / 2
+            iwin = np.int(iwin)
+            maxima[0: iwin - 1] = 0
+            maxima[-iwin:] = 0
+            print('Number of structures mediated %4i' % maxima.sum())
+            csTot = np.ones((int(nw), np.sum(maxima, dtype='int')))
+            d_ev = np.asarray(np.where(maxima >= 1))
+            for i in range(d_ev.size):
+                if detrend:
+                    _dummy = scipy.signal.detrend(
+                        self.sig[
+                        d_ev[0][i] -
+                        iwin: d_ev[0][i] +
+                              iwin +
+                              1], type='linear')
+                else:
+                    _dummy = self.sig[
+                             d_ev[0][i] -
+                             iwin: d_ev[0][i] +
+                                   iwin +
+                                   1]
+                _dummy -= _dummy.mean()
+                if normalize is True:
+                    _dummy /= _dummy.std()
+
+                csTot[:, i] = _dummy
+
+        else:
+            if 'threshold' in kwargs:
+                thresh = kwargs['threshold']
+            else:
+                if rmsNorm:
+                    thresh = 3
+                    print('Threshold is 3 in rmsNormalized')
+                else:
+                    thresh = 3 * np.sqrt(self.variance) + self.mean
+                    print('Threshold is 3 sigma in signal not normalized')
+            Nbursts, ratio, av_width, windows = self.identify_bursts(
+                thresh, rmsNorm=rmsNorm)
+
+            if nw is None:
+                print('Window length not set assumed 501 points')
+                nw = 501
+            if nw % 2 == 0:
+                nw += 1
+            csTot = np.ones((nw, Nbursts))
+            inds = []
+            self.__allmaxima = np.zeros(self.nsamp)
+            for window, i in zip(windows, range(Nbursts)):
+                self.__allmaxima[window[0]:window[1]] = 1
+                ind_max = np.where(
+                    self.sig[window[0]:window[1]] ==
+                    np.max(self.sig[window[0]:window[1]]))[0][0]
+                if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
+                                (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
+                    _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
+                    window[0] + ind_max + (nw - 1) / 2 + 1]
+                    if detrend:
+                        _dummy = scipy.signal.detrend(
+                            _dummy, type='linear')
+                    _dummy -= _dummy.mean()
+                    if normalize:
+                        _dummy /= _dummy.std()
+                    csTot[:, i] = _dummy
+                    inds.append(window[0] + ind_max)
+                else:
+                    cut = True
+            self.location = self.time[inds]
+            self._locationindex = inds
+        # now compute the cas
+        if cut:
+            csTot = csTot[:, :-1]
+        self.nw = nw
+        self.iwin = (nw - 1) / 2
+        cs = np.mean(csTot, axis=1)
+        tau = np.linspace(- self.iwin, self.iwin, self.nw) * self.dt
+        err = scipy.stats.sem(csTot, axis=1)
+
+        return cs, tau, err
 
     def pdf(self, bins=10, range=None, weights=None, normed=False, **kwargs):
         """
@@ -607,7 +649,7 @@ class Timeseries(object):
                 nx = factor + 1
             else:
                 nx = factor
-            new_sig = np.zeros(signal[::factor].shape)
+            new_sig = np.zeros(self.sig[::factor].shape)
             if dx is None:
                 dx = np.ones(self.sig.shape) / (factor + 1 * (nx % 2))
             new_sig += (self.sig * dx)[::factor]
@@ -641,9 +683,9 @@ class Timeseries(object):
             negs = self.signorm - np.roll(self.signorm, i)
             poss = self.signorm - np.roll(self.signorm, -i)
             prevnegs[np.where(negs > prevnegs)
-                     ] = negs[np.where(negs > prevnegs)]
+            ] = negs[np.where(negs > prevnegs)]
             prevposs[np.where(poss > prevposs)
-                     ] = poss[np.where(poss > prevposs)]
+            ] = poss[np.where(poss > prevposs)]
         snf = 0.5 * (prevnegs + prevposs)
         return snf
 
