@@ -117,7 +117,9 @@ class Turbo(object):
         :param Z: int. Effective charge
         :param iwin: int. Half of the window for Conditional Average Sampling
            in number of points
-        :param thr: Threshold for the evaluation of the blob
+        :param thr: Threshold for the evaluation of the blob, This is given in
+           standard deviation unit (i.e. giving thr=3 implies we search for values
+           above 3 sigma plus the mean)
         :param normalize: Boolean. If True (default) normalize to local std
            each of the window before average
         :param detrend: Boolean. If False (default) does not perform a linear
