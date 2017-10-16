@@ -236,8 +236,9 @@ class Turbo(object):
         data.attrs['T_ac'] = self.Structure.act
         # compute the Ion sound gyroradius in this zone
         # we need the standard deviation of the te
-        teStd = self.profileTe[((self.profileTe.rho >= self.RRsep[_idx].min()) &
-                                (self.profileTe.rho <= self.RRsep[_idx].max()))].std().item()
+        teStd = self.profileTe[
+            ((self.profileTe.rho >= self.RRsep[_idx].min()) &
+             (self.profileTe.rho <= self.RRsep[_idx].max()))].std().item()
         CsDict = self._computeRhos(Ravg, np.asarray(
             [self.RRsep[_idx].min(), self.RRsep[_idx].max()]),
                                        (tmax + tmin) / 2)
@@ -755,3 +756,5 @@ class Turbo(object):
         data = xray.DataArray(yO, coords=[xO], dims=['rho'])
         data.attrs['err'] = eO
         return data
+
+    
