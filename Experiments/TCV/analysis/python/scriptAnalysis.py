@@ -1,18 +1,17 @@
 import numpy as np
-import sys
 import matplotlib as mpl
 from scipy.interpolate import UnivariateSpline
-from scipy.signal import savgol_filter
-from scipy.signal import find_peaks_cwt
+from scipy.interpolate import interp1d
+from scipy import signal
 import pandas as pd
-import peakdetect
 from matplotlib.colors import LogNorm
 from boloradiation import Radiation
+from tcv.diag.bolo import Bolo
 import eqtools
 import MDSplus as mds
 import langmuir
-from tcv.diag.frp import FastRP
 import gauges
+import tcvFilaments
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Tahoma']})
@@ -30,6 +29,10 @@ def print_menu():
     print "7. Attempt for low collisionality"
     print "8. Compare plot and profiles at constant q95"
     print "9. Compare plot and profiles at constant Bt"
+    print "10. Lambda-Blob size during Ip scan at constant Bt"
+    print "11. Lambda-Blob size during Ip scan at constant q95"
+    print "12. Radiation vs Density Ip Scan at constant Bt"
+    print "13. Radiation vs Density Ip Scan at constant q95"
     print "99: End"
     print 67 * "-"
 
@@ -1070,7 +1073,187 @@ while loop:
         mpl.pylab.savefig('../pngbox/IpConstantBt_samedensity.png',
                           bbox_to_inches='tight', dpi=300)
         
+    elif selection == 10:
+        shotList = (57425, 57437, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        ipList = (245, 190, 330)
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6))
+        fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
+        ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        for shot, col in zip(shotList, colorList):
+            Data = tcvFilaments.Turbo(shot)
+            for plunge in (1, 2):
+                Blob = Data.blob(plunge=plunge, rrsep=[0.005, 0.01],
+                                 rmsNorm=True, detrend=True)
+                if np.isfinite(Blob.vAutoP):
+                    Size = Blob.FWHM*np.sqrt(
+                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
+                    dSize = Size*np.sqrt(
+                        (Blob.FWHMerr/Blob.FWHM)**2 +
+                        (Blob.vrExBerr/Blob.vrExB)**2 +
+                        (Blob.vAutoPErr/Blob.vAutoP)**2)
+                else:
+                    Size = Blob.FWHM*np.sqrt(
+                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
+                    dSize = Size*np.sqrt(
+                        (Blob.FWHMerr/Blob.FWHM)**2 +
+                        (Blob.vrExBerr/Blob.vrExB)**2 +
+                        (Blob.vAutoPErr/Blob.vpExB)**2)
+                
+                ax.plot(Blob.LambdaDiv, Size, 'o',
+                        markersize=15, color=col)
+                ax.errorbar(Blob.LambdaDiv, Size, xerr=Blob.LambdaDivErr,
+                            yerr=dSize, ecolor=col, fmt='none')
 
+        ax.set_xscale('log')
+        ax.set_xlabel(r'$\Lambda_{div}$')
+        ax.set_ylabel(r'$\delta_b [\rho_s]$')
+        for iP, col, i in zip(ipList, colorList, range(3)):
+            ax.text(0.1, 0.9-i*0.06, r'I$_p$ = %3i' % iP +' kA',
+                    transform=ax.transAxes, color=col)
+        mpl.pylab.savefig('../pdfbox/LambdaSizeIpScanConstantBt.pdf',
+                          bbox_to_inches='tight')    
+    elif selection == 11:
+        shotList = (57454, 57461, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        ipList = (245, 190, 330)
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6))
+        fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
+        ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        for shot, col in zip(shotList, colorList):
+            Data = tcvFilaments.Turbo(shot)
+            for plunge in (1, 2):
+                Blob = Data.blob(plunge=plunge, rrsep=[0.005, 0.01],
+                                 rmsNorm=True, detrend=True)
+                if np.isfinite(Blob.vAutoP):
+                    Size = Blob.FWHM*np.sqrt(
+                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
+                    dSize = Size*np.sqrt(
+                        (Blob.FWHMerr/Blob.FWHM)**2 +
+                        (Blob.vrExBerr/Blob.vrExB)**2 +
+                        (Blob.vAutoPErr/Blob.vAutoP)**2)
+                else:
+                    Size = Blob.FWHM*np.sqrt(
+                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
+                    dSize = Size*np.sqrt(
+                        (Blob.FWHMerr/Blob.FWHM)**2 +
+                        (Blob.vrExBerr/Blob.vrExB)**2 +
+                        (Blob.vAutoPErr/Blob.vpExB)**2)
+                
+                ax.plot(Blob.LambdaDiv, Size, 'o',
+                        markersize=15, color=col)
+                ax.errorbar(Blob.LambdaDiv, Size, xerr=Blob.LambdaDivErr,
+                            yerr=dSize, ecolor=col, fmt='none')
+
+        ax.set_xscale('log')
+        ax.set_xlabel(r'$\Lambda_{div}$')
+        ax.set_ylabel(r'$\delta_b [\rho_s]$')
+        for iP, col, i in zip(ipList, colorList, range(3)):
+            ax.text(0.1, 0.9-i*0.06, r'I$_p$ = %3i' % iP +' kA',
+                    transform=ax.transAxes, color=col)
+        mpl.pylab.savefig('../pdfbox/LambdaSizeIpScanConstantQ95.pdf',
+                          bbox_to_inches='tight')    
+
+    elif selection == 12:
+        shotList = (57425, 57437, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        ipList = (245, 190, 330)
+        fig, ax = mpl.pylab.subplots(figsize=(12, 6), nrows=1, ncols=2)
+        for shot, col in zip(shotList, colorList):
+            bolo = Bolo.fromshot(shot, Los=44, filter='gottardi')
+            if shot == 57425:
+                eq = eqtools.TCVLIUQETree(shot)
+                _i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+                rGrid = eq.getRGrid()
+                zGrid = eq.getZGrid()
+                tilesP, vesselP = eq.getMachineCrossSectionPatch()
+                ax[0].contour(rGrid, zGrid, -eq.getFluxGrid()[_i0, :, :],
+                              30, colors='grey', linewidths=1)
+                ax[0].add_patch(tilesP)
+                ax[0].add_patch(vesselP)
+                ax[0].plot([bolo.xchord[0], bolo.xchord[1]],
+                           [bolo.ychord[0], bolo.ychord[1]], 'k-',
+                           lw=3)
+            Tree = mds.Tree('tcv_shot', shot)
+            eN = Tree.getNode(r'\results::fir:n_average').data()
+            eNT = Tree.getNode(
+                r'\results::fir:n_average').getDimensionAt().data()
+            Tree.quit()
+            # perform the interpolation on a decimated signal
+            enF = interp1d(signal.decimate(eNT, 10),
+                           signal.decimate(eN, 10)/1e19,
+                           fill_value='extrapolate')
+            enFake = enF(bolo.time.values)
+            ax[1].plot(enFake, bolo.values/1e3, '.', color=col, markersize=4)
+
+        ax[0].set_aspect('equal')
+        ax[0].set_xlabel('R [m]')
+        ax[0].set_ylabel('Z [m]')
+        ax[0].set_xlim([0.5, 1.2])
+        ax[0].set_ylim([-0.8, 0.8])
+
+        ax[1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[1].set_ylabel(r'[kW/m$^2$]')
+        ax[1].set_ylim([0, 60])
+        ax[1].set_xlim([2, 12])
+        ax[1].set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        for iP, col, i in zip(ipList, colorList, range(3)):
+            ax[1].text(0.1, 0.9-i*0.06, r'I$_p$ = %3i' % iP +' kA',
+                    transform=ax[1].transAxes, color=col)
+        mpl.pylab.savefig('../pdfbox/RadiationVsDensityIpScanConstantBt.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 13:
+        shotList = (57454, 57461, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        ipList = (245, 190, 330)
+        fig, ax = mpl.pylab.subplots(figsize=(12, 6), nrows=1, ncols=2)
+        for shot, col in zip(shotList, colorList):
+            bolo = Bolo.fromshot(shot, Los=44, filter='gottardi')
+            if shot == 57454:
+                eq = eqtools.TCVLIUQETree(shot)
+                _i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+                rGrid = eq.getRGrid()
+                zGrid = eq.getZGrid()
+                tilesP, vesselP = eq.getMachineCrossSectionPatch()
+                ax[0].contour(rGrid, zGrid, -eq.getFluxGrid()[_i0, :, :],
+                              30, colors='grey', linewidths=1)
+                ax[0].add_patch(tilesP)
+                ax[0].add_patch(vesselP)
+                ax[0].plot([bolo.xchord[0], bolo.xchord[1]],
+                           [bolo.ychord[0], bolo.ychord[1]], 'k-',
+                           lw=3)
+            Tree = mds.Tree('tcv_shot', shot)
+            eN = Tree.getNode(r'\results::fir:n_average').data()
+            eNT = Tree.getNode(
+                r'\results::fir:n_average').getDimensionAt().data()
+            Tree.quit()
+            # perform the interpolation on a decimated signal
+            enF = interp1d(signal.decimate(eNT, 10),
+                           signal.decimate(eN, 10)/1e19,
+                           fill_value='extrapolate')
+            dd = np.where((bolo.time.values <= eNT.max()) &
+                          (bolo.time.values >= 0.4))[0]
+            enFake = enF(bolo.time.values[dd])
+            ax[1].plot(enFake, bolo.values[dd]/1e3, '.', color=col, markersize=4)
+
+        ax[0].set_aspect('equal')
+        ax[0].set_xlabel('R [m]')
+        ax[0].set_ylabel('Z [m]')
+        ax[0].set_xlim([0.5, 1.2])
+        ax[0].set_ylim([-0.8, 0.8])
+
+        ax[1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[1].set_ylabel(r'[kW/m$^2$]')
+        ax[1].set_ylim([0, 100])
+        ax[1].set_xlim([3, 12])
+        ax[1].set_title(r'I$_p$ scan at constant q$_{95}$')
+        for iP, col, i in zip(ipList, colorList, range(3)):
+            ax[1].text(0.1, 0.9-i*0.06, r'I$_p$ = %3i' % iP +' kA',
+                    transform=ax[1].transAxes, color=col)
+        mpl.pylab.savefig('../pdfbox/RadiationVsDensityIpScanConstantQ95.pdf',
+                          bbox_to_inches='tight')
+
+        
     elif selection == 99:
         loop = False
     else:
