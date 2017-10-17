@@ -236,9 +236,7 @@
        a modest reduction is foreseen
      - N. Vianello restate the necessity to distribute the ideas for analysis and interpretation using all the possible
        communication channels
-
      
-	
 *** COMPASS meeting 19.09.17
 **** Participants:
      N. Vianello, A. Hakola, M. Bernert, D. Carralero, J. Adamek,
@@ -262,3 +260,16 @@
      - Li-Be every 4 microsecond *Contact Hungarian people*
      - Dalpha available HFS/LFS but not at the diverto
      - No Infrared available
+*** TCV meeting 13.10.17
+**** Participants
+     N. Vianello, M. Agostini, A. Hakkola, V. Naulin, F. Militello
+     B. Labit, C. Theiler, C.Tsui
+**** Presentation and Minutes
+     - N. Vianello: point from Christian on the fact that for TCV we need
+       detachment and roll-over which is not reached for the constant q95
+       scan. *This can be consistent with the fact the SOL flattening is not obtained*
+     - B. Labit: found and appropriate reference for H-Mode *Shot 55860* needs shape
+       adjustment for proper evaluation of target profile
+     - C. Theiler: further reference at High Ip to be explored together with
+       N seeding
+     - A. Hakkola: suggests the need to ask for further contingency shot
