@@ -4,7 +4,6 @@ from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 from scipy import signal
 import pandas as pd
-from matplotlib.colors import LogNorm
 from boloradiation import Radiation
 from tcv.diag.bolo import Bolo
 import eqtools
@@ -12,6 +11,9 @@ import MDSplus as mds
 import langmuir
 import gauges
 import tcvFilaments
+from tcv.diag.axuv import AXUV
+import smooth
+import matplotlib.patches as mpatches
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Tahoma']})
@@ -33,6 +35,8 @@ def print_menu():
     print "11. Lambda-Blob size during Ip scan at constant q95"
     print "12. Radiation vs Density Ip Scan at constant Bt"
     print "13. Radiation vs Density Ip Scan at constant q95"
+    print "14. Compare Bolo radiation vs AXUV radiation at constant Bt"
+    print "15. Compare Bolo radiation vs AXUV radiation at constant Bt"
     print "99: End"
     print 67 * "-"
 
@@ -1248,12 +1252,239 @@ while loop:
         ax[1].set_xlim([3, 12])
         ax[1].set_title(r'I$_p$ scan at constant q$_{95}$')
         for iP, col, i in zip(ipList, colorList, range(3)):
-            ax[1].text(0.1, 0.9-i*0.06, r'I$_p$ = %3i' % iP +' kA',
-                    transform=ax[1].transAxes, color=col)
+            ax[1].text(0.1, 0.9 - i*0.06, r'I$_p$ = %3i' % iP +' kA',
+                       transform=ax[1].transAxes, color=col)
         mpl.pylab.savefig('../pdfbox/RadiationVsDensityIpScanConstantQ95.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 14:
+        # these are the LoS we are looking at
+        # for AXUV and Bolometry
+        axuVLos = [83, 85, 87, 89]
+        boloLos = [44, 46, 48, 50]
+        shotList = (57437, 57425,  57497)
+        iPList = ('190', '245', '330')
+        colorList = ('#BE4248', '#586473', '#4A89AA')
+        fig, ax = mpl.pylab.subplots(figsize=(10, 12),
+                                     nrows=3, ncols=2,
+                                     sharex=True)
+        fig.subplots_adjust(right=0.7, left=0.1)
+        for shot, idax in zip(shotList,
+                             range(len(shotList))):
+            A = AXUV(shot, LoS = axuVLos)
+            B = Bolo.fromshot(shot, Los=boloLos, filter='bessel')
+            Tree = mds.Tree('tcv_shot', shot)
+            en = Tree.getNode(r'\results::fir:n_average').data()
+            time = Tree.getNode(
+                r'\results::fir:n_average').getDimensionAt().data()
+            # compute the spline interpolation of the
+            # density
+            enF = interp1d(signal.decimate(time, 10),
+                           signal.decimate(en, 10)/1e19,
+                           fill_value='extrapolate')
+            for aL, bL, col in zip(
+                    axuVLos, boloLos, colorList):
+                idx = np.where(((A.Data.sel(LoS=aL).time.values <= time.max()) &
+                                (A.Data.sel(LoS=aL).time.values >= 0.4)))[0]
+                enFake = enF(A.Data.time[idx])
+                ax[idax, 0].plot(enFake, smooth.smooth(
+                    A.Data.sel(LoS=aL)[idx]/1e3, window_len=1000), '.',
+                                 ms=4, color=col, rasterized=True)
+                # repeat the same for bolo
+                idx = np.where(((B.sel(los=bL).time.values <= time.max()) &
+                                (B.sel(los=bL).time.values >= 0.4)))[0]
+                enFake = enF(B.time.values[idx])
+                ax[idax, 1].plot(enFake, B.sel(los=bL).values[idx]/1e3,
+                                 '.', ms=4, color=col, rasterized=True)
+
+
+        # add the inset with the LoS for axuv and Bolometry
+        inS = fig.add_axes([0.8, 0.65, 0.2, 0.3])
+        eq = eqtools.TCVLIUQETree(shotList[0])
+        tilesP, vesselP = eq.getMachineCrossSectionPatch()
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlabel(r'R [m]', fontsize=14)
+        inS.set_ylabel(r'Z [m]', fontsize=14)
+        inS.add_patch(tilesP)
+        inS.add_patch(vesselP)
+        for i, c in zip(range(A.Data.shape[1]),
+                        colorList):
+            inS.plot([A.Data.xchord[0, i], A.Data.xchord[1, i]],
+                     [A.Data.ychord[0, i], A.Data.ychord[1, i]], color=c,
+                     ls='--', lw=2)
+        inS.set_title('AXUV')
+        inS.set_xlim([0.6, 1.21])
         
+        inS = fig.add_axes([0.8, 0.1, 0.2, 0.3])
+        tilesP, vesselP = eq.getMachineCrossSectionPatch()
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 0.95, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlabel(r'R [m]', fontsize=14)
+        inS.set_ylabel(r'Z [m]', fontsize=14)
+        inS.add_patch(tilesP)
+        inS.add_patch(vesselP)
+        inS.set_xlim([0.6, 1.21])
+        for i, c in zip(range(A.Data.shape[1]),
+                        colorList):
+            inS.plot([B.xchord[0, i], B.xchord[1, i]],
+                     [B.ychord[0, i], B.ychord[1, i]], color=c,
+                     ls='--', lw=2)
+        inS.set_title('BOLO')
+
+        # now add the label
+        for i, ip in zip(range(3), iPList):
+            ax[i, 0].text(0.1, 0.9, r'I$_p$ =' + ip +' kA',
+                          transform=ax[i, 0].transAxes)
+            ax[i, 1].text(0.1, 0.9, r'I$_p$ = ' + ip +' kA',
+                          transform=ax[i, 1].transAxes)
+        ax[0, 0].set_title('AXUV')
+        ax[0, 1].set_title('BOLO')
+        ax[2, 0].set_xlim([0, 12])
+        ax[0, 1].set_ylim([0, 100])
+        ax[1, 1].set_ylim([0, 100])
+        ax[2, 1].set_ylim([0, 100])
+        ax[0, 0].set_ylim([0, 10])
+        ax[1, 0].set_ylim([0, 10])
+        ax[2, 0].set_ylim([0, 30])
+        ax[0, 0].axes.get_xaxis().set_visible(False)
+        ax[0, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].axes.get_xaxis().set_visible(False)
+        ax[1, 1].axes.get_xaxis().set_visible(False)
+        ax[2, 0].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[2, 1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        mpl.pylab.savefig('../pdfbox/RadiationAxuvBoloVsDensity_ConstantBt.pdf',
+                          bbox_to_inches='tight')
+
+
+    elif selection == 15:
+        axuVLos = [83, 85, 87, 89]
+        boloLos = [44, 46, 48, 50]
+        shotList = (57461, 57454,  57497)
+        iPList = ('190', '245', '330')
+        colorList = ('#BE4248', '#586473', '#4A89AA')
+        fig, ax = mpl.pylab.subplots(figsize=(10, 12),
+                                     nrows=3, ncols=2,
+                                     sharex=True)
+        fig.subplots_adjust(right=0.7, left=0.1)
+        for shot, idax in zip(shotList,
+                             range(len(shotList))):
+            A = AXUV(shot, LoS = axuVLos)
+            B = Bolo.fromshot(shot, Los=boloLos, filter='bessel')
+            Tree = mds.Tree('tcv_shot', shot)
+            en = Tree.getNode(r'\results::fir:n_average').data()
+            time = Tree.getNode(
+                r'\results::fir:n_average').getDimensionAt().data()
+            # compute the spline interpolation of the
+            # density
+            enF = interp1d(signal.decimate(time, 10),
+                           signal.decimate(en, 10)/1e19,
+                           fill_value='extrapolate')
+            for aL, bL, col in zip(
+                    axuVLos, boloLos, colorList):
+                idx = np.where(((A.Data.sel(LoS=aL).time.values <= time.max()) &
+                                (A.Data.sel(LoS=aL).time.values >= 0.4)))[0]
+                enFake = enF(A.Data.time[idx])
+                ax[idax, 0].plot(enFake, smooth.smooth(
+                    A.Data.sel(LoS=aL)[idx]/1e3, window_len=1000), '.',
+                                 ms=4, color=col, rasterized=True)
+                # repeat the same for bolo
+                idx = np.where(((B.sel(los=bL).time.values <= time.max()) &
+                                (B.sel(los=bL).time.values >= 0.4)))[0]
+                enFake = enF(B.time.values[idx])
+                ax[idax, 1].plot(enFake, B.sel(los=bL).values[idx]/1e3,
+                                 '.', ms=4, color=col, rasterized=True)
+
+
+        # add the inset with the LoS for axuv and Bolometry
+        inS = fig.add_axes([0.8, 0.65, 0.2, 0.3])
+        eq = eqtools.TCVLIUQETree(shotList[0])
+        tilesP, vesselP = eq.getMachineCrossSectionPatch()
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlabel(r'R [m]', fontsize=14)
+        inS.set_ylabel(r'Z [m]', fontsize=14)
+        inS.add_patch(tilesP)
+        inS.add_patch(vesselP)
+        for i, c in zip(range(A.Data.shape[1]),
+                        colorList):
+            inS.plot([A.Data.xchord[0, i], A.Data.xchord[1, i]],
+                     [A.Data.ychord[0, i], A.Data.ychord[1, i]], color=c,
+                     ls='--', lw=2)
+        inS.set_title('AXUV')
+        inS.set_xlim([0.6, 1.21])
+        
+        inS = fig.add_axes([0.8, 0.1, 0.2, 0.3])
+        tilesP, vesselP = eq.getMachineCrossSectionPatch()
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 0.95, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlabel(r'R [m]', fontsize=14)
+        inS.set_ylabel(r'Z [m]', fontsize=14)
+        inS.add_patch(tilesP)
+        inS.add_patch(vesselP)
+        inS.set_xlim([0.6, 1.21])
+        for i, c in zip(range(A.Data.shape[1]),
+                        colorList):
+            inS.plot([B.xchord[0, i], B.xchord[1, i]],
+                     [B.ychord[0, i], B.ychord[1, i]], color=c,
+                     ls='--', lw=2)
+        inS.set_title('BOLO')
+
+        # now add the label
+        for i, ip in zip(range(3), iPList):
+            ax[i, 0].text(0.1, 0.9, r'I$_p$ =' + ip +' kA',
+                          transform=ax[i, 0].transAxes)
+            ax[i, 1].text(0.1, 0.9, r'I$_p$ = ' + ip +' kA',
+                          transform=ax[i, 1].transAxes)
+        ax[0, 0].set_title('AXUV')
+        ax[0, 1].set_title('BOLO')
+        ax[2, 0].set_xlim([0, 12])
+        ax[0, 1].set_ylim([0, 100])
+        ax[1, 1].set_ylim([0, 100])
+        ax[2, 1].set_ylim([0, 100])
+        ax[0, 0].set_ylim([0, 10])
+        ax[1, 0].set_ylim([0, 10])
+        ax[2, 0].set_ylim([0, 30])
+        ax[0, 0].axes.get_xaxis().set_visible(False)
+        ax[0, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].axes.get_xaxis().set_visible(False)
+        ax[1, 1].axes.get_xaxis().set_visible(False)
+        ax[2, 0].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[2, 1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        mpl.pylab.savefig('../pdfbox/RadiationAxuvBoloVsDensity_ConstantQ95.pdf',
+                          bbox_to_inches='tight')
+
+    
     elif selection == 99:
         loop = False
     else:
