@@ -17,55 +17,38 @@
 10. Repeat #1 in forward field
 11. Repeat #3 in forward field
 
-## Calendar Week 43 (23.10-27.10)
-1. Low collisionality case, model 116425. Exact repetition of 57425 upt to 0.6s after that line
-   integrated density is reduced to 0.8 finges
-2. Model 116516 (based on 53516). Ip = 190 kA DND configuration from 0.65s, density ramp as 57437
-3. Model 116517. Ip 330 kA DN density ramp as 57497
+## Calendar Week 43-44 (23.10-03.11)
+### L-Mode
+Completition of the L-Mode programme including a low collisionality case (#1), a current scan in DN 
+configuration (#2, #3), a current scan in forward field (#4, #5) and a case without detachment/shoulder 
+where N seeding is added in order to increase even further the collisionality (#6). The model number
+indicated refers to the shot number prepared by PdJ B. Labit
+
+1. Low collisionality case (prepared PdJ model 116425). Exact repetition of 57425 upt to 0.6s after that line integrated density is reduced to 0.8 fringes
+2. PdJ Model 116516 (based on 53516). Ip = 190 kA DND configuration from 0.65s, density ramp as 57437
+3. PdJ Model 116517. Ip 330 kA DN density ramp as 57497
 4. Model 116437. Ip 190 kA repeat the density ramp of 57437 in forward field
 5. Model 116497. Ip 330 kA repeat the density ramp of shot 57497 in forward field
-6. H-Mode plasma. Try to reproduce shot 55860. Plunges @ 0.5 and 1 s
-7. Repeat point #6 with different plunges @0.7 1.15
-8. Repeat point #6 add N seeding. Use seeding from half of the value of # 57822. Monitor target temperature evolution
-9. Repeat #8 adjust seeding accordingly.
-10. Contingency
-
-## Calendar Week 44 (30.10-03.11)
-This so far is a tentative schedule. 4 shots of contingency are kept. They will be used for the determination of the 
-best suitable scenario in terms of heating and fueling. In case all succesful repeat the best suitable scenario
-to get more robust statistics in terms of filaments
-1. Repeat 58366 with NBH power ramp from 1s associated with the feed-forward gas fueling. Power from (200kW, 1s) to
-   (800 kW, 1.4s). Adjust vertial position (z=5 cm )
-2. Repeat #1 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating.
-   If #1 succesfull then change stroking time
-3. Repeat #1, reducing feed-forward gas while keeping best option for power ramp fomr #1-#2. Add N seeding and 
-   monitor target temperature
-4. Repeat #3 adjusting dosing rate and change stroking time
-5. Contingency
-6. Contingency
+6. Repeat Shot 57497 Ip=330 kA,  Bt=1.43T with the same density ramp. Add N seeding in feed forward copying settings from shot 52147
 7. Contingency
-8. Contingency
 
-## OLD UNUSED
-Reference shot for Type I ELMy H-Mode from TCV15-2.3-1 #53352 with Z=+8cm, still compatible
-with NBI operation. The ELM frequency is 100Hz approximately
+### H-Mode
+The target plasma is an high density H-Mode plasma where we reach detachment of the outer divertor. 
+Ideally we would like to reach density up to the **Degraded H-Mode**. The strategy is moving from 
+the best scenario obtained on Topic-24, Topic-06 and Topic-18 and play with density/power.
 
-1. Repeat #53352 same sentting. 1MW NBI power from 0.8 to 1.2 s. At 0.82 s starts a
-    density ramp keeping the same rate as #1. At 1.2 second power ramp down for check ELMy regime
-2. Repeat #11 adjusting the fueling accordingly. We include N seeding
-3. Repeat #12 with best trade off between fueling and seeding
-4.  Repeat #53352 with probe plunge in L and H-mode. Check robustness of Probe signal in H-mode, eventually adjust
-    maximum insertion
-5.  Repeat #53352 D2 density ramp once H-Mode is established.
-6.  Check maximum density achieved before H-Mode degradation or disruption. Density feedback to
-    this value during H-Mode. NBI power ramp down to check for ELMy regime
-7.  Repeat #3 for diagnostic purpouse
-8.  repeat #3 in the High-Density phase start N-seeding. Use seeding rate from Detachment experiment
-    in L-Mode as starting point
-9.  Evaluation of #6 in terms of divertor condition. Choose the right N-seeding values and repeat
-10.  Repeat #6, anticipate the NBI power, keep density and N-seeding after the H-L transition. Plunge also in L-Mode
-11.  Repeat #7 for diagnostic purpouse
-12.  Repeat #8. If feasible decrease vertical position @ Z=-8cm
+8. H-Mode plasma. Try to reproduce shot 55860. Shape needs to be adjusted with SP on the floor. Plunges @ 0.5 and 1 s
+9. Repeat point #8 with different plunges @0.7 1.15
+10. Repeat point #8 add N seeding. Use seeding from half of the value of # 57822. Monitor target temperature evolution
+11. Repeat #1 adjust seeding accordingly.
+12. Repeat 58366 with NBH power ramp from 1s associated with the feed-forward gas fueling. Power from (200kW, 1s) to (800 kW, 1.4s). Adjust vertial position (z=5 cm)
+13. Repeat #5 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating. If #5 succesfull then change stroking time
+14. Repeat #5, reducing feed-forward gas while keeping best option for power ramp from #12-#13. Add N seeding and monitor target temperature
+15. Repeat #7 adjusting dosing rate and change stroking time
+16. Contingency
+17. Contingency
+18. Contingency
+
 
 
 
