@@ -206,6 +206,8 @@ class Turbo(object):
         data.attrs['err'] = err
         # position, time
         data.attrs['R'] = Ravg
+        data.attrs['Rho'] = self._eq.rz2psinorm(
+            Ravg, 0, (tmax + tmin) / 2, sqrt=True)
         data.attrs['tmin'] = tmin
         data.attrs['tmax'] = tmax
         data.attrs['RrsepMin'] = self.RRsep[_idx].min()
@@ -272,6 +274,11 @@ class Turbo(object):
         data.attrs['Theta'] = Theta
         data.attrs['ThetaErr'] = Err
 
+        # add the Efolding 
+        _idx = np.where(((self.rhoArray >= self.RRsep[_idx].min()) &
+                        (self.rhoArray <= self.RRsep[_idx].max())))[0]
+        data.attrs['Efold'] = self.Efolding[_idx].mean()
+        data.attrs['Efold Err'] = self.Efolding[_idx].std()
         # add also the results of the conditional average
         # which is useful
         data.attrs['CAS'] = cs
