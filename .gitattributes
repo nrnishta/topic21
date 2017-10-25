@@ -1,0 +1,2 @@
+Experiments/TCV/data/tree/tcv_topic21_*.tree filter=lfs diff=lfs merge=lfs -text
+Experiments/TCV/data/tree/tcv_topic21_*.characteristics filter=lfs diff=lfs merge=lfs -text
