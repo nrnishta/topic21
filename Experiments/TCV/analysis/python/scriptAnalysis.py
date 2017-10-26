@@ -13,7 +13,6 @@ import gauges
 import tcvFilaments
 from tcv.diag.axuv import AXUV
 import smooth
-import matplotlib.patches as mpatches
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Tahoma']})
