@@ -36,6 +36,7 @@ def print_menu():
     print "13. Radiation vs Density Ip Scan at constant q95"
     print "14. Compare Bolo radiation vs AXUV radiation at constant Bt"
     print "15. Compare Bolo radiation vs AXUV radiation at constant Bt"
+    print "16. Compare Shot 245 Different bt with/without N2 seeding"
     print "99: End"
     print 67 * "-"
 
@@ -1483,8 +1484,102 @@ while loop:
         mpl.pylab.savefig('../pdfbox/RadiationAxuvBoloVsDensity_ConstantQ95.pdf',
                           bbox_to_inches='tight')
 
-    
+    elif selection == 16:
+        shotList = (57437, 57454, 58637)
+        colorList = ('#BE4248', '#586473', '#4A89AA')
+        # we build a plot where we compare target ion flux/and two values
+        # of bolometry as a function of line average density
+        fig, ax = mpl.pylab.subplots(figsize=(10, 10), nrows=3,
+                                     ncols=1, sharex=True)
+        fig.subplots_adjust(right=0.96, hspace=0.05, top=0.98)
+        for shot, col in zip(shotList, colorList):
+            # load the line average density
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            Bt = mds.Data.compile('tcv_eq("BZERO")').evaluate()
+            BtTime = Bt.getDimensionAt().data()
+            Bt = Bt.data().ravel()
+            # get values and sign of Bt
+            _idx = np.where(((BtTime >= 0.4) & (BtTime <= 1)))[0]
+            BtSign = np.sign(Bt[_idx])
+            Bt = Bt[_idx].mean()
+            # Load the Target
+            Target = langmuir.LP(shot, Type='floor')
+            # interpolate the density
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            # load the bolometry signal
+            B = Bolo.fromshot(shot, Los=[44, 50],
+                              filter='bessel')
+            ax[0].plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                       color=col, label=r'Shot %5i' % shot +
+                       ' Bt = %3.2f' % Bt)
+            _idx = np.where(((B.time.values >= 0.5) &
+                             (B.time.values <=
+                              eNode.getDimensionAt().data().max())))[0]
+            ax[1].plot(enF(B.time.values[_idx]),
+                       B.sel(los=44).values[_idx]/1e3,
+                       '.', markersize=5, color=col)
+            ax[2].plot(enF(B.time.values[_idx]),
+                       B.sel(los=50).values[_idx]/1e3,
+                       '.', markersize=5, color=col)
+
+        ax[1].axes.get_xaxis().set_visible(False)
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[2].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[2].set_xlim([0, 12])
+        ax[0].set_ylabel('Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax[1].set_ylabel(r'kW/m$^2$')
+        ax[2].set_ylabel(r'kW/m$^2$')
+        ax[1].set_ylim([0, 50])
+        ax[2].set_ylim([0, 100])
+        ax[0].set_ylim([0, 3])
+        eq = eqtools.TCVLIUQETree(shot)
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+        inS = fig.add_axes([0.15, 0.47, 0.14, 0.14])
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, 0.])
+        inS.axis('off')
+        inS.plot([B.xchord[0, 0], B.xchord[1, 0]],
+                 [B.ychord[0, 0], B.ychord[1, 0]], 'k-', lw=2)
+
+        inS = fig.add_axes([0.15, 0.2, 0.14, 0.14])
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 20), colors='grey',
+                    linestyles='-', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 7), colors='grey',
+                    linestyles='--', linewidths=2)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, 0.])
+        inS.axis('off')
+        inS.plot([B.xchord[0, 1], B.xchord[1, 1]],
+                 [B.ychord[0, 1], B.ychord[1, 1]], 'k-', lw=2)
+        ax[0].legend(loc='best', numpoints=1, frameon=False)
+        mpl.pylab.savefig('../pdfbox/RolloverDifferentBtN.pdf',
+                          bbox_to_inches='tight')
+
+        
+        
     elif selection == 99:
         loop = False
     else:
         raw_input("Unknown Option Selected!")
+

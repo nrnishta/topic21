@@ -23,8 +23,8 @@ class Gas(object):
         """
 
         self.shot = shot
-        self.gas = gases
-        self.valves = np.asarray(valves)
+        self.gas = np.atleast_1d(gases)
+        self.valves = np.asarray(np.atleast_1d(valves))
         # define the calibration factor dictionary for the
         # different
         self.Calibration = {
