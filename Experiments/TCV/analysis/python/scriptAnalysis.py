@@ -37,6 +37,9 @@ def print_menu():
     print "14. Compare Bolo radiation vs AXUV radiation at constant Bt"
     print "15. Compare Bolo radiation vs AXUV radiation at constant Bt"
     print "16. Compare Shot 245 Different bt with/without N2 seeding"
+    print "17. Compare upper/lower divertor front movement DN discharges"
+    print "18. Compare current scan at constant Bt forward/reverse Bt"
+    print "19. Compare current scan at constant Bt LSN/DN"
     print "99: End"
     print 67 * "-"
 
@@ -1576,10 +1579,308 @@ while loop:
         mpl.pylab.savefig('../pdfbox/RolloverDifferentBtN.pdf',
                           bbox_to_inches='tight')
 
+    elif selection == 17:
+        shotList = (58623, 58624)
+        colorList = ('#BE4248', '#586473', '#4A89AA', '#217328')
+        for shot in shotList:
+            if shot == 58623:
+                Los = [20, 14, 44, 49]
+            else:
+                Los = [20, 16, 44, 49]
+
+            fig, ax = mpl.pylab.subplots(figsize=(10, 6),
+                                         nrows=1, ncols=1)
+            fig.subplots_adjust(right=0.67, left=0.12, bottom=0.15)
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            # interpolate the density
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+
+            B = Bolo.fromshot(shot, Los=Los)
+            _idx = np.where(((B.time.values >= 0.5) &
+                             (B.time.values <=
+                              eNode.getDimensionAt().data().max())))[0]
+            for l, col in zip(Los, colorList):
+                ax.plot(enF(B.time.values[_idx]),
+                        B.sel(los=l).values[_idx]/1e3, '.', ms=4,
+                        color=col)
+            ax.set_xlim([0, 12])
+            ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+            ax.set_ylabel(r'kW/m$^2$')
+            ax.set_title(r'# %5i' % shot)
+            inS = fig.add_axes([0.78, 0.15, 0.2, 0.7])
+            eq = eqtools.TCVLIUQETree(shot)
+            i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+            psiN = (eq.getFluxGrid()[i0] -
+                    eq.getFluxAxis()[i0])/(
+                        eq.getFluxLCFS()[i0] -
+                        eq.getFluxAxis()[i0])
+            inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                        np.linspace(0.1, 1, 15), colors='grey',
+                        linestyles='-', linewidths=1.5)
+            inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                        np.linspace(1, 1.1, 5), colors='grey',
+                        linestyles='--', linewidths=1.5)
+            inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                        [1], colors='red',
+                        linestyles='-', linewidths=1.5)
+            tilesP, vesselP = eq.getMachineCrossSectionPatch()
+            inS.add_patch(tilesP)
+            inS.add_patch(vesselP)
+            inS.set_aspect('equal')
+            inS.set_xlabel('R [m]')
+            inS.set_ylabel('Z [m]')
+            inS.set_xlim([0.5, 1.2])
+            inS.set_ylim([-0.8, 0.8])
+            for i, col in zip(range(B.los.size), colorList):
+                inS.plot([B.xchord[0, i], B.xchord[1, i]],
+                         [B.ychord[0, i], B.ychord[1, i]], '--',
+                         color=col, lw=1.5)
+            mpl.pylab.savefig('../pdfbox/DNRadiation_%5i' % shot +
+                              '.pdf', bbox_to_inches='tight')
+
+    elif selection == 18:
+        shotAll = ((57437, 57425), (58629, 58635))
+        colorList = ('#BE4248', '#586473')
+        iPL = ('190', '245')
+        fig, ax = mpl.pylab.subplots(
+            figsize=(12, 14), nrows=3, ncols=2, sharex=True)
+        for shotL, _idAx in zip(shotAll, range(len(shotAll))):
+            for shot, col, ip in zip(shotL, colorList, iPL):
+                Target = langmuir.LP(shot, Type='floor')
+                Tree = mds.Tree('tcv_shot', shot)
+                eNode = Tree.getNode(r'\results::fir:n_average')
+                enF = interp1d(signal.decimate(
+                    eNode.getDimensionAt().data(), 10),
+                               signal.decimate(eNode.data(), 10)/1e19,
+                               fill_value='extrapolate')
+                # get the thwo chords of Bolo which are interesting
+                B = Bolo.fromshot(shot, Los=[44, 50])
+                ax[0, _idAx].plot(
+                    enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label=r'Shot %5i' % shot +
+                    r' I$_p$ = ' + ip + ' kA')
+
+                _idx = np.where(((B.time.values >= 0.5) &
+                                 (B.time.values <=
+                                  eNode.getDimensionAt().data().max())))[0]
+
+                ax[1, _idAx].plot(enF(B.time.values[_idx]),
+                                 B.sel(los=44).values[_idx]/1e3,
+                                 '.', markersize=5, color=col)
+
+                ax[2, _idAx].plot(enF(B.time.values[_idx]),
+                                 B.sel(los=50).values[_idx]/1e3,
+                                 '.', markersize=5, color=col)
+
+        ax[0, 0].set_xlim([1, 10])
+        ax[0, 0].set_title(r'RF')
+        ax[0, 1].set_title(r'FF')
+        ax[0, 0].set_ylim([0, 4.2])
+        ax[0, 1].set_ylim([0, 4.2])
+        ax[0, 0].set_ylabel(r'[10$^{27}$s$^{-1}$]')
         
+        ax[0, 0].axes.get_xaxis().set_visible(False)
+        ax[0, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].axes.get_xaxis().set_visible(False)
+        ax[1, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].set_ylim([0, 50])
+        ax[1, 1].set_ylim([0, 50])
+        ax[2, 0].set_ylim([0, 100])
+        ax[2, 1].set_ylim([0, 100])
+        ax[2, 0].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[2, 1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
+        ax[0, 1].legend(loc='best', numpoints=1, frameon=False)
+
+        inS = fig.add_axes([0.14, 0.47, 0.1, 0.1])
+        eq = eqtools.TCVLIUQETree(shot)
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        inS.plot([B.xchord[0, 0], B.xchord[1, 0]],
+                 [B.ychord[0, 0], B.ychord[1, 0]],
+                 '--', lw=1.2)
+        inS = fig.add_axes([0.14, 0.22, 0.1, 0.1])
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.plot([B.xchord[0, 1], B.xchord[1, 1]],
+                 [B.ychord[0, 1], B.ychord[1, 1]],
+                 '--', lw=1.2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        mpl.pylab.savefig('../pdfbox/CompareForwardReversed.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 19:
+        shotAll = ((57437, 57497), (58623, 58624))
+        colorList = ('#BE4248', '#586473')
+        iPL = ('190', '330')
+        fig, ax = mpl.pylab.subplots(
+            figsize=(12, 14), nrows=3, ncols=2, sharex=True)
+        for shotL, _idAx in zip(shotAll, range(len(shotAll))):
+            for shot, col, ip in zip(shotL, colorList, iPL):
+                Target = langmuir.LP(shot, Type='floor')
+                Tree = mds.Tree('tcv_shot', shot)
+                eNode = Tree.getNode(r'\results::fir:n_average')
+                enF = interp1d(signal.decimate(
+                    eNode.getDimensionAt().data(), 10),
+                               signal.decimate(eNode.data(), 10)/1e19,
+                               fill_value='extrapolate')
+                # get the thwo chords of Bolo which are interesting
+                B = Bolo.fromshot(shot, Los=[44, 50])
+                ax[0, _idAx].plot(
+                    enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label=r'Shot %5i' % shot +
+                    r' I$_p$ = ' + ip + ' kA')
+
+                _idx = np.where(((B.time.values >= 0.5) &
+                                 (B.time.values <=
+                                  eNode.getDimensionAt().data().max())))[0]
+
+                ax[1, _idAx].plot(enF(B.time.values[_idx]),
+                                 B.sel(los=44).values[_idx]/1e3,
+                                 '.', markersize=5, color=col)
+
+                ax[2, _idAx].plot(enF(B.time.values[_idx]),
+                                 B.sel(los=50).values[_idx]/1e3,
+                                 '.', markersize=5, color=col)
+
+        ax[0, 0].set_xlim([1, 10])
+        ax[0, 0].set_title(r'LSN-RF')
+        ax[0, 1].set_title(r'DN')
+        ax[0, 0].set_ylim([0, 6])
+        ax[0, 1].set_ylim([0, 6])
+        ax[0, 0].set_ylabel(r'[10$^{27}$s$^{-1}$]')
+        
+        ax[0, 0].axes.get_xaxis().set_visible(False)
+        ax[0, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].axes.get_xaxis().set_visible(False)
+        ax[1, 1].axes.get_xaxis().set_visible(False)
+        ax[1, 0].set_ylim([0, 50])
+        ax[1, 1].set_ylim([0, 50])
+        ax[2, 0].set_ylim([0, 200])
+        ax[2, 1].set_ylim([0, 200])
+        ax[2, 0].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[2, 1].set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax[0, 0].legend(loc='best', numpoints=1, frameon=False)
+        ax[0, 1].legend(loc='best', numpoints=1, frameon=False)
+
+        # these are the first ones
+        inS = fig.add_axes([0.14, 0.47, 0.1, 0.1])
+        eq = eqtools.TCVLIUQETree(57437)
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        inS.plot([B.xchord[0, 0], B.xchord[1, 0]],
+                 [B.ychord[0, 0], B.ychord[1, 0]],
+                 '--', lw=1.2)
+        inS = fig.add_axes([0.14, 0.22, 0.1, 0.1])
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.plot([B.xchord[0, 1], B.xchord[1, 1]],
+                 [B.ychord[0, 1], B.ychord[1, 1]],
+                 '--', lw=1.2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        # then the second
+        inS = fig.add_axes([0.6, 0.47, 0.1, 0.1])
+        eq = eqtools.TCVLIUQETree(58623)
+        i0 = np.argmin(np.abs(eq.getTimeBase()-1))
+        psiN = (eq.getFluxGrid()[i0]-
+                eq.getFluxAxis()[i0])/(eq.getFluxLCFS()[i0]-
+                                       eq.getFluxAxis()[i0])
+
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        inS.plot([B.xchord[0, 0], B.xchord[1, 0]],
+                 [B.ychord[0, 0], B.ychord[1, 0]],
+                 '--', lw=1.2)
+        inS = fig.add_axes([0.6, 0.22, 0.1, 0.1])
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(0.1, 1, 15), colors='grey',
+                    linestyles='-', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    np.linspace(1, 1.1, 5), colors='grey',
+                    linestyles='--', linewidths=1.5)
+        inS.contour(eq.getRGrid(), eq.getZGrid(), psiN,
+                    [1], colors='red',
+                    linestyles='-', linewidths=2)
+        inS.plot([B.xchord[0, 1], B.xchord[1, 1]],
+                 [B.ychord[0, 1], B.ychord[1, 1]],
+                 '--', lw=1.2)
+        inS.set_aspect('equal')
+        inS.set_xlim([0.6, 1.2])
+        inS.set_ylim([-0.75, -0.25])
+        inS.axis('off')
+        
+        
+        mpl.pylab.savefig('../pdfbox/CompareLSN-DN.pdf',
+                          bbox_to_inches='tight')
         
     elif selection == 99:
         loop = False
     else:
         raw_input("Unknown Option Selected!")
-

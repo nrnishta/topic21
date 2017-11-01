@@ -45,7 +45,7 @@ class LP:
         # try to open the filament Tree otherwise we will
         # need to compute using Field Line Tracing
         try:
-            self._filament = mds.Tree('tcv_topic21',self.shot)
+            self._filament = mds.Tree('tcv_topic21', self.shot)
             self._tagF = True
         except:
             self._tagF = False

@@ -48,6 +48,10 @@ the best scenario obtained on Topic-24, Topic-06 and Topic-18 and play with dens
 16. Contingency
 17. Contingency
 18. Contingency
+### Contingency shot
+1. Repeat Shot 58698 with 2 plunges 0.5 and 0.9
+2. Reprise shot 58711, extend power pulse 0.55-1.85 s, traslate the feed forward 100 ms before, add a faster ramp from 1.75s
+
 
 
 
