@@ -115,6 +115,7 @@ class LP:
         rOut = numpy.asarray([])
         neOut = numpy.asarray([])
         teOut = numpy.asarray([])
+        rhoOut = numpy.asarray([])
         for r in range(self.R.size):
             _idx = ((self.t >= trange[0]) &
                     (self.t <= trange[1])).nonzero()[0]
@@ -123,7 +124,8 @@ class LP:
                 teOut = numpy.append(teOut, self.te[_idx, r])
                 rOut = numpy.append(rOut,
                                     self.RUpStream[_idx, r])
-
+                rhoOut = numpy.append(rhoOut,
+                                      self.Rho[_idx, r])
         # we include also an univariate spline interpolation
         # and we decide to output a dictionary containing the
         # values
@@ -143,7 +145,8 @@ class LP:
                     ('en', neOut),
                     ('te', teOut),
                     ('neInt', neInt),
-                    ('teInt', teInt)])
+                    ('teInt', teInt),
+                    ('rho', rhoOut)])
         return out
 
     def Lambda(self, gas='D2', trange=[0.6, 0.8]):
