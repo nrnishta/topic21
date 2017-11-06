@@ -40,6 +40,10 @@ def print_menu():
     print "17. Compare upper/lower divertor front movement DN discharges"
     print "18. Compare current scan at constant Bt forward/reverse Bt"
     print "19. Compare current scan at constant Bt LSN/DN"
+    print "20. Compare DN/LSN profiles evolution Ip=190kA"
+    print "21. Compare DN/LSN profiles evolution Ip=330kA"
+    print "22. Compare FF/RF profiles evolution Ip=190kA"
+    print "23. Compare FF/RF profiles evolution Ip=330kA"
     print "99: End"
     print 67 * "-"
 
@@ -1875,10 +1879,223 @@ while loop:
         inS.set_xlim([0.6, 1.2])
         inS.set_ylim([-0.75, -0.25])
         inS.axis('off')
-        
-        
         mpl.pylab.savefig('../pdfbox/CompareLSN-DN.pdf',
                           bbox_to_inches='tight')
+    elif selection == 20:
+        # we plot the profiles before and
+        # after roll-over mediated
+        shotList = (57437, 58623)
+        Type = ('LSN', 'DN')
+        colorList = ('#BE4248', '#586473')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax1 = mpl.pylab.subplot2grid((2, 2), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        for shot, col, ty in zip(shotList, colorList, Type):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot + ' ' + ty)
+            ax.axvspan(4, 5, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(7, 8, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 4.) & (_dummy <= 5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 7) & (_dummy <= 8)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 2.5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesLSN-DN.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 21:
+        # we plot the profiles before and
+        # after roll-over mediated
+        shotList = (57497, 58624)
+        Type = ('LSN', 'DN')
+        colorList = ('#BE4248', '#586473')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax1 = mpl.pylab.subplot2grid((2, 2), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        for shot, col, ty in zip(shotList, colorList, Type):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot + ' ' + ty)
+            ax.axvspan(4, 5, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(9.5, 10.5, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 4.) & (_dummy <= 5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 9.5) & (_dummy <= 10.5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesLSN-DN_HighIp.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 22:
+        # we plot the profiles before and
+        # after roll-over mediated
+        shotList = (57437, 58629)
+        Type = ('RF', 'FF')
+        colorList = ('#BE4248', '#586473')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax1 = mpl.pylab.subplot2grid((2, 2), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        for shot, col, ty in zip(shotList, colorList, Type):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot + ' ' + ty)
+            ax.axvspan(3, 4, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(7, 8, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 3.) & (_dummy <= 4)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 7) & (_dummy <= 8)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 2.5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesFF-RF_LowIp.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 23:
+        # we plot the profiles before and
+        # after roll-over mediated
+        shotList = (57245, 58635)
+        Type = ('RF', 'FF')
+        colorList = ('#BE4248', '#586473')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 2), (0, 0), colspan=2)
+        ax1 = mpl.pylab.subplot2grid((2, 2), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 2), (1, 1))
+        for shot, col, ty in zip(shotList, colorList, Type):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot + ' ' + ty)
+            ax.axvspan(6, 6.8, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(8, 9, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 6.) & (_dummy <= 6.8)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 8) & (_dummy <= 9)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesFF-RF_HighIp.pdf',
+                          bbox_to_inches='tight')
+
         
     elif selection == 99:
         loop = False
