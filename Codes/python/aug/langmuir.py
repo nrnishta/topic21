@@ -10,6 +10,9 @@ from mpl_toolkits.mplot3d import Axes3D
 from cyfieldlineTracer import get_fieldline_tracer
 from scipy.interpolate import interp1d
 from scipy.interpolate import RectBivariateSpline 
+from scipy.signal import savgol_filter
+from scipy.interpolate import UnivariateSpline
+from time_series_tools import identify_bursts2
 from scipy import constants
 from collections import namedtuple
 fluxSurface = namedtuple('fluxSurface','R Z')
@@ -531,12 +534,13 @@ class Target(object):
         rho = rho[:, _idx]
 
         if interelm:
-            self._maskElm(usedda=True, trange=trange, **kwargs)
+            print('Computing profiles in inter-ELM phase')
+            self._maskElm(trange=trange, **kwargs)
             t = t[self._interElm]
             sig = sig[:, self._interElm]
             rho = rho[:, self._interElm]
         if elm:
-            self._maskElm(usedda=True, trange=trange, **kwargs)
+            self._maskElm(trange=trange, **kwargs)
             t = t[self._Elm]
             sig = sig[:, self._Elm]
             rho = rho[:, self._Elm]
@@ -612,12 +616,12 @@ class Target(object):
         rho = rho[:, _idx]
 
         if interelm:
-            self._maskElm(usedda=True, trange=trange, check=True)
+            self._maskElm(trange=trange, **kwargs)
             t = t[self._interElm]
             sig = sig[:, self._interElm]
             rho = rho[:, self._interElm]
         if elm:
-            self._maskElm(usedda=True, trange=trange, check=True)
+            self._maskElm(trange=trange, **kwargs)
             t = t[self._Elm]
             sig = sig[:, self._Elm]
             rho = rho[:, self._Elm]
@@ -679,7 +683,7 @@ class Target(object):
         if usedda:
             print("Using ELM dda")
             ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
-            elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
+            elmd = ELM("t_endELM", tBegin=trange[0], tEnd=trange[1])
             # limit to the ELM included in the trange
             _idx = np.where((elmd.time>= trange[0]) & (elmd.time <= trange[1]))[0]
             self.tBegElm = eldm.time[_idx]
@@ -733,7 +737,7 @@ class Target(object):
                 ax.axvline(_te, ls='--', color='#ff7f0e')
 
     def computeLambda(self, Type='OuterTarget', trange=[3, 3.1],
-                      interelm=False, elm=False, Plot=False, **kwargs):
+                      Plot=False, **kwargs):
         """
         Compute the Normalized Divertor Collisionality computing the parallel
         connection length through the field-line tracing code and then averaging
@@ -756,8 +760,8 @@ class Target(object):
         rho, Lpar = self._computeLpar(trange=trange)
 
         # now we compute the profiles of density and temperature at the divertor
-        rhoEn, en, errEn = self.PlotEnProfile(trange=trange, Type=Type, Plot=False, **kwargs)
-        rhoTe, Te, errTe = self.PlotTeProfile(trange=trange, Type=Type, Plot=False, **kwargs)
+        rhoEn, en, errEn = self.PlotEnProfile(trange=trange, Plot=False, **kwargs)
+        rhoTe, Te, errTe = self.PlotTeProfile(trange=trange, Plot=False, **kwargs)
         # we now consider a spline interpolation taking into account the error
         sEn = interp1d(rhoEn, en, fill_value='extrapolate')
         sTe = interp1d(rhoTe, Te, fill_value='extrapolate')

@@ -342,18 +342,17 @@ class Filaments(object):
             rhoLambda, Lambda = self.Target.computeLambda(
                 Type='OuterTarget',
                 trange=[trange[0]-0.01, trange[1]+0.01],
-                interelm=True, threshold=threshold,
-                **kwargs)
+                interelm=True, threshold=threshold)
         else:
             rhoLambda, Lambda = self.Target.computeLambda(
                 Type='OuterTarget',
-                trange=[trange[0]-0.01, trange[1]+0.01],  **kwargs)
+                trange=[trange[0]-0.01, trange[1]+0.01])
         # compute the lambda corresponding to the chosen probe
         self.loadPosition(trange=trange)
         # determine the rho corresponding to the Probe
         data.attrs['Rho'] = np.nanmean(self.rhoProbe)
         S = UnivariateSpline(rhoLambda, Lambda, s=0)
-        data.attrs['Lambda'] = S(np.nanmean(self.rhoProbe))
+        data.attrs['Lambda'] = S(1.03)
         data.attrs['rhoLambda'] = rhoLambda
         data.attrs['LambdaProfile'] = Lambda
         # save also 
