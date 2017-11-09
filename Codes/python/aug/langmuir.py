@@ -531,12 +531,12 @@ class Target(object):
         rho = rho[:, _idx]
 
         if interelm:
-            self._maskElm(usedda=True, trange=trange, check=True)
+            self._maskElm(usedda=True, trange=trange, **kwargs)
             t = t[self._interElm]
             sig = sig[:, self._interElm]
             rho = rho[:, self._interElm]
         if elm:
-            self._maskElm(usedda=True, trange=trange, check=True)
+            self._maskElm(usedda=True, trange=trange, **kwargs)
             t = t[self._Elm]
             sig = sig[:, self._Elm]
             rho = rho[:, self._Elm]
@@ -756,8 +756,8 @@ class Target(object):
         rho, Lpar = self._computeLpar(trange=trange)
 
         # now we compute the profiles of density and temperature at the divertor
-        rhoEn, en, errEn = self.PlotEnProfile(trange=trange, Type=Type, Plot=False)
-        rhoTe, Te, errTe = self.PlotTeProfile(trange=trange, Type=Type, Plot=False)
+        rhoEn, en, errEn = self.PlotEnProfile(trange=trange, Type=Type, Plot=False, **kwargs)
+        rhoTe, Te, errTe = self.PlotTeProfile(trange=trange, Type=Type, Plot=False, **kwargs)
         # we now consider a spline interpolation taking into account the error
         sEn = interp1d(rhoEn, en, fill_value='extrapolate')
         sTe = interp1d(rhoTe, Te, fill_value='extrapolate')

@@ -336,15 +336,30 @@ class Filaments(object):
         # compute the lags and save as attributes. 
         data.attrs['Lags'] = self._computeLag(cs)
         # now we need to compute the lambda through the langmuir class
-        rhoLambda, Lambda = self.Target.computeLambda(
-            Type='OuterTarget', trange=trange,
-            interelm=interELM, elm=False, Plot=False, **kwargs)
+        # since we are using small intervals in the analysis
+        # we 
+        if interELM:
+            rhoLambda, Lambda = self.Target.computeLambda(
+                Type='OuterTarget',
+                trange=[trange[0]-0.01, trange[1]+0.01],
+                interelm=True, threshold=threshold,
+                **kwargs)
+        else:
+            rhoLambda, Lambda = self.Target.computeLambda(
+                Type='OuterTarget',
+                trange=[trange[0]-0.01, trange[1]+0.01],  **kwargs)
         # compute the lambda corresponding to the chosen probe
         self.loadPosition(trange=trange)
         # determine the rho corresponding to the Probe
         data.attrs['Rho'] = np.nanmean(self.rhoProbe)
         S = UnivariateSpline(rhoLambda, Lambda, s=0)
         data.attrs['Lambda'] = S(np.nanmean(self.rhoProbe))
+        data.attrs['rhoLambda'] = rhoLambda
+        data.attrs['LambdaProfile'] = Lambda
+        # save also 
+        if interELM:
+            data.attrs['ELMThreshold'] = threshold
+        
         return data
 
     def _defineTime(self, trange=[2, 3]):
