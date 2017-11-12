@@ -45,6 +45,8 @@ def print_menu():
     print "22. Compare FF/RF profiles evolution Ip=190kA"
     print "23. Compare FF/RF profiles evolution Ip=330kA"
     print "24. Save timing blobs for Strokes"
+    print "25. Equilibria and Lparallel current scant at constant Bt"
+    print "26. Equilibria and Lparallel current scant at constant q95"
     print "99: End"
     print 67 * "-"
 
@@ -2114,6 +2116,76 @@ while loop:
 
             np.savetxt('../data/FilamentsShot%5i' % shot +'.txt', np.c_[timing],
                        fmt='%7.6f')
+    elif selection == 25:
+        shotList = (57425, 57437, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
+                                     nrows=2, ncols=1)
+        for shot, col in zip(shotList, colorList):
+            Eq = eqtools.TCVLIUQETree(shot)
+            # normalize the poloidal flux at 1s
+            i0 = np.argmin(np.abs(Eq.getTimeBase()-1))
+            psiN = (Eq.getFluxGrid()[i0]-
+                    Eq.getFluxAxis()[i0])/(Eq.getFluxLCFS()[i0]-
+                                           Eq.getFluxAxis()[i0])
+            Ax[0].contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(0., 1, 10), colors=col,
+                          linestyles='-')
+            Ax[0].contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(1.01, 1.1, 5), colors=col,
+                          linestyles='--')
+            # now load the parallel connection length
+            # and find the profiles closest to 1
+            Tree = mds.Tree('tcv_topic21', shot)
+            LpT = Tree.getNode(r'\LPDIVX').getDimensionAt(0).data()
+            _i0 = np.argmin(np.abs(LpT-1))
+            Lp = Tree.getNode(r'\LPDIVX').data()[_i0, :]
+            Rho = Tree.getNode(r'\LPRHO').data()[_i0, :]
+            Ax[1].plot(Rho, Lp, '-', color=col, label='# %5i' % shot)
+            Ax[1].legend(loc='best', numpoints=1, frameon=False)
+            Tree.quit()
+        Ax[0].set_aspect('equal')
+        Ax[0].axis('off')
+        Ax[1].set_xlabel(r'$\rho_p$')
+        Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
+        mpl.pylab.savefig('../pdfbox/EquilibriaLparallelConstantBt.pdf',
+                          bbox_to_inches='tight')
+            
+                       
+    elif selection == 26:
+        shotList = (57454, 57461, 57497)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
+                                     nrows=2, ncols=1)
+        for shot, col in zip(shotList, colorList):
+            Eq = eqtools.TCVLIUQETree(shot)
+            # normalize the poloidal flux at 1s
+            i0 = np.argmin(np.abs(Eq.getTimeBase()-1))
+            psiN = (Eq.getFluxGrid()[i0]-
+                    Eq.getFluxAxis()[i0])/(Eq.getFluxLCFS()[i0]-
+                                           Eq.getFluxAxis()[i0])
+            Ax[0].contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(0., 1, 10), colors=col,
+                          linestyles='-')
+            Ax[0].contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(1.01, 1.1,5), colors=col,
+                          linestyles='--')
+            # now load the parallel connection length
+            # and find the profiles closest to 1
+            Tree = mds.Tree('tcv_topic21', shot)
+            LpT = Tree.getNode(r'\LPDIVX').getDimensionAt(0).data()
+            _i0 = np.argmin(np.abs(LpT-1))
+            Lp = Tree.getNode(r'\LPDIVX').data()[_i0, :]
+            Rho = Tree.getNode(r'\LPRHO').data()[_i0, :]
+            Ax[1].plot(Rho, Lp, '-', color=col, label='# %5i' % shot)
+            Ax[1].legend(loc='best', numpoints=1, frameon=False)
+            Tree.quit()
+        Ax[0].set_aspect('equal')
+        Ax[0].axis('off')
+        Ax[1].set_xlabel(r'$\rho_p$')
+        Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
+        mpl.pylab.savefig('../pdfbox/EquilibriaLparallelConstantQ95.pdf',
+                          bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:
