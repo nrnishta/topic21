@@ -15,6 +15,8 @@ from scipy.signal import decimate
 import pandas as pd
 import map_equ
 import equilibrium
+import libes
+import xarray as xray
 sys.path.append('/afs/ipp/home/n/nvianell/pythonlib/submodules/pycwt/')
 sys.path.append('/afs/ipp/home/n/nvianell/analisi/topic21/Codes/python/general/')
 sys.path.append('/afs/ipp/home/n/nvianell/analisi/topic21/Codes/python/aug/')
@@ -73,6 +75,12 @@ def print_menu():
     print "37. Radiation front and target density movement vs Density Ip scan constant BT"
     print "38. Radiation front and target density movement vs Density DifferentPuffing"
     print "39. Radiation front and target density movement vs Density Cryo ON/OFF"
+    print "40. Evolution of single inter-ELM profiles cryo on/off"
+    print "41. Blob size vs Lambda Current Scan constant Q95"
+    print "42. Blob size vs Lambda Current Scan constant Bt"
+    print "43. Blob size vs Lambda All L-Mode"
+    print "44. Evolution of single inter-ELM profiles different-puffing"
+    print "45. Evolution of single inter-ELM profiles different fueling H-Mode"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -1291,21 +1299,12 @@ while loop:
                      label = r'Shot # %5i' % shot +' Puff from ' + _cr +' Divertor')
             ax1.set_ylim([0, 1])
             ax1.set_xlim([0, 7])
-            # load the Li-Beam profiles
-            LiBD = dd.shotfile('LIN', shot, experiment='AUGD')
-            neLB = LiBD('ne').data
-            neLBtime = LiBD('ne').time
-            rhoP = LiBD('ne').area
-            LiBD.close()
-            rhoFake = np.linspace(0.98, 1.06, 50)
-            profFake = np.zeros((neLBtime.size, 50))
-            for n in range(neLBtime.size):
-                S = UnivariateSpline(rhoP[n, ::-1],
-                                     neLB[n, ::-1]/1e19, s=0)
-                profFake[n, :] = S(rhoFake)
-            im=_ax.imshow(np.log(profFake.transpose()),
-                          origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
-                          extent=(neLBtime.min(), neLBtime.max(), 0.98, 1.06),
+            LiB = libes.Libes(shot)
+ 
+            im=_ax.imshow(np.log(LiB.ne.transpose()/1e19),
+                          origin='lower', aspect='auto' ,cmap=mpl.cm.hot,
+                          extent=(LiB.time.min(), LiB.time.max(),
+                                  LiB.rho.min(),LiB.rho.max()),
                           norm=LogNorm(vmin=0.5, vmax=2.5))
             _ax.set_title(r'Shot # % 5i' %shot)
 
@@ -1317,11 +1316,12 @@ while loop:
                 shotfile = dd.shotfile('RIC', shot)
                 En = shotfile('Ne_Ant4')
                 RicFake = np.zeros((En.time.size, 50))
+                rhoFake=np.linspace(LiB.rho.min(), LiB.rho.max(), 50)
                 for n in range(En.time.size):
                     S = UnivariateSpline(En.area[n, :], En.data[n, :], s=0)
                     RicFake[n, :] = S(rhoFake)
 
-                im=_ax2.imshow(np.log(profFake.transpose()),
+                im=_ax2.imshow(np.log(RicFake.transpose()),
                                origin='lower', aspect='auto' ,cmap=mpl.cm.viridis,
                                extent=(En.time.min(), En.time.max(), 0.98, 1.06),
                                norm=LogNorm(vmin=0.5, vmax=2.5))
@@ -2809,6 +2809,341 @@ while loop:
         ax[4].set_ylabel(r'kW/m$^2$')
         mpl.pylab.savefig('../pdfbox/RadiationPeakDensityCryoOnOff.pdf',
                           bbox_to_inches='tight', dpi=400)
+
+    elif selection == 40:
+        shotList = (34276, 34278)
+        fig = mpl.pylab.figure(figsize=(12, 14))
+        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((4, 2), (1, 0), colspan=2)
+        ax3 = mpl.pylab.subplot2grid((4, 2), (2, 0))
+        ax4 = mpl.pylab.subplot2grid((4, 2), (2, 1))
+        ax5 = mpl.pylab.subplot2grid((4, 2), (3, 0))
+        ax6 = mpl.pylab.subplot2grid((4, 2), (3, 1))
+        axProf = (ax3, ax4)
+        axLamb = (ax5, ax6)
+        colorLS = ('#C90015', '#7B0Ce7')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D', 'cyan', 'violet')
+        Cryo = ('No', 'On')
+        df = pd.read_csv('../data/MEM_Topic21.csv')
+        for shot, col, Cry, _axP, _axL in zip(
+            shotList, colorLS, Cryo, axProf, axLamb):
+            Gas = neutrals.Neutrals(shot)            
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=col, lw=3, label='# %5i' %shot + ' Cryo ' + Cry)
+            diag = dd.shotfile('DCN', shot)
+            ax2.plot(diag('H-5').time, diag('H-5').data/1e19, color=col, lw=3)
+            LiB = libes.Libes(shot)
+            for time, _col in zip(
+                ('1', '2', '3', '4', '5'), colorL):
+                try:
+                    tmin = df['tmin'+time][df['shot'] == shot].values
+                    tmax = df['tmax'+time][df['shot'] == shot].values
+                    Data = xray.open_dataarray('../data/Shot%5i' % shot +'_'+time+'Stroke.nc')
+                    _axL.plot(Data.rhoLambda, Data.LambdaProfile, color=_col, lw=3)
+                    ax1.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                alpha=0.5)
+                    ax2.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                alpha=0.5)
+                    p, e = LiB.averageProfile(trange=[tmin, tmax],
+                                              interelm=True, threshold=1000)
+                    S=UnivariateSpline(LiB.rho, p, s=0)
+                    _axP.plot(LiB.rho, p/S(1), '-', lw=2, color=_col)
+                    _axP.fill_between(LiB.rho, (p-e)/S(1), (p+e)/S(1), facecolor=_col,
+                                      edgecolor='none', alpha=0.5)
+
+                except:
+                    print('Not done')
+                _axP.set_title('# %5i' % shot)
+        ax1.set_xlim([0, 6.5])
+        ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+        ax1.legend(loc='best', numpoints=1, frameon=False)
+        ax1.axes.get_xaxis().set_visible(False)
+        ax2.set_xlim([0, 6.5])
+        ax2.set_ylabel(r'n$_e [10^{19}$m$^{-2}]$')
+        ax2.set_xlabel(r't [s]')
+
+        ax3.set_ylim([1e-2, 4])
+        ax3.set_ylabel(r'n$_e/$n$_e(\rho=1)$')
+        ax4.set_ylim([1e-2, 4])
+        ax4.axes.get_yaxis().set_visible(False)
+        ax4.axes.get_xaxis().set_visible(False)
+        ax3.axes.get_xaxis().set_visible(False)
+        ax3.set_yscale('log')
+        ax4.set_yscale('log')
+        ax3.set_xlim([0.95, 1.1])
+        ax4.set_xlim([0.95, 1.1])
+        ax5.set_ylim([1e-1, 20])
+        ax5.set_ylabel(r'$\Lambda_{div}$')
+        ax5.set_xlim([0.95, 1.1])
+        ax6.set_xlim([0.95, 1.1])
+        ax6.set_ylim([1e-1, 20])
+        ax6.axhline(1, ls='--', lw=2)
+        ax5.axhline(1, ls='--', lw=2)
+        ax6.axes.get_yaxis().set_visible(False)
+        ax5.set_yscale('log')
+        ax6.set_yscale('log')
+        ax5.set_xlabel(r'$\rho$')
+        ax6.set_xlabel(r'$\rho$')
+        mpl.pylab.savefig('../pdfbox/Shot_%5i' % shotList[0]
+                          + '_'+'%5i' % shotList[1]+'_InterELMprofiles.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 41:
+        shotList = (34103, 34102, 34104)
+        iPL = ('0.6', '0.8', '1')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.16)
+        for shot, col, ip in zip(shotList, colorL, iPL):
+            for s in ('1', '2', '3', '4'):
+                try:
+                    Data = xray.open_dataarray(
+                        '../data/Shot%5i' % shot +'_'+s+'Stroke.nc')
+                    Size = Data.TauB*np.sqrt(
+                        np.power(4e-3/Data.Lags[0], 2) +
+                        np.power(6.9e-3/Data.Lags[1], 2))
+                    if Size*1e3 > 100:
+                        Size /= 2.
+                    ax.plot(Data.Lambda, Size*1e3, 'o', color=col, ms=10)
+                except:
+                    pass
+        ax.set_xscale('log')
+        ax.text(0.1, 0.9, '0.6 MA', color=colorL[0], transform=ax.transAxes)
+        ax.text(0.1, 0.8, '0.8 MA', color=colorL[1], transform=ax.transAxes)
+        ax.text(0.1, 0.7, '1 MA', color=colorL[2], transform=ax.transAxes)
+        ax.set_title(r'Constant q$_{95}$')
+        ax.set_ylabel(r'$\delta_b$ [mm]')
+        ax.set_xlabel(r'$\Lambda$ @ $\rho$ = 1.03')
+        mpl.pylab.savefig('../pdfbox/BlobSizeCurrentScanConstantQ95.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 42:
+        shotList = (34105, 34102, 34106)
+        iPL = ('0.6', '0.8', '1')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.16)
+        for shot, col, ip in zip(shotList, colorL, iPL):
+            for s in ('1', '2', '3', '4'):
+                try:
+                    Data = xray.open_dataarray(
+                        '../data/Shot%5i' % shot +'_'+s+'Stroke.nc')
+                    Size = Data.TauB*np.sqrt(
+                        np.power(4e-3/Data.Lags[0], 2) +
+                        np.power(6.9e-3/Data.Lags[1], 2))
+                    if Size*1e3 > 150:
+                        Size /= 2.
+                    if np.isfinite(Data.Lambda) is False:
+                        L=Data.LambdaProfile[np.nanargmin(
+                                np.abs(Data.rhoLambda-1.03))]
+                    else:
+                        L=Data.Lambda
+                    ax.plot(L, Size*1e3, 'o', color=col, ms=10)
+                    print Size
+                    print Data.Lambda
+                    print L
+                except:
+                    print('not done for shot %5i stroke %1i', shot, s)
+                    pass
+        ax.set_xscale('log')
+        ax.text(0.1, 0.9, '0.6 MA', color=colorL[0], transform=ax.transAxes)
+        ax.text(0.1, 0.8, '0.8 MA', color=colorL[1], transform=ax.transAxes)
+        ax.text(0.1, 0.7, '1 MA', color=colorL[2], transform=ax.transAxes)
+        ax.set_title(r'Constant B$_{t}$')
+        ax.set_ylabel(r'$\delta_b$ [mm]')
+        ax.set_xlabel(r'$\Lambda$ @ $\rho$ = 1.03')
+        mpl.pylab.savefig('../pdfbox/BlobSizeCurrentScanConstantBT.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 43:
+        shotList = (34103, 34104, 34105, 34102, 34106)
+        iPL = ('0.6', '0.8', '1')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.16)
+        for shot in shotList:
+            for s in ('1', '2', '3', '4'):
+                try:
+                    Data = xray.open_dataarray(
+                        '../data/Shot%5i' % shot +'_'+s+'Stroke.nc')
+                    Size = Data.TauB*np.sqrt(
+                        np.power(4e-3/Data.Lags[0], 2) +
+                        np.power(6.9e-3/Data.Lags[1], 2))
+                    if Size*1e3 > 150:
+                        Size /= 2.
+                    if np.isfinite(Data.Lambda) is False:
+                        L=Data.LambdaProfile[np.nanargmin(
+                                np.abs(Data.rhoLambda-1.03))]
+                    else:
+                        L=Data.Lambda
+                    ax.plot(L, Size*1e3, 'o', color='k', ms=10)
+                except:
+                    print('not done for shot %5i stroke %1i', shot, s)
+                    pass
+        ax.set_xscale('log')
+        ax.set_ylabel(r'$\delta_b$ [mm]')
+        ax.set_xlabel(r'$\Lambda$ @ $\rho$ = 1.03')
+        mpl.pylab.savefig('../pdfbox/BlobSizeCurrentScanAll.pdf',
+                          bbox_to_inches='tight')
+    elif selection == 44:
+        shotList = (34276, 34277)
+        fig = mpl.pylab.figure(figsize=(12, 14))
+        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((4, 2), (1, 0), colspan=2)
+        ax3 = mpl.pylab.subplot2grid((4, 2), (2, 0))
+        ax4 = mpl.pylab.subplot2grid((4, 2), (2, 1))
+        ax5 = mpl.pylab.subplot2grid((4, 2), (3, 0))
+        ax6 = mpl.pylab.subplot2grid((4, 2), (3, 1))
+        axProf = (ax3, ax4)
+        axLamb = (ax5, ax6)
+        colorLS = ('#C90015', '#7B0Ce7')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D', 'cyan', 'violet')
+        Cryo = ('Low', 'Upp')
+        df = pd.read_csv('../data/MEM_Topic21.csv')
+        for shot, col, Cry, _axP, _axL in zip(
+            shotList, colorLS, Cryo, axProf, axLamb):
+            Gas = neutrals.Neutrals(shot)            
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=col, lw=3, label='# %5i' %shot + ' Puffing from ' + Cry)
+            diag = dd.shotfile('DCN', shot)
+            ax2.plot(diag('H-5').time, diag('H-5').data/1e19, color=col, lw=3)
+            LiB = libes.Libes(shot)
+            if shot == 34276:
+                for time, _col in zip(
+                    ('1', '2', '3', '4', '5'), colorL):
+                    try:
+                        tmin = df['tmin'+time][df['shot'] == shot].values
+                        tmax = df['tmax'+time][df['shot'] == shot].values
+                        Data = xray.open_dataarray('../data/Shot%5i' % shot +'_'+time+'Stroke.nc')
+                        _axL.plot(Data.rhoLambda, Data.LambdaProfile, color=_col, lw=3)
+                        ax1.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                    alpha=0.5)
+                        ax2.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                    alpha=0.5)
+                        p, e = LiB.averageProfile(trange=[tmin, tmax],
+                                                  interelm=True, threshold=1000)
+                        S=UnivariateSpline(LiB.rho, p, s=0)
+                        _axP.plot(LiB.rho, p/S(1), '-', lw=2, color=_col)
+                        _axP.fill_between(LiB.rho, (p-e)/S(1), (p+e)/S(1), facecolor=_col,
+                                          edgecolor='none', alpha=0.5)
+
+                    except:
+                        print('Not done')
+                    _axP.set_title('# %5i' % shot)
+    
+        ax1.set_xlim([0, 6.5])
+        ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+        ax1.legend(loc='best', numpoints=1, frameon=False)
+        ax1.axes.get_xaxis().set_visible(False)
+        ax2.set_xlim([0, 6.5])
+        ax2.set_ylabel(r'n$_e [10^{19}$m$^{-2}]$')
+        ax2.set_xlabel(r't [s]')
+
+        ax3.set_ylim([1e-2, 4])
+        ax3.set_ylabel(r'n$_e/$n$_e(\rho=1)$')
+        ax4.set_ylim([1e-2, 4])
+        ax4.axes.get_yaxis().set_visible(False)
+        ax4.axes.get_xaxis().set_visible(False)
+        ax3.axes.get_xaxis().set_visible(False)
+        ax3.set_yscale('log')
+        ax4.set_yscale('log')
+        ax3.set_xlim([0.95, 1.1])
+        ax4.set_xlim([0.95, 1.1])
+        ax5.set_ylim([1e-1, 20])
+        ax5.set_ylabel(r'$\Lambda_{div}$')
+        ax5.set_xlim([0.95, 1.1])
+        ax6.set_xlim([0.95, 1.1])
+        ax6.set_ylim([1e-1, 20])
+        ax6.axhline(1, ls='--', lw=2)
+        ax5.axhline(1, ls='--', lw=2)
+        ax6.axes.get_yaxis().set_visible(False)
+        ax5.set_yscale('log')
+        ax6.set_yscale('log')
+        ax5.set_xlabel(r'$\rho$')
+        ax6.set_xlabel(r'$\rho$')
+        mpl.pylab.savefig('../pdfbox/Shot_%5i' % shotList[0]
+                          + '_'+'%5i' % shotList[1]+'_InterELMprofiles.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 45:
+        shotList = (34278, 34281)
+        fig = mpl.pylab.figure(figsize=(12, 14))
+        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 2), (0, 0), colspan=2)
+        ax2 = mpl.pylab.subplot2grid((4, 2), (1, 0), colspan=2)
+        ax3 = mpl.pylab.subplot2grid((4, 2), (2, 0))
+        ax4 = mpl.pylab.subplot2grid((4, 2), (2, 1))
+        ax5 = mpl.pylab.subplot2grid((4, 2), (3, 0))
+        ax6 = mpl.pylab.subplot2grid((4, 2), (3, 1))
+        axProf = (ax3, ax4)
+        axLamb = (ax5, ax6)
+        colorLS = ('#C90015', '#7B0Ce7')
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D', 'cyan', 'violet')
+        Cryo = ('Low', 'Upp')
+        df = pd.read_csv('../data/MEM_Topic21.csv')
+        for shot, col, Cry, _axP, _axL in zip(
+            shotList, colorLS, Cryo, axProf, axLamb):
+            Gas = neutrals.Neutrals(shot)            
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=col, lw=3, label='# %5i' %shot )
+            diag = dd.shotfile('DCN', shot)
+            ax2.plot(diag('H-5').time, diag('H-5').data/1e19, color=col, lw=3)
+            LiB = libes.Libes(shot)
+            for time, _col in zip(
+                ('1', '2', '3', '4', '5'), colorL):
+                try:
+                    tmin = df['tmin'+time][df['shot'] == shot].values
+                    tmax = df['tmax'+time][df['shot'] == shot].values
+                    Data = xray.open_dataarray('../data/Shot%5i' % shot +'_'+time+'Stroke.nc')
+                    _axL.plot(Data.rhoLambda, Data.LambdaProfile, color=_col, lw=3)
+                    ax1.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                alpha=0.5)
+                    ax2.axvspan(tmin, tmax, color=_col, edgecolor='white',
+                                alpha=0.5)
+                    p, e = LiB.averageProfile(trange=[tmin, tmax],
+                                              interelm=True, threshold=1000)
+                    S=UnivariateSpline(LiB.rho, p, s=0)
+                    _axP.plot(LiB.rho, p/S(1), '-', lw=2, color=_col)
+                    _axP.fill_between(LiB.rho, (p-e)/S(1), (p+e)/S(1), facecolor=_col,
+                                      edgecolor='none', alpha=0.5)
+
+                except:
+                    print('Not done')
+                _axP.set_title('# %5i' % shot)
+        ax1.set_xlim([0, 6.5])
+        ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+        ax1.legend(loc='best', numpoints=1, frameon=False)
+        ax1.axes.get_xaxis().set_visible(False)
+        ax2.set_xlim([0, 6.5])
+        ax2.set_ylabel(r'n$_e [10^{19}$m$^{-2}]$')
+        ax2.set_xlabel(r't [s]')
+
+        ax3.set_ylim([1e-2, 4])
+        ax3.set_ylabel(r'n$_e/$n$_e(\rho=1)$')
+        ax4.set_ylim([1e-2, 4])
+        ax4.axes.get_yaxis().set_visible(False)
+        ax4.axes.get_xaxis().set_visible(False)
+        ax3.axes.get_xaxis().set_visible(False)
+        ax3.set_yscale('log')
+        ax4.set_yscale('log')
+        ax3.set_xlim([0.95, 1.1])
+        ax4.set_xlim([0.95, 1.1])
+        ax5.set_ylim([1e-1, 20])
+        ax5.set_ylabel(r'$\Lambda_{div}$')
+        ax5.set_xlim([0.95, 1.1])
+        ax6.set_xlim([0.95, 1.1])
+        ax6.set_ylim([1e-1, 20])
+        ax6.axhline(1, ls='--', lw=2)
+        ax5.axhline(1, ls='--', lw=2)
+        ax6.axes.get_yaxis().set_visible(False)
+        ax5.set_yscale('log')
+        ax6.set_yscale('log')
+        ax5.set_xlabel(r'$\rho$')
+        ax6.set_xlabel(r'$\rho$')
+        mpl.pylab.savefig('../pdfbox/Shot_%5i' % shotList[0]
+                          + '_'+'%5i' % shotList[1]+'_InterELMprofiles.pdf',
+                          bbox_to_inches='tight')
 
 
     elif selection == 99:
