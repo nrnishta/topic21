@@ -44,6 +44,7 @@ def print_menu():
     print "21. Compare DN/LSN profiles evolution Ip=330kA"
     print "22. Compare FF/RF profiles evolution Ip=190kA"
     print "23. Compare FF/RF profiles evolution Ip=330kA"
+    print "24. Save timing blobs for Strokes"
     print "99: End"
     print 67 * "-"
 
@@ -2096,7 +2097,23 @@ while loop:
         mpl.pylab.savefig('../pdfbox/CompareTargetProfilesFF-RF_HighIp.pdf',
                           bbox_to_inches='tight')
 
-        
+    elif selection == 24:
+        shotList = (57425, 57437, 57454)
+        for shot in shotList:
+            Data = tcvFilaments.Turbo(shot)
+            timing = np.asarray([])
+            for plunge in (1, 2):
+                for r in np.arange(0, 0.025, 0.005):
+                    Blob = Data.blob(
+                        plunge=plunge,
+                        rrsep=[r, r+0.005],
+                        iwin=75, rmsNorm=True,
+                        detrend=True)
+                    timing = np.append(timing, Data.Structure.time[
+                        Data.Structure._locationindex])
+
+            np.savetxt('../data/FilamentsShot%5i' % shot +'.txt', np.c_[timing],
+                       fmt='%7.6f')
     elif selection == 99:
         loop = False
     else:
