@@ -7,7 +7,7 @@ import numpy as np
 import MDSplus as mds
 import pandas as pd
 
-shotList = (57418, 57425, 57437, 57454, 57461, 57497)
+shotList = (58629, 58635)
 Shots = np.asarray([])
 # quantity
 Ip = np.asarray([])
@@ -130,6 +130,6 @@ outdict = {'Shots': Shots,
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
-df['Conf'] = np.repeat('LSN', df.index.size)
-df.to_csv('../../data/BlobDatabse.csv')
+df['Conf'] = np.repeat('LSN-FF', df.index.size)
+df.to_csv('../../data/BlobDatabseFF.csv')
 
