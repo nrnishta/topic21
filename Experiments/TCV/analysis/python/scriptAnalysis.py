@@ -47,6 +47,8 @@ def print_menu():
     print "24. Save timing blobs for Strokes"
     print "25. Equilibria and Lparallel current scant at constant Bt"
     print "26. Equilibria and Lparallel current scant at constant q95"
+    print "27. Roll over vs Density Constant q95"
+    print "28. Roll over vs Density constant Bt"
     print "99: End"
     print 67 * "-"
 
@@ -1094,31 +1096,22 @@ while loop:
         fig, ax = mpl.pylab.subplots(figsize=(8, 6))
         fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
         ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        df = pd.read_csv('../../data/BlobDatabse.csv')
         for shot, col in zip(shotList, colorList):
-            Data = tcvFilaments.Turbo(shot)
-            for plunge in (1, 2):
-                Blob = Data.blob(plunge=plunge, rrsep=[0.005, 0.01],
-                                 rmsNorm=True, detrend=True)
-                if np.isfinite(Blob.vAutoP):
-                    Size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
-                    dSize = Size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vAutoP)**2)
-                else:
-                    Size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
-                    dSize = Size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vpExB)**2)
-                
-                ax.plot(Blob.LambdaDiv, Size, 'o',
-                        markersize=15, color=col)
-                ax.errorbar(Blob.LambdaDiv, Size, xerr=Blob.LambdaDivErr,
-                            yerr=dSize, ecolor=col, fmt='none')
-
+            ax.plot(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                    df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                    'o', color=col, ms=15)
+            ax.errorbar(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                        df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                        xerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div Err'],
+                        yerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))][
+                            'Blob size Err [rhos]'], fmt='none', ecolor=col)
         ax.set_xscale('log')
         ax.set_xlabel(r'$\Lambda_{div}$')
         ax.set_ylabel(r'$\delta_b [\rho_s]$')
@@ -1134,30 +1127,22 @@ while loop:
         fig, ax = mpl.pylab.subplots(figsize=(8, 6))
         fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
         ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        df = pd.read_csv('../../data/BlobDatabse.csv')
         for shot, col in zip(shotList, colorList):
-            Data = tcvFilaments.Turbo(shot)
-            for plunge in (1, 2):
-                Blob = Data.blob(plunge=plunge, rrsep=[0.005, 0.01],
-                                 rmsNorm=True, detrend=True)
-                if np.isfinite(Blob.vAutoP):
-                    Size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
-                    dSize = Size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vAutoP)**2)
-                else:
-                    Size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
-                    dSize = Size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vpExB)**2)
-                
-                ax.plot(Blob.LambdaDiv, Size, 'o',
-                        markersize=15, color=col)
-                ax.errorbar(Blob.LambdaDiv, Size, xerr=Blob.LambdaDivErr,
-                            yerr=dSize, ecolor=col, fmt='none')
+            ax.plot(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                    df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                    'o', color=col, ms=15)
+            ax.errorbar(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                        df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                        xerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div Err'],
+                        yerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))][
+                            'Blob size Err [rhos]'], fmt='none', ecolor=col)
 
         ax.set_xscale('log')
         ax.set_xlabel(r'$\Lambda_{div}$')
@@ -2186,6 +2171,136 @@ while loop:
         Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
         mpl.pylab.savefig('../pdfbox/EquilibriaLparallelConstantQ95.pdf',
                           bbox_to_inches='tight')
+
+    elif selection == 27:
+        # we plot the profiles before and
+        # after roll-over mediated
+        shotList = (57454, 57461, 57497)
+        iPL = (245, 190, 330)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 3), (0, 0), colspan=3)
+        ax1 = mpl.pylab.subplot2grid((2, 3), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 3), (1, 1))
+        ax3 = mpl.pylab.subplot2grid((2, 3), (1, 2))
+
+        for shot, col, ty in zip(shotList, colorList, iPL):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot +
+                    ' Ip = %3i' % ty +' kA' )
+            ax.axvspan(4, 4.5, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(6.5, 7, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(9.5, 10, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 4.) & (_dummy <= 4.5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 6.5) & (_dummy <= 7)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+            try:
+                _idx = np.where(((_dummy >= 9.5) & (_dummy <= 10)))[0]
+                out = Target.UpStreamProfile(trange=[
+                    _tdummy[_idx].min(), _tdummy[_idx].max()])
+                ax3.plot(out['rho'], out['en']/1e18, 'o',
+                         ms=10, color=col, alpha=0.5)
+            except:
+                pass
+            
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesConstantQ95.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 28:
+        shotList = (57425, 57437, 57497)
+        iPL = (245, 190, 330)
+        colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
+        fig = mpl.pylab.figure(figsize=(12, 9))
+        fig.subplots_adjust(wspace=0.3, hspace=0.3,
+                            top=0.96, right=0.98, bottom=0.15)
+        ax = mpl.pylab.subplot2grid((2, 3), (0, 0), colspan=3)
+        ax1 = mpl.pylab.subplot2grid((2, 3), (1, 0))
+        ax2 = mpl.pylab.subplot2grid((2, 3), (1, 1))
+        ax3 = mpl.pylab.subplot2grid((2, 3), (1, 2))
+
+        for shot, col, ty in zip(shotList, colorList, iPL):
+            Target = langmuir.LP(shot, Type='floor')
+            Tree = mds.Tree('tcv_shot', shot)
+            eNode = Tree.getNode(r'\results::fir:n_average')
+            enF = interp1d(signal.decimate(
+                eNode.getDimensionAt().data(), 10),
+                           signal.decimate(eNode.data(), 10)/1e19,
+                           fill_value='extrapolate')
+            ax.plot(enF(Target.t2), Target.TotalSpIonFlux()/1e27,
+                    color=col, label='# %5i' % shot +
+                    ' Ip = %3i' % ty +' kA' )
+            ax.axvspan(4, 4.5, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(6.5, 7, ec='white', color='grey', alpha=0.5)
+            ax.axvspan(8, 8.5, ec='white', color='grey', alpha=0.5)
+            # now define the interval in density for the two plots
+            _dummy = eNode.data()/1e19
+            _tdummy = eNode.getDimensionAt().data()
+            _dummy = _dummy[np.where(_tdummy > Target.t.min())[0]]
+            _tdummy = _tdummy[np.where(_tdummy > Target.t.min())[0]]
+            _idx = np.where(((_dummy >= 4.) & (_dummy <= 4.5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax1.plot(out['rho'], out['en']/1e18, 'o', ms=10,
+                     color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 6.5) & (_dummy <= 7)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax2.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+
+            _idx = np.where(((_dummy >= 8) & (_dummy <= 8.5)))[0]
+            out = Target.UpStreamProfile(trange=[
+                _tdummy[_idx].min(), _tdummy[_idx].max()])
+            ax3.plot(out['rho'], out['en']/1e18, 'o',
+                     ms=10, color=col, alpha=0.5)
+            
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        ax.set_xlim([0, 11])
+        ax.set_ylim([0, 5])
+        ax.set_ylabel(r'Total Ion Flux [10$^{27}$s$^{-1}$]')
+        ax.set_xlabel(r'$\langle n_e \rangle [10^{19}$m$^{-3}]$')
+        ax1.set_ylabel(r'n$_e [10^{18}$m$^{-3}]$')
+        ax1.set_xlabel(r'$\rho$')
+        ax2.set_xlabel(r'$\rho$')
+        ax1.set_xlim([0.95, 1.25])
+        ax2.set_xlim([0.95, 1.25])
+        mpl.pylab.savefig('../pdfbox/CompareTargetProfilesConstantBT.pdf',
+                          bbox_to_inches='tight')
+        
+
     elif selection == 99:
         loop = False
     else:
