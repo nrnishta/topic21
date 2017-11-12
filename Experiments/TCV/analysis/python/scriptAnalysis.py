@@ -49,6 +49,7 @@ def print_menu():
     print "26. Equilibria and Lparallel current scant at constant q95"
     print "27. Roll over vs Density Constant q95"
     print "28. Roll over vs Density constant Bt"
+    print "29. Compare blob LSN-DN"
     print "99: End"
     print 67 * "-"
 
@@ -2300,7 +2301,42 @@ while loop:
         mpl.pylab.savefig('../pdfbox/CompareTargetProfilesConstantBT.pdf',
                           bbox_to_inches='tight')
         
+    elif selection == 29:
+        shotList = (57437, 58623)
+        Type = ('LSN', 'DN')
+        colorList = ('#BE4248', '#586473')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6))
+        fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
+        ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        for shot, col in zip(shotList, colorList):
+            if shot == 57437:
+                df = pd.read_csv('../../data/BlobDatabse.csv')
+            else:
+                df = pd.read_csv('../../data/BlobDatabseDN.csv')
 
+            ax.plot(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                    df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                    'o', color=col, ms=15)
+            ax.errorbar(df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                        df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                        xerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))]['Lambda Div Err'],
+                        yerr=df.loc[((df['Shots'] == shot) &
+                            (df['Rho'] >= 1.04))][
+                            'Blob size Err [rhos]'], fmt='none', ecolor=col)
+        ax.set_xscale('log')
+        ax.set_xlabel(r'$\Lambda_{div}$')
+        ax.set_ylabel(r'$\delta_b [\rho_s]$')
+        for t, col, i in zip(Type, colorList, range(2)):
+            ax.text(0.1, 0.9-i*0.06, t,
+                    transform=ax.transAxes, color=col)
+        mpl.pylab.savefig('../pdfbox/LambdaSizeLSN-DN.pdf',
+                          bbox_to_inches='tight')    
+        
     elif selection == 99:
         loop = False
     else:
