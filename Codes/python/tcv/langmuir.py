@@ -4,32 +4,27 @@ from scipy import interpolate
 from scipy import constants
 import numpy as np
 import MDSplus as mds
-
+from cyfieldlineTracer import get_fieldline_tracer
+import eqtools
 
 class LP:
-    """
-    Python class to read and compute appropriate
-    profiles of LPs data once they have been saved
-    in mat files
-    Inputs:
-    -------
-      shot = shot number
-      folder = Optional absolute path to locate the
-               file save of langmuir
-
-    Methods:
-    --------
-       UpStreamProfile : Compute the density and temperature
-                profile average on a
-                given time interval remapped as
-                upstream distance from the separatrix
-
-    Attributes:
-    -----------
-    Attributes
-    """
-
     def __init__(self, shot, Type='floor'):
+        """
+        Python class to read and compute appropriate
+        profiles of LPs. It compute appropriately also
+        divertor collisionality using the already stored
+        parallel connection length (or computing if not
+        found). It use the parallel connection length
+        up to the position of the X-point according to the
+        definition of Myra
+
+        :param shot:
+            Shot number
+        :param Type:
+            Type of probes used.
+            Possible values are 'floor','HFSwall','LFSwall'
+        """
+
         self.shot = shot
         self.type = Type
         # open the appropriate Tree and get the available probes and
@@ -45,6 +40,16 @@ class LP:
         self._defineProbe(type=self.type)
         # appropriate remapping upstream
         self.RemapUpstream()
+        # load the equilibrium
+        self.Eqm = eqtools.TCVLIUQETree(self.shot)
+        # try to open the filament Tree otherwise we will
+        # need to compute using Field Line Tracing
+        try:
+            self._filament = mds.Tree('tcv_topic21', self.shot)
+            self._tagF = True
+        except:
+            self._tagF = False
+            print('Filament Tree not found')
 
     def _defineProbe(self, type='floor'):
         """
@@ -110,6 +115,7 @@ class LP:
         rOut = numpy.asarray([])
         neOut = numpy.asarray([])
         teOut = numpy.asarray([])
+        rhoOut = numpy.asarray([])
         for r in range(self.R.size):
             _idx = ((self.t >= trange[0]) &
                     (self.t <= trange[1])).nonzero()[0]
@@ -118,7 +124,8 @@ class LP:
                 teOut = numpy.append(teOut, self.te[_idx, r])
                 rOut = numpy.append(rOut,
                                     self.RUpStream[_idx, r])
-
+                rhoOut = numpy.append(rhoOut,
+                                      self.Rho[_idx, r])
         # we include also an univariate spline interpolation
         # and we decide to output a dictionary containing the
         # values
@@ -138,34 +145,47 @@ class LP:
                     ('en', neOut),
                     ('te', teOut),
                     ('neInt', neInt),
-                    ('teInt', teInt)])
+                    ('teInt', teInt),
+                    ('rho', rhoOut)])
         return out
 
-    def Lambda(self, xCl, yCl, gas='D2', trange=[0.6, 0.8]):
+    def Lambda(self, gas='D2', trange=[0.6, 0.8]):
         """
         Compute the Lambda divertor profile given the
         array of connection length, the gas and the trange
-        to perform the computation of the profile
+        to perform the computation of the profile. It uses 
 
         """
 
-        if gas == 'D2':
-            Z = 1
-        elif gas == 'H':
-            Z = 1
-        elif gas == 'He':
-            Z = 4
+        # load the Lp profiles and average over the same range
+        if self._tagF:
+            print('Using Lambda from Tree')
+            LpN = self._filament.getNode(r'\LDIVX')
+            LpT = LpN.getDimensionAt(0).data()
+            _idx = np.where(((LpT >= trange[0]) &
+                            (LpT <= trange[1])))[0]
+            xCl = LpN.getDimensionAt(1).data()
+            Lambda = np.mean(LpN.data()[_idx,:],axis=0)
         else:
-            print('Gas not found')
-        out = self.UpStreamProfile(trange=trange)
-        neInt = out['neInt'](xCl)
-        teInt = out['teInt'](xCl)
-        nuEi = 5e-11*neInt/(teInt**1.5)
-        Cs = numpy.sqrt(2 * constants.e * teInt /
-                        (Z*constants.proton_mass))
-        Lambda = (nuEi * yCl * constants.electron_mass /
-                  (Z*constants.proton_mass*Cs))
-        return Lambda
+            if gas == 'D2':
+                Z = 1
+            elif gas == 'H':
+                Z = 1
+            elif gas == 'He':
+                Z = 4
+            else:
+                print('Gas not found')
+            out = self.UpStreamProfile(trange=trange)
+            xCl, Lp = self._computeLpar(trange=trange)
+            neInt = out['neInt'](xCl)
+            teInt = out['teInt'](xCl)
+            nuEi = 5e-11*neInt/(teInt**1.5)
+            Cs = numpy.sqrt(2 * constants.e * teInt /
+                                        (Z*constants.proton_mass))
+            Lambda = (nuEi * Lp * constants.electron_mass /
+                          (Z*constants.proton_mass*Cs))
+
+        return Lambda, xCl
 
     def TotalSpIonFlux(self):
         """
@@ -187,3 +207,61 @@ class LP:
             intFlux[i] = numpy.trapz(_y, x=2*numpy.pi*_x)
         return intFlux
 
+    def _computeLpar(self, trange=[0.8, 1], Plot=False, Type='floor'):
+        """
+        Method for the computation of the parallel connection length
+        using the cyFieldLine Tracer Code. Presently it is
+        implemented only for the lenght in the Divertor region
+
+        :param trange:
+            2D array indicating the time minium and maximum
+        :param Plot:
+            Boolean in case I want a plot
+        :param Type:
+            The only Possible value so far is 'floor'
+        :return:
+        """
+
+        self.Tracer = get_fieldline_tracer('RK4', machine='TCV', remote=True,
+                                           shot=self.shot, time=t0,
+                                           interp='quintic', rev_bt=True)
+        if Type is 'floor':
+            # height of magnetic axis
+            zMAxis = Tracer.eq.axis.__dict__['z']
+            # height of Xpoint
+            zXPoint = Tracer.eq.xpoints['xp1'].__dict__['z'][0]
+            rXPoint = Tracer.eq.xpoints['xpl1'].__dict__['r'][0]
+            # now determine at the height of the zAxis the R of the LCFS
+            Boundary = Tracer.eq.get_fluxsurface(1.0)
+            close('all')
+            RLcfs = Boundary.R
+            ZLcfs = Boundary.Z
+            # only the part greater then xaxis
+            ZLcfs = ZLcfs[RLcfs > self.axis.__dict__['r']]
+            RLcfs = RLcfs[RLcfs > self.axis.__dict__['r']]
+            Rout = RLcfs[np.argmin(np.abs(ZLcfs[~np.isnan(ZLcfs)]-zMAxis))]
+            rmin = np.linspace(Rout+0.001, 2.19, num=30)
+            # this is the R-Rsep
+            rMid = rmin-Rout
+            # get the corrisponding Rho
+            rho = self.Eqm.rz2rho(rmin, np.repeat(zMAxis, rmin.size), self._time,
+                                  extrapolate=True).squeeze()
+
+            # compute the field lines
+            fieldLines = [self.Tracer.trace(r, zMAxis, mxstep=100000, ds=1e-2, tor_lim=20.0*np.pi) for r in rmin]
+            # compute the parallel connection length from the divertor plate to the X-point
+            fieldLinesZ = [line.filter(['R', 'Z'],
+                                       [[rXPoint, 2], [-10, zXPoint]]) for line in fieldLines]
+            Lpar =np.array([])
+            for line in fieldLinesZ:
+                try:
+                    _dummy = np.abs(line.S[0] - line.S[-1])
+                except:
+                    _dummy = np.nan
+                Lpar = np.append(Lpar, _dummy)
+
+            # we then remove the temporary created G-file
+            return rMid, Lpar
+        else:
+            print('Only outer divertor implemented so far')
+            pass

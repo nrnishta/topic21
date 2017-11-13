@@ -42,12 +42,35 @@
        5. Repet #4 for better probe statistics (second radial position)
        6. Repeat #4 with midplane fueling
        7. Contingency
-**** To-DO [0/3]
+**** TODO To-DO [0/3]
      - [ ] Compute proper neutral compression using all available gauges
      - [ ] Check for time delay in divertor neutral pressure to increasing
            fueling
      - [ ] Organize a meeting, tentative for Wednesday 16 for preparation of W21
      
+*** Program for 2018 <2017-10-31 Tue>
+**** TCV
+     1. Long divertor legs (probe in the lower port)
+     2. SnowFlake to monitor the fluctuations in between the 2 separatrix
+	to be done in high density discharges
+     3. Try to move the second X-point in SN divertor at a different
+	Z position while keeping the same radial distances between the
+	points
+     4. H-Mode ?
+**** AUG
+     1. X-point manipulator (hopefully with NPH) triggered at
+	the same time as MPM
+     2. X-point vertical shift in order to have SP at different
+	vertical heigth at the target
+     3. DN discharges. With slow movement of the second X-point into the vessel
+	to be performed at constant power/density where shoulder alreay exists
+     4. USN with midplane/X-point manipulator to monitor the upstream SOL
+**** MAST-U
+     1. Influence of neutral recycling source in establishing upstream profiles
+	and comparison between Low-RT and Vertical target. Look also ath the heat
+	loads
+     2. Current scan at constant q95/constant Bt
+    
 ** Other Meetings
 *** Neutral measurement meetings
     <2016-12-01 Thu>
@@ -236,9 +259,7 @@
        a modest reduction is foreseen
      - N. Vianello restate the necessity to distribute the ideas for analysis and interpretation using all the possible
        communication channels
-
      
-	
 *** COMPASS meeting 19.09.17
 **** Participants:
      N. Vianello, A. Hakola, M. Bernert, D. Carralero, J. Adamek,
@@ -262,3 +283,16 @@
      - Li-Be every 4 microsecond *Contact Hungarian people*
      - Dalpha available HFS/LFS but not at the diverto
      - No Infrared available
+*** TCV meeting 13.10.17
+**** Participants
+     N. Vianello, M. Agostini, A. Hakkola, V. Naulin, F. Militello
+     B. Labit, C. Theiler, C.Tsui
+**** Presentation and Minutes
+     - N. Vianello: point from Christian on the fact that for TCV we need
+       detachment and roll-over which is not reached for the constant q95
+       scan. *This can be consistent with the fact the SOL flattening is not obtained*
+     - B. Labit: found and appropriate reference for H-Mode *Shot 55860* needs shape
+       adjustment for proper evaluation of target profile
+     - C. Theiler: further reference at High Ip to be explored together with
+       N seeding
+     - A. Hakkola: suggests the need to ask for further contingency shot

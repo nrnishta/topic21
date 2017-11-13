@@ -60,6 +60,11 @@ class Tree(object):
         self._computeLambda()
         # load the profiles from reciprocating
         self._loadUpstream()
+        # load and compute the rho poloidal
+        # and the R-Rsep as a function of time
+        # at high temporal resolution
+        self._computeRho()
+        self._computeRRsep()
 
     def _loadLangmuir(self):
         """
@@ -110,8 +115,9 @@ class Tree(object):
                 try:
                     print('Analysis on time %4.3f' % self.LpTime[_idx])
                     # interp1d the density profile
-                    _dummy = numpy.vstack((self._Target.RUpStream[_idx, :],
-                                           self._Target.en[_idx, :])).transpose()
+                    _dummy = numpy.vstack((
+                        self._Target.RUpStream[_idx, :],
+                        self._Target.en[_idx, :])).transpose()
                     _dummy = _dummy[~numpy.isnan(_dummy).any(1)]
                     x = _dummy[:, 0]
                     y = _dummy[:, 1]
@@ -119,8 +125,9 @@ class Tree(object):
                         x, y,
                         fill_value='extrapolate')(self.Lp_drUs)
                     # do the same for the the temperature
-                    _dummy = numpy.vstack((self._Target.RUpStream[_idx, :],
-                                           self._Target.te[_idx, :])).transpose()
+                    _dummy = numpy.vstack((
+                        self._Target.RUpStream[_idx, :],
+                        self._Target.te[_idx, :])).transpose()
                     _dummy = _dummy[~numpy.isnan(_dummy).any(1)]
                     x = _dummy[:, 0]
                     y = _dummy[:, 1]
@@ -144,7 +151,7 @@ class Tree(object):
 
     def _loadUpstream(self):
         """
-        Load the profiles saved in tabular data files. They can be 
+        Load the profiles saved in tabular data files. They can be
         saved afterwards into the appropriate pulse file
         """
         try:
@@ -204,6 +211,136 @@ class Tree(object):
         except:
             print('Plunge 1 not found for shot %5i' % self.shot)
             self._Plunge2 = False
+
+    def _computeRho(self):
+        if self._Plunge1:
+            # load the 1st plunge position
+            _node = self.TcvTree.getNode(r'\fpcalpos_1')
+            time = _node.getDimensionAt().data()
+            # there is the big issue of not homogeneous
+            # time step so we redefine it
+            time = numpy.linspace(time.min(),time.max(),
+                                  time.size,dtype='float64')
+            # the position is saved in [cm]
+            data = _node.data()[:time.size]/1e2
+            # limit to the range less then the maximum value
+            # of psi grid
+            time = time[data <= self.Eq.getRGrid().max()]
+            data = data[data <= self.Eq.getRGrid().max()]
+            # there is no need to compute all we can
+            # downsample, and then interpolate on
+            # all the time basis
+            # spline representation
+            timeEq = self.Eq.getTimeBase()
+            _idx = numpy.where((timeEq >= time.min()) &
+                               (timeEq <= time.max()))[0]
+            S = interpolate.UnivariateSpline(
+                time, data, s=0)(timeEq[_idx])
+            _time = timeEq[_idx]
+            # get the time from Equilibria and
+            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
+                                     for s, t in zip(S, timeEq[_idx])])
+
+            Srho = interpolate.interp1d(
+                _time, _rhoTmp, kind='linear',
+                fill_value='extrapolate')
+            self.RhoT1 = Srho(time)
+            self.RhoT1Time = time
+
+        if self._Plunge2:
+            # load the 1st plunge position
+            _node = self.TcvTree.getNode(r'\fpcalpos_2')
+            time = _node.getDimensionAt().data()
+            time = numpy.linspace(time.min(),time.max(),
+                                  time.size,dtype='float64')
+            # the position is saved in [cm]
+            data = _node.data()[:time.size]/1e2
+            # limit to the range less then the maximum value
+            # of psi grid
+            time = time[data <= self.Eq.getRGrid().max()]
+            data = data[data <= self.Eq.getRGrid().max()]
+            # there is no need to compute all we can
+            # downsample, and then interpolate on
+            # all the time basis
+            # spline representation
+            timeEq = self.Eq.getTimeBase()
+            _idx = numpy.where((timeEq >= time.min()) &
+                               (timeEq <= time.max()))[0]
+            _time = timeEq[_idx]
+            S = interpolate.UnivariateSpline(
+                time, data, s=0)(timeEq[_idx])
+            # get the time from Equilibria and
+            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
+                                     for s, t in zip(S, timeEq[_idx])])
+
+            Srho = interpolate.interp1d(
+                _time, _rhoTmp, kind='linear',
+                fill_value='extrapolate')
+            self.RhoT2 = Srho(time)
+            self.RhoT2Time = time
+
+    def _computeRRsep(self):
+        if self._Plunge1:
+            # load the 1st plunge position
+            _node = self.TcvTree.getNode(r'\fpcalpos_1')
+            time = _node.getDimensionAt().data()
+            # the position is saved in [cm]
+            data = _node.data()/1e2
+            # limit to the range less then the maximum value
+            # of psi grid
+            time = time[data <= self.Eq.getRGrid().max()]
+            data = data[data <= self.Eq.getRGrid().max()]
+            # there is no need to compute all we can
+            # downsample, and then interpolate on
+            # all the time basis
+            # spline representation
+            timeEq = self.Eq.getTimeBase()
+            _idx = numpy.where((timeEq >= time.min()) &
+                               (timeEq <= time.max()))[0]
+            S = interpolate.UnivariateSpline(
+                time, data, s=0)(timeEq[_idx])
+            _time = timeEq[_idx]
+            # get the time from Equilibria and
+            _rhoTmp = numpy.asarray([self.Eq.rz2rmid(s, 0, t) -
+                                     self.Eq.getRmidOutSpline()(t)
+                                     for s, t in zip(S, timeEq[_idx])])
+
+            Srho = interpolate.interp1d(
+                _time, _rhoTmp, kind='linear',
+                fill_value='extrapolate')
+            self.RRsepT1 = Srho(time)
+            self.RRsepT1Time = time
+
+        if self._Plunge2:
+            # load the 1st plunge position
+            _node = self.TcvTree.getNode(r'\fpcalpos_2')
+            time = _node.getDimensionAt().data()
+            # the position is saved in [cm]
+            data = _node.data()/1e2
+            # limit to the range less then the maximum value
+            # of psi grid
+            time = time[data <= self.Eq.getRGrid().max()]
+            data = data[data <= self.Eq.getRGrid().max()]
+            # there is no need to compute all we can
+            # downsample, and then interpolate on
+            # all the time basis
+            # spline representation
+            timeEq = self.Eq.getTimeBase()
+            _idx = numpy.where((timeEq >= time.min()) &
+                               (timeEq <= time.max()))[0]
+            S = interpolate.UnivariateSpline(
+                time, data, s=0)(timeEq[_idx])
+            _time = timeEq[_idx]
+            # get the time from Equilibria and
+            _rhoTmp = numpy.asarray([self.Eq.rz2rmid(s, 0, t) -
+                                     self.Eq.getRmidOutSpline()(t)
+                                     for s, t in zip(S, timeEq[_idx])])
+
+            Srho = interpolate.interp1d(
+                _time, _rhoTmp, kind='linear',
+                fill_value='extrapolate')
+            self.RRsepT2 = Srho(time)
+            self.RRsepT2Time = time
 
     def toMds(self):
 
@@ -291,11 +428,14 @@ class Tree(object):
                                  self.teU1, self.tU1))
             dummy.setUnits('eV')
 
-            dummy = self.saveTree.getNode(r'\FP_1PL_TEERR')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.teU1Err, self.tU1))
-            dummy.setUnits('eV')
+            try:
+                dummy = self.saveTree.getNode(r'\FP_1PL_TEERR')
+                dummy.putData(
+                    mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
+                                     self.teU1Err, self.tU1))
+                dummy.setUnits('eV')
+            except:
+                pass
             # jsat
             dummy = self.saveTree.getNode(r'\FP_1PL_JS')
             dummy.putData(
@@ -331,7 +471,31 @@ class Tree(object):
                 mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
                                  self.drUsU1, self.tU1))
             dummy.setUnits('m')
+            # R-Rsep time
+            dummy = self.saveTree.getNode(r'\FP_1PL_RRSEPT')
+            dt = numpy.diff(self.RRsepT1Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"m"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RRsepT1Time.size - 1) + ',' + \
+                     str(self.RRsepT1Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RRsepT1))
+            dummy.putData(expr)
+            dummy.setUnits('m')
 
+            # Rho time
+            dummy = self.saveTree.getNode(r'\FP_1PL_RHOT')
+            dt = numpy.diff(self.RhoT1Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"rho"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RhoT1Time.size - 1) + ',' + \
+                     str(self.RhoT1Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RhoT1))
+            dummy.putData(expr)
+            dummy.setUnits(' ')
         if self._Plunge2:
             dummy = self.saveTree.getNode(r'\FP_2PL_EN')
             dummy.putData(
@@ -350,12 +514,15 @@ class Tree(object):
                 mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
                                  self.teU2, self.tU2))
             dummy.setUnits('eV')
+            try:
+                dummy = self.saveTree.getNode(r'\FP_2PL_TEERR')
+                dummy.putData(
+                    mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
+                                     self.teU2Err, self.tU2))
+                dummy.setUnits('eV')
+            except:
+                pass
 
-            dummy = self.saveTree.getNode(r'\FP_2PL_TEERR')
-            dummy.putData(
-                mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
-                                 self.teU2Err, self.tU2))
-            dummy.setUnits('eV')
             # jsat
             dummy = self.saveTree.getNode(r'\FP_2PL_JS')
             dummy.putData(
@@ -391,3 +558,29 @@ class Tree(object):
                 mds.Data.compile("BUILD_SIGNAL(($VALUE), $1, $2)",
                                  self.drUsU2, self.tU2))
             dummy.setUnits('m')
+
+            # R-Rsep time
+            dummy = self.saveTree.getNode(r'\FP_2PL_RRSEPT')
+            dt = numpy.diff(self.RRsepT2Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"m"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RRsepT2Time.size - 1) + ',' + \
+                     str(self.RRsepT2Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RRsepT2))
+            dummy.putData(expr)
+            dummy.setUnits('m')
+
+            # Rho time
+            dummy = self.saveTree.getNode(r'\FP_2PL_RHOT')
+            dt = numpy.diff(self.RhoT2Time).mean()
+            timeS = numpy.round(dt / (10 ** numpy.floor(
+                numpy.log10(dt)))).astype('|S4') + '*1e' + numpy.floor(
+                numpy.log10(dt)).astype('|S2')
+            string = 'Build_Signal(Build_With_Units($VALUE,"rho"),$, Build_Dim(Build_Window(0,' + \
+                         str(self.RhoT2Time.size - 1) + ',' + \
+                     str(self.RhoT2Time.min()) + '),*:*:' + timeS + '))'
+            expr = mds.Data.compile(string, mds.Float64Array(self.RhoT2))
+            dummy.putData(expr)
+            dummy.setUnits(' ')
