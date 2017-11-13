@@ -2105,8 +2105,9 @@ while loop:
     elif selection == 25:
         shotList = (57425, 57437, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
-        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 6),
                                      nrows=2, ncols=1)
+        fig.subplots_adjust(top=0.98)
         for shot, col in zip(shotList, colorList):
             Eq = eqtools.TCVLIUQETree(shot)
             # normalize the poloidal flux at 1s
@@ -2130,8 +2131,13 @@ while loop:
             Ax[1].plot(Rho, Lp, '-', color=col, label='# %5i' % shot)
             Ax[1].legend(loc='best', numpoints=1, frameon=False)
             Tree.quit()
+
+        tilesP, vesselP = Eq.getMachineCrossSectionPatch()
         Ax[0].set_aspect('equal')
-        Ax[0].axis('off')
+        Ax[0].add_patch(tilesP)
+        Ax[0].add_patch(vesselP)
+        Ax[0].set_xlabel('R [m]')
+        Ax[0].set_ylabel('Z [m]')
         Ax[1].set_xlabel(r'$\rho_p$')
         Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
         mpl.pylab.savefig('../pdfbox/EquilibriaLparallelConstantBt.pdf',
@@ -2143,6 +2149,7 @@ while loop:
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
         fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
+        fig.subplots_adjust(top=0.98)
         for shot, col in zip(shotList, colorList):
             Eq = eqtools.TCVLIUQETree(shot)
             # normalize the poloidal flux at 1s
@@ -2166,8 +2173,13 @@ while loop:
             Ax[1].plot(Rho, Lp, '-', color=col, label='# %5i' % shot)
             Ax[1].legend(loc='best', numpoints=1, frameon=False)
             Tree.quit()
+
+        tilesP, vesselP = Eq.getMachineCrossSectionPatch()
         Ax[0].set_aspect('equal')
-        Ax[0].axis('off')
+        Ax[0].add_patch(tilesP)
+        Ax[0].add_patch(vesselP)
+        Ax[0].set_xlabel('R [m]')
+        Ax[0].set_ylabel('Z [m]')
         Ax[1].set_xlabel(r'$\rho_p$')
         Ax[1].set_ylabel(r'L$_{\parallel}$ [m]')
         mpl.pylab.savefig('../pdfbox/EquilibriaLparallelConstantQ95.pdf',
