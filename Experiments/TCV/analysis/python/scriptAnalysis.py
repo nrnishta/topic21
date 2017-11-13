@@ -63,7 +63,7 @@ while loop:
         shotList = (57425, 57437, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
         # create the plot
-        fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
+        fig, ax = mpl.pylab.subplots(figsize=(12, 16), nrows=4,
                                      ncols=2, sharex=True)
         fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.98)
         for shot, col in zip(shotList, colorList):
@@ -167,7 +167,7 @@ while loop:
         shotList = (57454, 57461, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
         # create the plot
-        fig, ax = mpl.pylab.subplots(figsize=(16, 12), nrows=4,
+        fig, ax = mpl.pylab.subplots(figsize=(12, 16), nrows=4,
                                      ncols=2, sharex=True)
         fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.98)
         for shot, col in zip(shotList, colorList):
