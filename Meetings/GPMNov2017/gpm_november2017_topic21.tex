@@ -38,8 +38,14 @@ Scientific Team}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
-\begin{frame}
-\textbf{Include scientific team and logos}
+\begin{frame}{Scientific Team}
+\begin{center}
+  Jiri Adamek, Matteo Agostini, Diogo Aguiam, Scott Allan, Matthias Bernert, Daniel Carralero Ortiz, 
+Stefan Costea, Istvan Cziegler, Hugo De Oliveira, Joaquin Galdon-Quiroga, Gustavo Grenfell, Antti Hakola, 
+Codrina Ionita-Schrittwieser, Heinz Isliker, Alexander Karpushov, Jernej Kovacic, Benoît Labit, Florian Laggner, Jens Madsen, 
+Roberto Maurizio, Ken McClements, Fulvio Militello, Jeppe Miki Busk Olsen, Jens Juul Rasmussen, Timo Ravensbergen, Bernd Sebastian Schneider, Roman Schrittwieser, Jakub Seidl, Monica Spolaore, Christian Theiler, Cedric Kar-Wai Tsui, Kevin Verhaegh, Jose Vicente, 
+Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum
+\end{center}
 \end{frame}
 
 \begin{frame}{2017 Top Objectives 
@@ -48,9 +54,10 @@ Scientific Team}
 \vspace{-1cm}
 Deliverables listed during the call for manning of last December 
 \begin{enumerate}
-\item \only<2>{\color{ta3chameleon}} Provide cross-machine L-Mode
+\item \only<2>{\color{ta3chameleon}} Cross-machine L-Mode
   shoulder dependence on current both at constant B$_t$ and at
-  constant $q_{95}$
+  constant $q_{95}$. Rationale: disentangle the effect of current and
+  parallel connection length
 \item \only<2>{\color{taorange}}Establish robust scenario for density
   shoulder profile in H-Mode and establish dependence on
   fuelling/neutral profiles/divertor conditioon
@@ -68,7 +75,7 @@ Deliverables listed during the call for manning of last December
 \end{enumerate}
 \onslide<2>{
   So far H-Mode operation has been limited to AUG since no operational
-  scenarion in high-density NBH heated plasma on TCV has been established
+  scenario in high-density NBH heated plasma on TCV has been established
 }
 \end{frame}
 
@@ -78,7 +85,7 @@ Deliverables listed during the call for manning of last December
   \begin{columns}    
   \begin{column}{0.65\textwidth}
     \centering{\includegraphics<1>[height=.8\textheight]{../../Experiments/AUG/analysis/pdfbox/EquilibraLparallelConstantQ95}}
-    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}}
+    \includegraphics<2>[height=.81\textheight]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}
     \centering{\includegraphics<3>[height=.85\textheight]{../../Experiments/TCV/analysis/pdfbox/EquilibriaLparallelConstantQ95}}
     \centering{\includegraphics<4>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}}
     \centering{\includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/IpConstantQ95_Profiles_UsDiv}}
@@ -87,16 +94,18 @@ Deliverables listed during the call for manning of last December
     \centering{\includegraphics<8>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/IpConstantq95_samedensity}}
     \centering{\includegraphics<9>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CompareTargetProfilesConstantQ95}}
     \centering{\includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/BlobSizeCurrentScanConstantQ95}}
-    \centering{\includegraphics<11>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/LambdaSizeIpScanConstantQ95}}
+    \centering{\includegraphics<11>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GPI_blobs_AUG}}
+    \centering{\includegraphics<12>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/LambdaSizeIpScanConstantQ95}}
     
   \end{column}
   \begin{column}{0.35\textwidth}
     \begin{itemize}
       \item<1|only@1> AUG: All the shots were performed in the so-called
-        Edge Optmized Configuration (EOC) shape
+        Edge Optmized Configuration (EOC) shape. 
       \item<1|only@1> AUG: We matched correctly the shape and the L$_{\parallel}$
         here shown from outer divertor plate up to X-point 
-      \item<2|only@2> AUG: The scan was performed with similar puffing rate (0.8-1
+      \item<2|only@2> AUG: The scan was performed with similar puffing
+        rates for intermediate and higher current (0.8-1
         MA) whereas we reduced it at lower current to avoid early
         disruption
       \item<2|only@2> AUG: The total power (Ohmic plus NBI) was kept
@@ -108,18 +117,19 @@ Deliverables listed during the call for manning of last December
         length. This required operation at unusual low toroidal field
         (up to 0.8T)
       \item<4|only@4> TCV: no additional heating
-        used. Nevertheless the difference in power crossing the separatrix
+        has been used. Nevertheless the difference in power crossing the separatrix
         is small
       \item<4|only@4> TCV: The difference in target pressure similar
-        to AUG behavior
+        to AUG behavior. 
       \item<5|only@5> AUG: At comparable edge density Upstream profiles are
         different with the tendency to develop shoulder easier at
         lower current. \alert{We have flattening of the upstream
           profiles only when $\Lambda_{div}$ is well above one on all
           the profile}
       \item<6|only@6> AUG: Neutrals estimated using calibrated D$_{\alpha}$
-        images coupled with values of density and temperature at the
-        target suggest a larger   
+        cameras coupled with values of density and temperature at the
+        target suggest a larger neutral density at lower current (even
+        with comparable values of edge electron density)
       \item<7|only@7> AUG: At all the current a clear roll-over in
         peak density observed and we can also track the radiation
         front move away from target earlier in density at lower current
@@ -128,12 +138,19 @@ Deliverables listed during the call for manning of last December
         reached pretty high value of $\Lambda_{div}$ all along the profile.
       \item<9|only@9> TCV: This is due to the fact that we can't
         observed during the density ramp any signature of rollover or detachment,
-        whereas upstream profile modification at TCV are only observed
-        well after rollover
+        \alert{whereas upstream profile modification at TCV are only observed
+        well after rollover}
       \item<10|only@10> AUG: There is the tendency towards larger blobs
-        at lower current
-      \item<11|only@11> TCV: this is not confirmed for TCV but in line
-        with the lack of shoulder and detachment
+        at lower current at all values of $\Lambda_{div}$
+      \item<11|only@11> AUG: This need to be further confirmed
+        independently by GPI measurements. The present setup allows
+        for space resolution of the order of mm with a 397 kframe/s
+        sampling rate. Small amount of He gas flux needed ($\sim
+        1.5e^{17} atoms/ms$)
+      \item<12|only@12> TCV: this is not confirmed for TCV where blob
+        sizes is rather constant over a rather large range of
+        $\Lambda_{div}$. At the same time we do not observe target
+        density rollover neither upstream profile flattening 
       \end{itemize}
     \end{column}
 \end{columns}
@@ -145,7 +162,7 @@ Deliverables listed during the call for manning of last December
   \begin{columns}    
   \begin{column}{0.65\textwidth}
     \centering{\includegraphics<1>[height=.8\textheight]{../../Experiments/AUG/analysis/pdfbox/EquilibraLparallelConstantBt}}
-    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}}
+    \centering{\includegraphics<2>[height=.8\textheight]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}}
     \centering{\includegraphics<3>[height=.85\textheight]{../../Experiments/TCV/analysis/pdfbox/EquilibriaLparallelConstantBt}}
     \centering{\includegraphics<4>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}}
     \centering{\includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/IpConstantBt_Profiles_UsDiv}}
