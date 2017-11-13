@@ -81,6 +81,7 @@ def print_menu():
     print "43. Blob size vs Lambda All L-Mode"
     print "44. Evolution of single inter-ELM profiles different-puffing"
     print "45. Evolution of single inter-ELM profiles different fueling H-Mode"
+    print "45. Compare CAS 34278-34281"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -3144,8 +3145,21 @@ while loop:
         mpl.pylab.savefig('../pdfbox/Shot_%5i' % shotList[0]
                           + '_'+'%5i' % shotList[1]+'_InterELMprofiles.pdf',
                           bbox_to_inches='tight')
-
-
+    elif selection == 45:
+        shotList = (34278, 34281)
+        colorList = ('#C90015', '#7B0Ce7')
+        fig, ax = mpl.pylab.subplots(figsize=(7, 5), nrows=1, ncols=1)
+        for shot, col in zip(shotList, colorList):
+            Data = xray.open_dataarray('../data/Shot%5i' % shot + '_5Stroke.nc')
+            ax.plot(Data.time, Data.sel(sig='Isat_m06'), color=col, lw=3, label='# %5i' % shot)
+            ax.fill_between(Data.time, Data.sel(sig='Isat_m06')-Data.err[0, :],
+                            Data.sel(sig('Isat_m06')+Data.err[0, :]), ec='white', fc=color,
+                            alpha=0.5)
+        ax.set_xlabel(r't [$\mu$s]')
+        ax.set_ylabel(r'$\delta I_s/\sigma$')
+        ax.legend(loc='best', numpoints=1, frameon=False)
+        mpl.pylab.savefig('../pdfbox/CompareCas%5i' % shotList[0]+'_%5i' % shotlist[1]+'.pdf',
+                          bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:
