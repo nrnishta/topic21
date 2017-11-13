@@ -2304,11 +2304,13 @@ while loop:
     elif selection == 29:
         shotList = (57437, 58623, 57497, 58624)
         Type = ('LSN', 'DN')
-        colorList = ('#BE4248', '#586473')
+        colorList = ('#BE4248', '#586473', '#BE4248', '#586473')
         fig, ax = mpl.pylab.subplots(figsize=(8, 6))
         fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
         for shot, col in zip(shotList, colorList):
-            if (shot == 57437) or (shot == 57497):
+            if (shot == 57437):
+                df = pd.read_csv('../../data/BlobDatabse.csv')
+            elif (shot == 57497):
                 df = pd.read_csv('../../data/BlobDatabse.csv')
             else:
                 df = pd.read_csv('../../data/BlobDatabseDN.csv')
