@@ -2302,14 +2302,13 @@ while loop:
                           bbox_to_inches='tight')
         
     elif selection == 29:
-        shotList = (57437, 58623)
+        shotList = (57437, 58623, 57497, 58624)
         Type = ('LSN', 'DN')
         colorList = ('#BE4248', '#586473')
         fig, ax = mpl.pylab.subplots(figsize=(8, 6))
         fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
-        ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
         for shot, col in zip(shotList, colorList):
-            if shot == 57437:
+            if (shot == 57437) or (shot == 57497):
                 df = pd.read_csv('../../data/BlobDatabse.csv')
             else:
                 df = pd.read_csv('../../data/BlobDatabseDN.csv')
@@ -2320,13 +2319,13 @@ while loop:
                             (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
                     'o', color=col, ms=15)
             ax.errorbar(df.loc[((df['Shots'] == shot) &
-                            (df['Rho'] >= 1.04))]['Lambda Div'],
+                                (df['Rho'] >= 1.04))]['Lambda Div'],
                         df.loc[((df['Shots'] == shot) &
-                            (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
+                                (df['Rho'] >= 1.04))]['Blob Size [rhos]'],
                         xerr=df.loc[((df['Shots'] == shot) &
-                            (df['Rho'] >= 1.04))]['Lambda Div Err'],
+                                     (df['Rho'] >= 1.04))]['Lambda Div Err'],
                         yerr=df.loc[((df['Shots'] == shot) &
-                            (df['Rho'] >= 1.04))][
+                                     (df['Rho'] >= 1.04))][
                             'Blob size Err [rhos]'], fmt='none', ecolor=col)
         ax.set_xscale('log')
         ax.set_xlabel(r'$\Lambda_{div}$')
