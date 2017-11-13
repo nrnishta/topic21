@@ -1619,7 +1619,7 @@ while loop:
 
     elif selection == 24:
         shotList = (34103, 34102, 34104)
-        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        colorLS = ('#C90015', '#7B0Ce7', '#437356')
         tList = ((2.57, 2.9),
                  (2.57, 3.03, 3.5),
                  (1.83, 2.44, 3.15))
@@ -1758,7 +1758,7 @@ while loop:
 
     elif selection == 25:
         shotList = (34105, 34102, 34106)
-        colorLS = ('#C90015', '#7B0Ce7', '#F0CA37')
+        colorLS = ('#C90015', '#7B0Ce7', '#437356')
         tList = ((1.1, 2.83),
                  (1.1, 2.83, 3.41),
                  (1.1, 2.34, 3.09))
@@ -2436,9 +2436,7 @@ while loop:
 
         for shot, col, ip in zip(shotList, colorL, currentL):
             # load equilibrium
- 
-           
-            # load the H-5
+             # load the H-5
             Dcn = dd.shotfile('DCN', shot)
             H5 = Dcn('H-5')
             # spline evaluation (shorter time faster)
@@ -2513,6 +2511,92 @@ while loop:
         ax[4].set_ylabel(r'kW/m$^2$')
         mpl.pylab.savefig('../pdfbox/RadiationPeakDensityIpScan_constantQ95.pdf',
                           bbox_to_inches='tight', dpi=400)
+
+        # ----------------------
+        # same with just one LoS
+        shotList = (34103, 34102, 34104)
+        currentL = (0.6, 0.8, 0.99)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        Diods = {'D10': {'Name': 'S2L0A09',
+                       'xchord': [1.519, 1.606],
+                       'ychord': [-1.131, -1.11]}}
+        # create the figure
+        fig, ax = mpl.pylab.subplots(figsize=(6, 8),
+                                     ncols=1, nrows=2, sharex=True)
+        fig.subplots_adjust(left=0.15, wspace=0.05, top=0.98)
+
+        for shot, col, ip in zip(shotList, colorL, currentL):
+            # load equilibrium
+             # load the H-5
+            Dcn = dd.shotfile('DCN', shot)
+            H5 = Dcn('H-5')
+            # spline evaluation (shorter time faster)
+            S = UnivariateSpline(H5.time, H5.data/1e19, s=0)
+            Target = langmuir.Target(shot)
+            # peak density vs time
+            peakTarget = decimate(bottleneck.move_mean(
+                np.nanmax(Target.OuterTargetNe, axis=0)/1e20, window=30),
+                                  10, ftype='fir', zero_phase=True)
+            tPeak = decimate(Target.time, 10, ftype='fir', zero_phase=True)
+            
+            # limit to the time corresponding to 20 ms before the maximum of
+            # density i.e. before disruption
+            _idx = np.where((tPeak >= 1) & (
+                    tPeak <= H5.time[np.argmax(H5.data)]-0.02))
+            ax[0].plot(S(tPeak[_idx]), peakTarget[_idx], '.', ms=3, color=col,
+                       label=r'# %5i' % shot +r' I$_p$ = %2.1f' % ip +' MA',
+                       rasterized=True)
+            # now read the signals of AXUV and save them in an array
+            XVS = dd.shotfile('XVS', shot)
+            for key, i in zip(sorted(Diods.keys()), range(len(Diods))):
+                dummy = XVS(Diods[key]['Name'])
+                # we need to filter the signal and
+                # we can also downsampling the data since there is
+                # no need for such a large amount of data
+                Fs = 500e3
+                sig = bw_filter(dummy.data, 200e3, Fs, 'lowpass', order=6)
+                # now downsampling the data two times
+                sig = decimate(decimate(sig, 10, ftype='fir', zero_phase=True),
+                               10, ftype='fir', zero_phase=True)
+                t = decimate(decimate(dummy.time, 10, ftype='fir', zero_phase=True),
+                             10, ftype='fir', zero_phase=True)
+                
+                _idx = np.where((t >= 1) & (
+                        t <= H5.time[np.argmax(H5.data)]-0.02))                
+                ax[i+1].plot(S(t[_idx]), sig[_idx]/1e3, '.', ms=2, color=col, rasterized=True)
+
+            XVS.close()
+            Dcn.close()
+
+        rg, zg = map_equ.get_gc()
+        Eq = equilibrium.equilibrium(device='AUG', time=2, shot=shotList[0])
+        for key, i in zip(sorted(Diods.keys()), range(len(Diods))):
+            inS = inset_axes(ax[i+1], height="70%", width='70%', loc=2)
+            inS.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                        np.linspace(1.01, 1.05, 5), colors='grey', linestyles='--',
+                        linewidhs=0.7)
+            inS.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                        [1], colors='red', linestyles='-', linewidths=1)
+            for KK in rg.iterkeys():
+                inS.plot(rg[KK], zg[KK], '-', color='grey')                
+            inS.set_ylim([-1.5, -0.9])
+            inS.set_xlim([1.1, 1.9])
+            inS.plot(Diods[key]['xchord'], Diods[key]['ychord'], 'k--', lw=2)
+            inS.axis('off')
+            inS.set_aspect('equal')
+
+
+        ax[0].axes.get_xaxis().set_visible(False)
+        l = ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        for t, col in zip(l.get_texts(), colorL):
+            t.set_color(col)
+        ax[1].set_xlim([0, 4])
+        ax[1].set_xlabel(r'n$_e$ H-5 [10$^{19}$m$^{-2}$]')
+        ax[0].set_ylabel(r'$[10^{20}$m$^{-3}]$')
+        ax[1].set_ylabel(r'kW/m$^2$')
+        mpl.pylab.savefig('../pdfbox/RadiationPeakDensityIpScan_constantQ95Zoom.pdf',
+                          bbox_to_inches='tight', dpi=400)
+
 
     elif selection == 37:
         shotList = (34105, 34102, 34106)
@@ -2612,7 +2696,87 @@ while loop:
         ax[4].set_ylabel(r'kW/m$^2$')
         mpl.pylab.savefig('../pdfbox/RadiationPeakDensityIpScan_constantBT.pdf',
                           bbox_to_inches='tight', dpi=400)
+        # -----------------
+        # Only one LoS
+        Diods = {'D10': {'Name': 'S2L0A09',
+                       'xchord': [1.519, 1.606],
+                       'ychord': [-1.131, -1.11]}}
+        # create the figure
+        fig, ax = mpl.pylab.subplots(figsize=(6, 8),
+                                     ncols=1, nrows=2, sharex=True)
+        fig.subplots_adjust(left=0.17, wspace=0.05, top=0.98)
 
+        for shot, col, ip in zip(shotList, colorL, currentL):
+            # load equilibrium
+             # load the H-5
+            Dcn = dd.shotfile('DCN', shot)
+            H5 = Dcn('H-5')
+            # spline evaluation (shorter time faster)
+            S = UnivariateSpline(H5.time, H5.data/1e19, s=0)
+            Target = langmuir.Target(shot)
+            # peak density vs time
+            peakTarget = decimate(bottleneck.move_mean(
+                np.nanmax(Target.OuterTargetNe, axis=0)/1e20, window=30),
+                                  10, ftype='fir', zero_phase=True)
+            tPeak = decimate(Target.time, 10, ftype='fir', zero_phase=True)
+            
+            # limit to the time corresponding to 20 ms before the maximum of
+            # density i.e. before disruption
+            _idx = np.where((tPeak >= 1) & (
+                    tPeak <= H5.time[np.argmax(H5.data)]-0.02))
+            ax[0].plot(S(tPeak[_idx]), peakTarget[_idx], '.', ms=3, color=col,
+                       label=r'# %5i' % shot +r' I$_p$ = %2.1f' % ip +' MA',
+                       rasterized=True)
+            # now read the signals of AXUV and save them in an array
+            XVS = dd.shotfile('XVS', shot)
+            for key, i in zip(sorted(Diods.keys()), range(len(Diods))):
+                dummy = XVS(Diods[key]['Name'])
+                # we need to filter the signal and
+                # we can also downsampling the data since there is
+                # no need for such a large amount of data
+                Fs = 500e3
+                sig = bw_filter(dummy.data, 200e3, Fs, 'lowpass', order=6)
+                # now downsampling the data two times
+                sig = decimate(decimate(sig, 10, ftype='fir', zero_phase=True),
+                               10, ftype='fir', zero_phase=True)
+                t = decimate(decimate(dummy.time, 10, ftype='fir', zero_phase=True),
+                             10, ftype='fir', zero_phase=True)
+                
+                _idx = np.where((t >= 1) & (
+                        t <= H5.time[np.argmax(H5.data)]-0.02))                
+                ax[i+1].plot(S(t[_idx]), sig[_idx]/1e3, '.', ms=2, color=col, rasterized=True)
+
+            XVS.close()
+            Dcn.close()
+
+        rg, zg = map_equ.get_gc()
+        Eq = equilibrium.equilibrium(device='AUG', time=2, shot=shotList[0])
+        for key, i in zip(sorted(Diods.keys()), range(len(Diods))):
+            inS = inset_axes(ax[i+1], height="70%", width='70%', loc=2)
+            inS.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                        np.linspace(1.01, 1.05, 5), colors='grey', linestyles='--',
+                        linewidhs=0.7)
+            inS.contour(Eq.R, Eq.Z, Eq.psiN[:],
+                        [1], colors='red', linestyles='-', linewidths=1)
+            for KK in rg.iterkeys():
+                inS.plot(rg[KK], zg[KK], '-', color='grey')                
+            inS.set_ylim([-1.5, -0.9])
+            inS.set_xlim([1.1, 1.8])
+            inS.plot(Diods[key]['xchord'], Diods[key]['ychord'], 'k--', lw=2)
+            inS.axis('off')
+            inS.set_aspect('equal')
+
+
+        ax[0].axes.get_xaxis().set_visible(False)
+        l = ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=12)
+        for t, col in zip(l.get_texts(), colorL):
+            t.set_color(col)
+        ax[1].set_xlim([0, 4])
+        ax[1].set_xlabel(r'n$_e$ H-5 [10$^{19}$m$^{-2}$]')
+        ax[0].set_ylabel(r'$[10^{20}$m$^{-3}]$')
+        ax[1].set_ylabel(r'kW/m$^2$')
+        mpl.pylab.savefig('../pdfbox/RadiationPeakDensityIpScan_constantBTZoom.pdf',
+                          bbox_to_inches='tight', dpi=400)
     elif selection == 38:
         shotList = (34276, 34277)
         colorL = ('#C90015', '#7B0Ce7')
