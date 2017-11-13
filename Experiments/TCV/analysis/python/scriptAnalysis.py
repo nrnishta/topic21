@@ -2105,7 +2105,7 @@ while loop:
     elif selection == 25:
         shotList = (57425, 57437, 57497)
         colorList = ('#1f77b4', '#ff7f0e', '#2ca02c')
-        fig, Ax = mpl.pylab.subplots(figsize=(6, 6),
+        fig, Ax = mpl.pylab.subplots(figsize=(6, 10),
                                      nrows=2, ncols=1)
         fig.subplots_adjust(top=0.98)
         for shot, col in zip(shotList, colorList):
