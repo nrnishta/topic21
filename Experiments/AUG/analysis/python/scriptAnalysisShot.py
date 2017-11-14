@@ -3070,7 +3070,7 @@ while loop:
                         np.power(6.9e-3/Data.Lags[1], 2))
                     if Size*1e3 > 100:
                         Size /= 2.
-                    ax.plot(Data.Lambda, Size*1e3, 'o', color=col, ms=10)
+                    ax.plot(Data.Lambda, Size*1e3, 'o', color=col, ms=18)
                 except:
                     pass
         ax.set_xscale('log')
@@ -3104,7 +3104,8 @@ while loop:
                                 np.abs(Data.rhoLambda-1.03))]
                     else:
                         L=Data.Lambda
-                    ax.plot(L, Size*1e3, 'o', color=col, ms=10)
+                    ax.plot(L, Size*1e3, 'o', color=col,
+                            ms=18)
                     print Size
                     print Data.Lambda
                     print L
