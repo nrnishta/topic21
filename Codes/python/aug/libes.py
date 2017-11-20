@@ -34,6 +34,7 @@ class Libes(object):
         self.rho = np.linspace(0.9, 1.1, 50)
         self.ne = np.zeros((time.size, self.rho.size))
         self.neNorm = np.zeros((time.size, self.rho.size))
+        self.eFold = np.zeros((time.size, self.rho.size))
         self.time = time
         # now compute the UnivariateSpline
         for t in range(time.size):
@@ -41,6 +42,9 @@ class Libes(object):
                                  ne[t, ::-1], s=0)
             self.ne[t, :] = S(self.rho)
             self.neNorm[t, :] = S(self.rho)/S(1)
+            self.eFold[t, :] = np.abs(S(self.rho)/
+                                      S.derivative()(self.rho))
+
 
     def averageProfile(self, trange=[2, 3], interelm=False,
                        elm=False, **kwargs):
@@ -49,18 +53,23 @@ class Libes(object):
                         (self.time <= trange[1]))[0]
 
         ne = self.ne[_idx, :]
+        efold = self.eFold[_idx, :]
         if interelm:
             print('Computing inter-ELM profiles')
             self._maskElm(trange=trange, **kwargs)
             ne = ne[self._interElm, :]
+            efold = efold[self._interElm, :]
         if elm:
             self._maskElm(trange=trange, **kwargs)
             print('Computing ELM profiles')
             ne = ne[self._Elm, :]
+            efold = efold[self._Elm, :]
 
         profiles = np.nanmean(ne, axis=0)
         error = np.nanstd(ne, axis=0)
-        return profiles, error
+        efolderr = np.nanstd(efold, axis=0)
+        efold = np.nanmean(efold, axis=0)
+        return profiles, error, efold, efolderr
 
 
     def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
@@ -94,7 +103,7 @@ class Libes(object):
         if usedda:
             print("Using ELM dda")
             ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
-            elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
+            elmd = ELM("t_endELM", tBegin=trange[0], tEnd=trange[1])
             # limit to the ELM included in the trange
             _idx = np.where((elmd.time>= trange[0]) & (elmd.time <= trange[1]))[0]
             self.tBegElm = eldm.time[_idx]
@@ -104,10 +113,10 @@ class Libes(object):
             print("Using IpolSolI")
             Mac = dd.shotfile("MAC", self.shot, experiment='AUGD')
             Ipol = Mac('Ipolsoli')
-            _idx = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
+            _idxT = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
             # now create an appropriate savgolfile
-            IpolS = savgol_filter(Ipol.data[_idx], 501, 3)
-            IpolT = Ipol.time[_idx]
+            IpolS = savgol_filter(Ipol.data[_idxT], 501, 3)
+            IpolT = Ipol.time[_idxT]
             # on these we choose a threshold
             # which can be set as also set as keyword
             window, _a, _b, _c = identify_bursts2(IpolS, threshold)
@@ -140,6 +149,7 @@ class Libes(object):
             fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
             fig.subplots_adjust(bottom=0.15, left=0.15)
             ax.plot(IpolT, IpolS, color='#1f77b4')
+            ax.plot(Ipol.time[_idxT], Ipol.data[_idxT], color='gray', alpha=0.3)
             ax.set_xlabel(r't[s]')
             ax.set_ylabel(r'Ipol SOL I')
             ax.axhline(threshold, ls='--', color='#d62728')
