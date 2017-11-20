@@ -1127,7 +1127,7 @@ while loop:
         ipList = (245, 190, 330)
         fig, ax = mpl.pylab.subplots(figsize=(8, 6))
         fig.subplots_adjust(bottom=0.16, left=0.18, right=0.98)
-        ax.set_title(r'I$_p$ scan at constant B$_{\phi}$')
+        ax.set_title(r'I$_p$ scan at constant q$_{95}$')
         df = pd.read_csv('../../data/BlobDatabse.csv')
         for shot, col in zip(shotList, colorList):
             ax.plot(df.loc[((df['Shots'] == shot) &
