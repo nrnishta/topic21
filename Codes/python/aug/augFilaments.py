@@ -367,7 +367,7 @@ class Filaments(object):
             data.attrs['ELMThreshold'] = threshold
 
         if self._tagLiB:
-            if interElm:
+            if interELM:
                 p, ep, efold = self.LiB.averageProfile(
                     trange=trange, interelm=True, threshold=threshold)
             else:
