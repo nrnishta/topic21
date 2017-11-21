@@ -1,9 +1,11 @@
 import dd
 from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import interp1d
 import numpy as np
 from scipy.signal import savgol_filter
 from time_series_tools import identify_bursts2
 import matplotlib as mpl
+import eqtools
 
 
 class Libes(object):
@@ -27,24 +29,23 @@ class Libes(object):
             ne = ne[_idx, :]
             time = time[_idx]
             rhoP = rhoP[_idx, :]
+        # load the equilibrium
+        self.eq= eqtools.AUGDDData(self.shot)
+        self.eq.remapLCFS()
         # now build your own basis on the same rhoPoloidal
         # outsize the separatrix
-        self.neraw = ne
-        self.rhoraw = rhoP
+        self.neraw = ne[:, ::-1]
+        self.rhoraw = rhoP.data[:, ::-1]
         self.rho = np.linspace(0.9, 1.1, 50)
         self.ne = np.zeros((time.size, self.rho.size))
         self.neNorm = np.zeros((time.size, self.rho.size))
-        self.eFold = np.zeros((time.size, self.rho.size))
         self.time = time
         # now compute the UnivariateSpline
         for t in range(time.size):
-            S = UnivariateSpline(rhoP[t, ::-1],
-                                 ne[t, ::-1], s=0)
+            S = UnivariateSpline(self.rhoraw[t, :],
+                                 self.neraw[t, :], s=0)
             self.ne[t, :] = S(self.rho)
             self.neNorm[t, :] = S(self.rho)/S(1)
-            self.eFold[t, :] = np.abs(S(self.rho)/
-                                      S.derivative()(self.rho))
-
 
     def averageProfile(self, trange=[2, 3], interelm=False,
                        elm=False, **kwargs):
@@ -53,23 +54,25 @@ class Libes(object):
                         (self.time <= trange[1]))[0]
 
         ne = self.ne[_idx, :]
-        efold = self.eFold[_idx, :]
         if interelm:
             print('Computing inter-ELM profiles')
             self._maskElm(trange=trange, **kwargs)
             ne = ne[self._interElm, :]
-            efold = efold[self._interElm, :]
         if elm:
             self._maskElm(trange=trange, **kwargs)
             print('Computing ELM profiles')
             ne = ne[self._Elm, :]
-            efold = efold[self._Elm, :]
 
         profiles = np.nanmean(ne, axis=0)
         error = np.nanstd(ne, axis=0)
-        efolderr = np.nanstd(efold, axis=0)
-        efold = np.nanmean(efold, axis=0)
-        return profiles, error, efold, efolderr
+        # now build the appropriate Efolding length on the
+        # recomputed profiles using an UnivariateSpline
+        # interpolation weighted on the error
+        Rmid = self.eq.rho2rho('sqrtpsinorm', 'Rmid', self.rho, self.time[_idx].mean())
+        # 
+        S = UnivariateSpline(Rmid, profiles, w=1./error, s=0)
+        Efold = np.abs(S(Rmid)/S.derivative()(Rmid))
+        return profiles, error, Efold
 
 
     def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
