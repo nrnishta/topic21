@@ -9,6 +9,7 @@ from scipy.interpolate import UnivariateSpline
 from time_series_tools import identify_bursts2
 import langmuir
 import xarray as xray
+import libes
 
 
 class Filaments(object):
@@ -33,7 +34,7 @@ class Filaments(object):
     timeseries : Class in https://github.com/nicolavianello/topic21
     dd : Class on AUG toks cluster for AUG signal reading
     eqtools : https://github.com/PSFCPlasmaTools/eqtools
-
+    libes : Class for dealing with Li-Be data available https://github.com/nicolavianello/topic21
     """
 
     def __init__(self, shot, Probe='HFF', Xprobe=None):
@@ -53,7 +54,13 @@ class Filaments(object):
             print('Other probe head not implemented yet')
         # load the data from Langmuir probes
         self.Target = langmuir.Target(self.shot)
-        
+        # load the profile of the Li-Beam so that
+        # we can evaluate the Efolding length
+        try:
+            self.LiB = libes.Libes(self.shot)
+            self._tagLiB = True
+        except:
+            self._tabLiB = False
 
 
     def _HHFGeometry(self, angle=80.):
@@ -358,7 +365,19 @@ class Filaments(object):
         # save also 
         if interELM:
             data.attrs['ELMThreshold'] = threshold
-        
+
+        if self._tagLiB:
+            if interElm:
+                p, ep, efold = self.LiB.averageProfile(
+                    trange=trange, interelm=True, threshold=threshold)
+            else:
+                p, ep, efold = self.LiB.averageProfile(
+                    trange=trange)
+            data.attrs['LiB'] = p
+            data.attrs['LiBerr'] = ep
+            data.attrs['rhoLiB'] = self.LiB.rho
+            data.attrs['Efold'] = efold
+
         return data
 
     def _defineTime(self, trange=[2, 3]):
