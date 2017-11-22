@@ -1,16 +1,19 @@
 import dd
 from scipy.interpolate import UnivariateSpline
-from scipy.interpolate import interp1d
 import numpy as np
 from scipy.signal import savgol_filter
 from time_series_tools import identify_bursts2
 import matplotlib as mpl
 import eqtools
+import logging
 
 
 class Libes(object):
     """
-    Class 
+    Class to deal with Li-beam data. It compute the Li-Beam on
+    an uniform rho-Grid and time,  and save as attributes
+    the value normalize to the value at the separatrix
+    
     """
 
     def __init__(self, shot, trange=None):
@@ -47,6 +50,7 @@ class Libes(object):
             self.ne[t, :] = S(self.rho)
             self.neNorm[t, :] = S(self.rho)/S(1)
 
+
     def averageProfile(self, trange=[2, 3], interelm=False,
                        elm=False, **kwargs):
 
@@ -56,13 +60,13 @@ class Libes(object):
         ne = self.ne[_idx, :]
         neN = self.neNorm[_idx, :]
         if interelm:
-            print('Computing inter-ELM profiles')
+            logging.warning('Computing inter-ELM profiles')
             self._maskElm(trange=trange, **kwargs)
             ne = ne[self._interElm, :]
             neN = neN[self._interElm, :]
         if elm:
             self._maskElm(trange=trange, **kwargs)
-            print('Computing ELM profiles')
+            logging.warning('Computing ELM profiles')
             ne = ne[self._Elm, :]
             neN = neN[self._Elm, :]
 
@@ -79,7 +83,8 @@ class Libes(object):
         Efold = np.abs(S(Rmid)/S.derivative()(Rmid))
         return profiles, error, Efold, profilesN, errorN
 
-    def amplitudeShoulder(self, dt=0.1, reference=[1.5, 1.6], start=1.6):
+    def amplitudeShoulder(self, dt=0.1, reference=[1.5, 1.6],
+                          start=1.6, **kwargs):
         """
         Compute the amplitude and location of the shoulder defined as
         the difference between normalized profiles in the SOL w.r.t.
@@ -91,17 +96,24 @@ class Libes(object):
         dt : floating
             resolution in [s]. If given compute the evolution with the
             given time resolution
+
         reference : 2D floating 
             It contains the time interval computed for the reference
             profile
+
         start : floating
             Starting point for the evaluation of the amplitude 
+
+        kwargs : 
+            These are the keyowords which can be passed to average profiles
+            in order to eventually compute the interELM behavior
+
         Returns
         -------
         timebasis, amplitude (only in the SOL), location
         """
         # first compute the normalized reference profile
-        _, _, _, pN, eN = self.averageProfile(trange=reference)
+        _, _, _, pN, eN = self.averageProfile(trange=reference, **kwargs)
         # limit to the region for rho > 1
         _idx = np.where((self.time > start))[0]
         _npoint = int(np.floor((self.time[_idx].max()-self.time[_idx].min())/dt))
@@ -113,7 +125,8 @@ class Libes(object):
         # number of point given the resolution
         
         for i in range(_npoint):
-            _, _, _, pDummy, eDummy = self.averageProfile(trange=[start+i*dt, start+(i+1)*dt])
+            _, _, _, pDummy, eDummy = self.averageProfile(trange=[start+i*dt, start+(i+1)*dt],
+                                                          **kwargs)
             pDummy = pDummy[self.rho>=1]
             Amplitude.append(pDummy-pN)
             Location.append(rhoDummy[np.argmax(pDummy-pN)])
@@ -153,7 +166,7 @@ class Libes(object):
         """
 
         if usedda:
-            print("Using ELM dda")
+            logging.warning("Using ELM dda")
             ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
             elmd = ELM("t_endELM", tBegin=trange[0], tEnd=trange[1])
             # limit to the ELM included in the trange
@@ -162,7 +175,7 @@ class Libes(object):
             self.tEndElm = elmd.data[_idx]
             ELM.close()
         else:
-            print("Using IpolSolI")
+            logging.warning("Using IpolSolI")
             Mac = dd.shotfile("MAC", self.shot, experiment='AUGD')
             Ipol = Mac('Ipolsoli')
             _idxT = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
