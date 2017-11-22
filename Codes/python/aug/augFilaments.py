@@ -1,3 +1,4 @@
+from __future__ import print_function
 import timeseries
 import dd
 import eqtools
@@ -51,7 +52,7 @@ class Filaments(object):
             self._HHFGeometry(angle=80)
             self._loadHHF()
         else:
-            print('Other probe head not implemented yet')
+            logging.warning('Other probe head not implemented yet')
         # load the data from Langmuir probes
         self.Target = langmuir.Target(self.shot)
         # load the profile of the Li-Beam so that
@@ -60,8 +61,8 @@ class Filaments(object):
             self.LiB = libes.Libes(self.shot)
             self._tagLiB = True
         except:
-            self._tabLiB = False
-
+            self._tagLiB = False
+            logging.warning('Li-Beam not found for shot %5i' %shot )
 
     def _HHFGeometry(self, angle=80.):
         """
@@ -282,10 +283,10 @@ class Filaments(object):
         if Probe not in self.isName + self.vfName:
             print('Available Ion saturation current signals are')
             for p in self.isName:
-                print p
+                print(p)
             print('Available Floating potential signal are')
             for p in self.vfName:
-                print p
+                print(p)
 
             Probe = str(raw_input('Provide the probe '))
 
@@ -368,13 +369,15 @@ class Filaments(object):
 
         if self._tagLiB:
             if interELM:
-                p, ep, efold = self.LiB.averageProfile(
+                p, ep, efold, pN, eN = self.LiB.averageProfile(
                     trange=trange, interelm=True, threshold=threshold)
             else:
-                p, ep, efold = self.LiB.averageProfile(
+                p, ep, efold, pN, eN = self.LiB.averageProfile(
                     trange=trange)
             data.attrs['LiB'] = p
             data.attrs['LiBerr'] = ep
+            data.attrs['LiBN'] = pN
+            data.attrs['LiBNerr'] = eN
             data.attrs['rhoLiB'] = self.LiB.rho
             data.attrs['Efold'] = efold
 
@@ -450,7 +453,7 @@ class Filaments(object):
         """
 
         if usedda:
-            print("Using ELM dda")
+            logging.warning("Using ELM dda")
             ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
             elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
             # limit to the ELM included in the trange
@@ -459,7 +462,7 @@ class Filaments(object):
             self.tEndElm = elmd.data[_idx]
             ELM.close()
         else:
-            print("Using IpolSolI")
+            logging.warning("Using IpolSolI")
             Mac = dd.shotfile("MAC", self.shot, experiment='AUGD')
             Ipol = Mac('Ipolsoli')
             _idx = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
@@ -551,7 +554,6 @@ class Filaments(object):
             raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
 
         s=np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
-        #print(len(s))
 
         if window == 'flat': #moving average
             w = np.ones(window_len,'d')
