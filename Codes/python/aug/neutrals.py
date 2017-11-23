@@ -1,11 +1,16 @@
 import dd
+import numpy
+import logging
+import os
 
 
 class Neutrals(object):
     """
     Class to handle all the information concerning
     neutral measurements from the gauges and details
-    from fueling
+    from fueling. In case neutrals have been computed
+    it also load the appropriate neutral estimate from
+    saved file
 
     Parameters
     ----------
@@ -29,6 +34,18 @@ class Neutrals(object):
         self.Uvs = dd.shotfile('UVS', self.shot)
         self._readGas()
         self.Uvs.close()
+        # now the directory where eventually the neutrals resides
+        try:
+            _path = os.path.abspath(os.path.join(os.path.join(
+                        __file__, '../../../..'),
+                                                 'Experiments/AUG/analysis/data/neutrals/%5i' % self.shot))
+            data = numpy.load(_path+'/n0_avg.npy')
+            self.n0 = data[:, 0]
+            self.n0Err = data[:, 1]
+            self.n0Time = numpy.loadtxt(_path+'/time_brillanza.txt')
+        except:
+            logging.warning('File not found')
+            pass
 
     def compression(self, Midplane=''):
         pass
