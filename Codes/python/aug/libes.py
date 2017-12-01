@@ -110,7 +110,21 @@ class Libes(object):
 
         Returns
         -------
-        timebasis, amplitude (only in the SOL), location
+        None
+
+        Attributes
+        ----------
+        Define the following attributes to the class
+        Amplitude :
+            Amplitude as normalized difference with respect to the reference profile
+            computed during the time interval defined in reference
+        Location :
+            The Location as a function of rho of the maximum of the normalized difference
+        Efold :
+            Efolding as a function of rho and time
+        rhoAmplitude:
+            The rho values of the normalized difference (defined for rho >= 1)
+        
         """
         # first compute the normalized reference profile
         _, _, _, pN, eN = self.averageProfile(trange=reference, **kwargs)
@@ -119,23 +133,28 @@ class Libes(object):
         _npoint = int(np.floor((self.time[_idx].max()-self.time[_idx].min())/dt))
         Amplitude = []
         Location = []
+        Efold = []
         time = np.zeros(_npoint)
         rhoDummy = self.rho[self.rho>=1]
         pN = pN[self.rho >= 1]
         # number of point given the resolution
         
         for i in range(_npoint):
-            _, _, _, pDummy, eDummy = self.averageProfile(trange=[start+i*dt, start+(i+1)*dt],
+            a, b, c, pDummy, eDummy = self.averageProfile(trange=[start+i*dt, start+(i+1)*dt],
                                                           **kwargs)
             pDummy = pDummy[self.rho>=1]
             Amplitude.append(pDummy-pN)
             Location.append(rhoDummy[np.argmax(pDummy-pN)])
             time[i] = (start+i*dt+dt/2)
-            
-        Amplitude = np.asarray(Amplitude)
-        Location = np.asarray(Location)
+            Rmid = self.eq.rho2rho('sqrtpsinorm', 'Rmid', self.rho, time[i])
+            Efold.append(c)
 
-        return rhoDummy, time, Amplitude, Location
+            
+        self.Amplitude = np.asarray(Amplitude)
+        self.Location = np.asarray(Location)
+        self.timeAmplitude = time
+        self.rhoAmplitude = self.rho[self.rho>=1]
+        self.Efold = np.asarray(Efold)
 
     def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
                  check=False):
