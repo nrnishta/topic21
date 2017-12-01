@@ -82,6 +82,8 @@ def print_menu():
     print "44. Evolution of single inter-ELM profiles different-puffing"
     print "45. Evolution of single inter-ELM profiles different fueling H-Mode"
     print "46. Compare CAS 34278-34281"
+    print "47. Compare 34276-34278 same fueling"
+    print "48. Compare 34276-34278 plunges and CAS"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -3366,6 +3368,171 @@ while loop:
         ax[1].set_ylabel(r'$\delta_b$ [mm]')
         mpl.pylab.savefig('../pdfbox/CompareCas%5i' % shotList[0]+'_%5i' % shotList[1]+'.pdf',
                           bbox_to_inches='tight')
+
+    elif selection == 47:
+        shotList = (34276, 34278)
+        fig = mpl.pylab.figure(figsize=(16, 14))
+        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 4), (0, 0), colspan=4)
+        ax2 = mpl.pylab.subplot2grid((4, 4), (1, 0), colspan=4)
+        
+        ax3 = mpl.pylab.subplot2grid((4, 4), (2, 0))
+        ax4 = mpl.pylab.subplot2grid((4, 4), (2, 1))
+        ax5 = mpl.pylab.subplot2grid((4, 4), (2, 2))
+        ax6 = mpl.pylab.subplot2grid((4, 4), (2, 3))
+
+        ax7 = mpl.pylab.subplot2grid((4, 4), (3, 0))
+        ax8 = mpl.pylab.subplot2grid((4, 4), (3, 1))
+        ax9 = mpl.pylab.subplot2grid((4, 4), (3, 2))
+        ax10 = mpl.pylab.subplot2grid((4, 4),(3, 3))
+
+        axProf = (ax3, ax4, ax5, ax6)
+        axLamb = (ax7, ax8, ax9, ax10)
+        colorLS = ('#C90015', '#7B0Ce7')
+        Cryo = ('No', 'On')
+        trangeL = ([3.75, 3.78], [4.24, 4.30], [4.76, 4.80], [5.23, 5.28])
+        threshold = ([1000, 500, 400, 300], [1800, 1000, 1100, 1100])
+
+        for shot, col, Cry, _Thr in zip(
+            shotList, colorLS, Cryo, threshold):
+            Gas = neutrals.Neutrals(shot)            
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=col, lw=3, label='# %5i' %shot + ' Cryo ' + Cry)
+            diag = dd.shotfile('DCN', shot)
+            ax2.plot(diag('H-5').time, diag('H-5').data/1e19, color=col, lw=3)
+            LiB = libes.Libes(shot)
+            Target = langmuir.Target(shot)
+            for time, _axP, _axL, _t in zip(trangeL, axProf, axLamb, _Thr):
+                tmin = time[0]
+                tmax = time[1]
+                p, e, Efold, pN, eN = LiB.averageProfile(trange=[tmin, tmax],
+                                                         interelm=True, threshold=_t)
+                _axP.plot(LiB.rho, pN, '-', lw=2, color=col)
+                _axP.fill_between(LiB.rho, (pN-eN), (pN+eN), facecolor=col,
+                                  edgecolor='none', alpha=0.5)
+                rhoLambda, Lambda = Target.computeLambda(trange=[tmin, tmax], interelm=True,
+                                                         threshold=_t)
+                _axL.plot(rhoLambda, Lambda, color=col, lw=3)
+                ax1.axvspan(tmin, tmax, color='gray', edgecolor='white',
+                            alpha=0.5)
+                ax2.axvspan(tmin, tmax, color='gray', edgecolor='white',
+                            alpha=0.5)
+
+
+        ax1.set_xlim([0, 6.5])
+        ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+        ax1.legend(loc='best', numpoints=1, frameon=False)
+        ax1.axes.get_xaxis().set_visible(False)
+        ax2.set_xlim([0, 6.5])
+        ax2.set_ylabel(r'n$_e [10^{19}$m$^{-2}]$')
+        ax2.set_xlabel(r't [s]')
+
+        for _ax, t in zip(axProf, trangeL):
+            _ax.set_yscale('log')
+            _ax.set_ylim([1e-2, 4])
+            _ax.set_xlim([0.95, 1.1])
+            _ax.axes.get_xaxis().set_visible(False)
+            _ax.set_title(r't = %4.3f' % np.asarray(t).mean())
+
+        ax3.set_ylabel(r'n$_e/$n$_e(\rho=1)$')
+        ax4.axes.get_yaxis().set_visible(False)
+        ax5.axes.get_yaxis().set_visible(False)
+        ax6.axes.get_yaxis().set_visible(False)
+
+        for _ax in axLamb:
+            _ax.set_xlim([0.95, 1.1])
+            _ax.set_ylim([1e-1, 20])
+            _ax.set_yscale('log')
+            _ax.axhline(1, ls='--', color='gray', lw=2)
+            _ax.set_xlabel(r'$\rho$')
+            _ax.set_xticks([0.96, 1, 1.04, 1.08])
+
+        ax7.set_ylabel(r'$\Lambda_{div}$')
+        ax8.axes.get_yaxis().set_visible(False)
+        ax9.axes.get_yaxis().set_visible(False)
+        ax10.axes.get_yaxis().set_visible(False)
+
+        mpl.pylab.savefig('../pdfbox/Shot_%5i' % shotList[0]
+                          + '_'+'%5i' % shotList[1]+'_InterELMprofiles4Panel.pdf',
+                          bbox_to_inches='tight')
+
+    elif selection == 48:
+        shotList = (34276, 34278)
+        fig = mpl.pylab.figure(figsize=(16, 14))
+        fig.subplots_adjust(hspace=0.3, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((3, 3), (0, 0), colspan=3)
+        ax2 = mpl.pylab.subplot2grid((3, 3), (2, 0), colspan=3)
+        ax3 = mpl.pylab.subplot2grid((3, 3), (1, 0))
+        ax4 = mpl.pylab.subplot2grid((3, 3), (1, 1))
+        ax5 = mpl.pylab.subplot2grid((3, 3), (1, 2))
+
+        axCas = (ax3, ax4, ax5)
+        colorLS = ('#C90015', '#7B0Ce7')
+        Cryo = ('No', 'On')
+        df = pd.read_csv('../data/MEM_Topic21.csv')        
+        for shot, col, Cry in zip(shotList, colorLS, Cryo):
+            Gas = neutrals.Neutrals(shot)
+            ax1.plot(Gas.gas['D2']['t'], Gas.gas['D2']['data']/1e21,
+                     color=col, lw=3, label='# %5i' %shot + ' Cryo ' + Cry)
+            Ddf = df[df['shot'] == shot]
+            for _s, _ax in zip(
+                np.linspace(1, 3, 3, dtype='int'),
+                axCas):
+                Data = xray.open_dataarray(
+                    '../data/Shot%5i' % shot + '_%1i' % _s + 'Stroke.nc')
+                _ax.plot(Data.t*1e6, Data.sel(sig='Isat_m06'), color=col, lw=3, label='# %5i' % shot)
+                err = Data.err.reshape(3, 501)
+                _ax.fill_between(Data.t*1e6, Data.sel(sig='Isat_m06')-err[0, :],
+                                Data.sel(sig='Isat_m06')+err[0, :], edgecolor='white',
+                                facecolor=col,
+                                alpha=0.5)
+                Size = Data.TauB*np.sqrt(
+                    np.power(4e-3/Data.Lags[0], 2) +
+                    np.power(6.9e-3/Data.Lags[1], 2))           
+                SizeErr = Size * np.abs(Data.TauBErr/Data.TauB)
+                
+                ax1.axvline((Ddf['tmin%1i' % _s].values[0] + Ddf['tmax%1i' % _s].values[0])/2,
+                            color=col, ls='-', lw=2)
+
+                ax2.semilogx(Data.Lambda, Size*1e3, 'o', ms=15, color=col)
+                ax2.errorbar(Data.Lambda, Size*1e3, yerr=SizeErr*1e3, fmt='none',
+                             ecolor=col, capsize=0)
+            # for the shot 34278 where we have additional availabe stroke
+            # we also add the rest
+            if shot == 34278:
+                for _s in np.linspace(4, 6, 3, dtype='int'):
+                    Data = xray.open_dataarray(
+                        '../data/Shot%5i' % shot + '_%1i' % _s + 'Stroke.nc')
+                    Size = Data.TauB*np.sqrt(
+                        np.power(4e-3/Data.Lags[0], 2) +
+                        np.power(6.9e-3/Data.Lags[1], 2))           
+                    SizeErr = Size * np.abs(Data.TauBErr/Data.TauB)
+                    ax1.axvline((Ddf['tmin%1i' % _s].values[0] + Ddf['tmax%1i' % _s].values[0])/2,
+                                color=col, ls='--', lw=2)
+                    ax2.semilogx(Data.Lambda, Size*1e3, 'p', ms=15, color=col)
+                    ax2.errorbar(Data.Lambda, Size*1e3, yerr=SizeErr*1e4, fmt='none',
+                                 ecolor=col, capsize=0)
+
+            else:
+                pass
+
+        ax1.set_xlim([0, 6.5])
+        ax1.set_ylabel(r'D$_2$  [10$^{21}$]')
+        ax1.legend(loc='best', numpoints=1, frameon=False)
+        ax1.set_xlabel(r't [s]')
+        for _ax in axCas:
+            _ax.set_xlim([-120, 120])
+            _ax.set_xlabel(r' t[$\mu$s]')
+            _ax.set_ylim([-1, 3.5])
+        ax3.axes.get_yaxis().set_visible(False)
+        ax4.axes.get_yaxis().set_visible(False)         
+
+        ax2.set_ylim([0.1, 100])
+        ax2.set_xlabel(r'$\Lambda_{div}$ @ $\rho=1.03$')
+        ax2.set_ylabel(r'$\delta_b$ [mm]')
+        mpl.pylab.savefig('../pdfbox/CompareCasSizeShot%5i' % shotList[0]
+                          + '_%5i' % shotList[1]+'.pdf', bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
