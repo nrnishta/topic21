@@ -31,7 +31,22 @@ class Tree(object):
     Topic 21 Experiment
     """
 
-    def __init__(self, shot, Gas='D2'):
+    def __init__(self, shot, Gas='D2', amend=False):
+        """
+
+        Parameters
+        ----------
+        shot : int
+            shot number
+        Gas : string
+            type of gas used to establish mass and Z. Possibilities
+            are 'D2' [default],'H','He'
+        amend : boolean.
+            Default is False. If True it does not create all the
+            tree but only amend the computation of the positions and
+            and of the RCP according to what saved in the general
+            Tree
+        """
         self.shot = shot
         self.gas = 'D2'
         if Gas == 'D2':
@@ -52,12 +67,14 @@ class Tree(object):
         # load the equilibrium which will be used
         # to compute rho from rmid for the Lparallel
         self.Eq = eqtools.TCVLIUQETree(self.shot)
-        # load the data for langmuir
-        self._Target = langmuir.LP(self.shot, Type='floor')
-        # load the data for the connection length
-        self._loadConnection()
-        # compute the Lambda
-        self._computeLambda()
+        self.amend = amend
+        if not self.amend:
+            # load the data for langmuir
+            self._Target = langmuir.LP(self.shot, Type='floor')
+            # load the data for the connection length
+            self._loadConnection()
+            # compute the Lambda
+            self._computeLambda()
         # load the profiles from reciprocating
         self._loadUpstream()
         # load and compute the rho poloidal
@@ -171,13 +188,13 @@ class Tree(object):
             self.vfBU1 = doubleP['Vfb'].values
             self.drUsU1 = doubleP['rrsep(m)'].values
             self.tU1 = doubleP['Time(s)'].values
+            self._R1Absolute = self.TcvTree.getNode(r'\fp:r_1').data()[1:]
             # we need to convert to rho using eqtools since
             # the saved data are incorrect for the reverse
             # field case
             self.rhoU1 = numpy.asarray([
-                self.Eq.rmid2psinorm(self.Eq.getRmidOutSpline()(t)+x,
-                                     t, sqrt=True) for t, x in
-                zip(self.tU1, self.drUsU1)])
+                self.Eq.rz2psinorm(x,0, t, sqrt=True) for x,t in
+                zip(self._R1Absolute, self.tU1)])
             self._Plunge1 = True
         except:
             print('Plunge 1 not found for shot %5i' % self.shot)
@@ -200,20 +217,22 @@ class Tree(object):
             self.vfBU2 = doubleP['Vfb'].values
             self.drUsU2 = doubleP['rrsep(m)'].values
             self.tU2 = doubleP['Time(s)'].values
+            self._R2Absolute = self.TcvTree.getNode(r'\fp:r_2').data()[1:]
             # we need to convert to rho using eqtools since
             # the saved data are incorrect for the reverse
             # field case
             self.rhoU2 = numpy.asarray([
-                self.Eq.rmid2psinorm(self.Eq.getRmidOutSpline()(t)+x,
-                                     t, sqrt=True) for t, x in
-                zip(self.tU2, self.drUsU2)])
+                self.Eq.rz2psinorm(x, 0, t, sqrt=True) for x, t in
+                zip(self._R2Absolute, self.tU2)])
             self._Plunge2 = True
         except:
-            print('Plunge 1 not found for shot %5i' % self.shot)
+            print('Plunge 2 not found for shot %5i' % self.shot)
             self._Plunge2 = False
 
     def _computeRho(self):
         if self._Plunge1:
+            # we use the already computed rho and interpolate
+            # over a fine time basis
             # load the 1st plunge position
             _node = self.TcvTree.getNode(r'\fpcalpos_1')
             time = _node.getDimensionAt().data()
@@ -221,29 +240,10 @@ class Tree(object):
             # time step so we redefine it
             time = numpy.linspace(time.min(),time.max(),
                                   time.size,dtype='float64')
-            # the position is saved in [cm]
-            data = _node.data()[:time.size]/1e2
-            # limit to the range less then the maximum value
-            # of psi grid
-            time = time[data <= self.Eq.getRGrid().max()]
-            data = data[data <= self.Eq.getRGrid().max()]
-            # there is no need to compute all we can
-            # downsample, and then interpolate on
-            # all the time basis
-            # spline representation
-            timeEq = self.Eq.getTimeBase()
-            _idx = numpy.where((timeEq >= time.min()) &
-                               (timeEq <= time.max()))[0]
-            S = interpolate.UnivariateSpline(
-                time, data, s=0)(timeEq[_idx])
-            _time = timeEq[_idx]
-            # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
-                                     for s, t in zip(S, timeEq[_idx])])
-
-            Srho = interpolate.interp1d(
-                _time, _rhoTmp, kind='linear',
-                fill_value='extrapolate')
+            time = time[numpy.where((time >= self.tU1.min()) &
+                                 (time <= self.tU1.max()))[0]]
+            Srho = interpolate.UnivariateSpline(
+                self.tU1, self.rhoU1, s=0)
             self.RhoT1 = Srho(time)
             self.RhoT1Time = time
 
@@ -253,29 +253,12 @@ class Tree(object):
             time = _node.getDimensionAt().data()
             time = numpy.linspace(time.min(),time.max(),
                                   time.size,dtype='float64')
-            # the position is saved in [cm]
-            data = _node.data()[:time.size]/1e2
-            # limit to the range less then the maximum value
-            # of psi grid
-            time = time[data <= self.Eq.getRGrid().max()]
-            data = data[data <= self.Eq.getRGrid().max()]
-            # there is no need to compute all we can
-            # downsample, and then interpolate on
-            # all the time basis
-            # spline representation
-            timeEq = self.Eq.getTimeBase()
-            _idx = numpy.where((timeEq >= time.min()) &
-                               (timeEq <= time.max()))[0]
-            _time = timeEq[_idx]
-            S = interpolate.UnivariateSpline(
-                time, data, s=0)(timeEq[_idx])
-            # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2psinorm(s, 0, t, sqrt=True)
-                                     for s, t in zip(S, timeEq[_idx])])
 
-            Srho = interpolate.interp1d(
-                _time, _rhoTmp, kind='linear',
-                fill_value='extrapolate')
+            time = time[numpy.where((time >= self.tU2.min()) &
+                                 (time <= self.tU2.max()))[0]]
+
+            Srho = interpolate.UnivariateSpline(
+                self.tU2, self.rhoU2, s=0)
             self.RhoT2 = Srho(time)
             self.RhoT2Time = time
 
@@ -284,30 +267,17 @@ class Tree(object):
             # load the 1st plunge position
             _node = self.TcvTree.getNode(r'\fpcalpos_1')
             time = _node.getDimensionAt().data()
-            # the position is saved in [cm]
-            data = _node.data()/1e2
-            # limit to the range less then the maximum value
-            # of psi grid
-            time = time[data <= self.Eq.getRGrid().max()]
-            data = data[data <= self.Eq.getRGrid().max()]
+            # limit to the same range of binned data
+            _idx = numpy.where((time >= self.tU1.min()) &
+                            (time <= self.tU1.max()))[0]
+            time = time[_idx]
             # there is no need to compute all we can
             # downsample, and then interpolate on
             # all the time basis
             # spline representation
-            timeEq = self.Eq.getTimeBase()
-            _idx = numpy.where((timeEq >= time.min()) &
-                               (timeEq <= time.max()))[0]
-            S = interpolate.UnivariateSpline(
-                time, data, s=0)(timeEq[_idx])
-            _time = timeEq[_idx]
-            # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2rmid(s, 0, t) -
-                                     self.Eq.getRmidOutSpline()(t)
-                                     for s, t in zip(S, timeEq[_idx])])
 
-            Srho = interpolate.interp1d(
-                _time, _rhoTmp, kind='linear',
-                fill_value='extrapolate')
+            Srho = interpolate.UnivariateSpline(
+                self.tU1, self.drUsU1, s=0)
             self.RRsepT1 = Srho(time)
             self.RRsepT1Time = time
 
@@ -315,41 +285,26 @@ class Tree(object):
             # load the 1st plunge position
             _node = self.TcvTree.getNode(r'\fpcalpos_2')
             time = _node.getDimensionAt().data()
-            # the position is saved in [cm]
-            data = _node.data()/1e2
             # limit to the range less then the maximum value
             # of psi grid
-            time = time[data <= self.Eq.getRGrid().max()]
-            data = data[data <= self.Eq.getRGrid().max()]
-            # there is no need to compute all we can
-            # downsample, and then interpolate on
-            # all the time basis
-            # spline representation
-            timeEq = self.Eq.getTimeBase()
-            _idx = numpy.where((timeEq >= time.min()) &
-                               (timeEq <= time.max()))[0]
-            S = interpolate.UnivariateSpline(
-                time, data, s=0)(timeEq[_idx])
-            _time = timeEq[_idx]
-            # get the time from Equilibria and
-            _rhoTmp = numpy.asarray([self.Eq.rz2rmid(s, 0, t) -
-                                     self.Eq.getRmidOutSpline()(t)
-                                     for s, t in zip(S, timeEq[_idx])])
-
-            Srho = interpolate.interp1d(
-                _time, _rhoTmp, kind='linear',
-                fill_value='extrapolate')
+            _idx = numpy.where((time >= self.tU2.min()) &
+                            (time <= self.tU2.max()))[0]
+            time = time[_idx]
+            Srho = interpolate.UnivariateSpline(
+                self.tU2, self.drUsU2, s=0)
             self.RRsepT2 = Srho(time)
             self.RRsepT2Time = time
 
     def toMds(self):
 
-        Model = mds.Tree('tcv_topic21')
-        Model.createPulse(self.shot)
-        del Model
+        if not self.amend:
+            Model = mds.Tree('tcv_topic21')
+            Model.createPulse(self.shot)
+            del Model
         self.saveTree = mds.Tree('tcv_topic21', self.shot)
-        self._Lp2Mds()
-        self._Lambda2Mds()
+        if not self.amend:
+            self._Lp2Mds()
+            self._Lambda2Mds()
         self._Fp2Mds()
         self.saveTree.quit()
 
