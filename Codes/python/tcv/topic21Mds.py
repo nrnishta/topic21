@@ -105,7 +105,7 @@ class Tree(object):
         """
 
         data = io.loadmat(
-            '/home/vianello/work/topic21/Experiments/TCV/analysis/data/connectionlength' +
+            '/home/vianello/NoTivoli/work/topic21/Experiments/TCV/analysis/data/connectionlength' +
             str(int(self.shot))+'mat.mat')
         self.LpU = data['lParUp']
         self.LpX = data['lParDiv']
