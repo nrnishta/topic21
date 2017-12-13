@@ -11,6 +11,7 @@ import MDSplus as mds
 import langmuir
 import gauges
 import tcvFilaments
+import tcvProfiles
 from tcv.diag.axuv import AXUV
 import smooth
 mpl.rcParams['font.family'] = 'sans-serif'
@@ -50,6 +51,7 @@ def print_menu():
     print "27. Roll over vs Density Constant q95"
     print "28. Roll over vs Density constant Bt"
     print "29. Compare blob LSN-DN"
+    print "30. Better comparison profiles at constant Bt"
     print "99: End"
     print 67 * "-"
 
@@ -2348,8 +2350,130 @@ while loop:
             ax.text(0.1, 0.9-i*0.06, t,
                     transform=ax.transAxes, color=col)
         mpl.pylab.savefig('../pdfbox/LambdaSizeLSN-DN.pdf',
-                          bbox_to_inches='tight')    
-        
+                          bbox_to_inches='tight')
+
+    elif selection == 30:
+        shotList = ((57437, 57089, 57437),
+                    (57425, 57088, 57425),
+                    (57497, 52062, 52062))
+        plungeList = ((1, 1, 2),
+                      (1, 1, 2),
+                      (1, 1, 2))
+        Df = pd.read_csv('../data/PlungeTimes.csv')
+        # build the figure plot to be used
+        fig, ax = mpl.pylab.subplots(figsize=(15, 15),
+                                     nrows=3, ncols=3)
+        fig.subplots_adjust(hspace=0.3, wspace=0.3)
+        # color list
+        colorList = ('#2C3E50', '#FC4349', '#008F7E')
+        for sL, pL, _ip in zip(
+                shotList, plungeList, range(len(shotList))):
+            for shot, _pl, _col in zip(sL, pL, colorList):
+                Target = langmuir.LP(shot)
+                # determine the trange
+                tmin = Df['tmin' + str(int(_pl))][
+                    Df['shots'] == shot].values[0] - 0.01
+                tmax = Df['tmin' + str(int(_pl))][
+                    Df['shots'] == shot].values[0] + 0.01
+                # determine the value of density to be written
+                en = Df['en' + str(int(_pl))][
+                    Df['shots'] == shot].values[0]
+                # now the profile
+                Profile = tcvProfiles.tcvProfiles(shot)
+                EnProf = Profile.profileNe(
+                    t_min=tmin,
+                    t_max=tmax,
+                    abscissa='sqrtpsinorm')
+                # now we need to tweak some of the profiles
+                # for the outliers
+                rhoN = np.linspace(0, 1.1, 111)
+                if shot == 52062 and _pl == 2:
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] < 1) &
+                        (EnProf.y < 0.34))
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] > 1) &
+                        (EnProf.y > 0.33))
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] > 0.925) &
+                        (EnProf.y > 0.55))
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN, gaussian_length_scale=0.5,
+                        nu_length_scale=0.1)
+                elif shot == 57425 and _pl == 2:
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] < 0.99) &
+                        (EnProf.y < 0.17))
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN)
+                elif shot == 57437 and _pl == 2:
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] > 1.2))
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] > 1) &
+                        (EnProf.y > 0.3))
+                    _ = EnProf.remove_points(
+                        (EnProf.X[:, 0] < 1) &
+                        (EnProf.y < 0.05))
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN, gaussian_length_scale=1)
+                else:
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN)
+
+                # now the plot of the data with the fit
+                # in the range 0.8, 1.1 and in y 0, 0.7
+                ax[0, _ip].errorbar(
+                    EnProf.X.ravel(), EnProf.y,
+                    xerr=EnProf.err_X.flatten(),
+                    yerr=EnProf.err_y, fmt='o', ms=8,
+                    color=_col, alpha=0.5,
+                    label=r'n$_e$ = %3.2f' % en +
+                    r' 10$^{19}$m$^{-3}$')
+                ax[0, _ip].plot(rhoN, yN, '-', color=_col)
+                ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,
+                                        color=_col, alpha=0.2)
+                ax[0, _ip].set_xlim([0.8, 1.1])
+                ax[0, _ip].set_ylim([0, 1.2])
+                # now the same plot in the SOL region normalize to
+                # the value at the separatrix and only for the fit
+                _norm = yN[np.argmin(np.abs(rhoN-1))]
+                ax[1, _ip].plot(rhoN, yN/_norm, '-', color=_col)
+                ax[1, _ip].fill_between(rhoN, (yN-yE)/_norm,
+                                        (yN+yE)/_norm,
+                                        color=_col, alpha=0.2)
+                ax[1, _ip].set_xlim([0.95, 1.08])
+                ax[1, _ip].set_ylim([0.05, 2])
+
+                # now the plot at the Target
+                out = Target.UpStreamProfile(trange=[tmin-0.05, tmax+0.05])
+                ax[2, _ip].plot(out['rho'], out['en']/1e19, 'o', ms=8,
+                                color=_col)
+                ax[2, _ip].set_xlim([0.95, 1.08])
+                ax[2, _ip].set_ylim([0, 2])
+                
+        ax[0, 0].set_title(r'I$_p$ = 180kA')
+        ax[0, 1].set_title(r'I$_p$ = 245kA')
+        ax[0, 2].set_title(r'I$_p$ = 330kA')
+        ax[0, 0].set_ylabel(r'n$_e [10^{20}$m$^{-3}]$')
+        ax[1, 0].set_ylabel(r'n$_e$/n$_e (\rho=1)$')
+        ax[2, 0].set_ylabel(r'n$_e^t [10^{19}$m$^{-3}]$')
+
+        for i in range(3):
+            ax[0, i].set_xlabel(r'$\rho_p$')
+            ax[1, i].set_xlabel(r'$\rho_p$')
+            ax[2, i].set_xlabel(r'$\rho_p$')
+            ax[0, i].legend(loc='best', numpoints=1,
+                            fontsize=10, frameon=False)
+            ax[1, i].set_yscale('log')
+
+        for i in np.linspace(1, 2, 2, dtype='int'):
+            ax[0, i].axes.get_yaxis().set_visible(False)
+            ax[1, i].axes.get_yaxis().set_visible(False)
+            ax[2, i].axes.get_yaxis().set_visible(False)
+        mpl.pylab.savefig('../pdfbox/ProfilesGPR_ConstantBt_IpScan.pdf',
+                          bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
