@@ -2369,7 +2369,7 @@ while loop:
         Df = pd.read_csv('../data/PlungeTimes.csv')
         # build the figure plot to be used
         fig, ax = mpl.pylab.subplots(figsize=(15, 15),
-                                     nrows=3, ncols=3)
+                                     nrows=4, ncols=3)
         fig.subplots_adjust(hspace=0.3, wspace=0.3)
 
         # color list
@@ -2485,25 +2485,42 @@ while loop:
                     facecolor=_col, edgecolor='white',
                     alpha=0.5)
 
+                fTree = mds.Tree('tcv_topic21', shot)
+                Lambda = fTree.getNode(
+                    r'\LDIVX').data()
+                LambdaT = fTree.getNode(
+                    r'\LDIVX').getDimensionAt(0).data()
+                LambdaRho = fTree.getNode(
+                    r'\LRHO').data()
+                _idx = np.where(((LambdaT >= tmin-0.05) &
+                                (LambdaT <= tmax+0.05)))[0]
+                LambdaErr = np.nanstd(Lambda[_idx, :], axis=0)
+                Lambda = np.nanmean(Lambda[_idx, :], axis=0)
+                LambdaRho = np.nanmean(LambdaRho[_idx, :], axis=0)
+                ax[3, _ip].errorbar(LambdaRho, Lambda, yerr=LambdaErr,
+                                    fmt='-', lw=2, color=_col)
+                fTree.quit()
         ax[0, 0].set_title(r'I$_p$ = 180kA')
         ax[0, 1].set_title(r'I$_p$ = 245kA')
         ax[0, 2].set_title(r'I$_p$ = 330kA')
         ax[0, 0].set_ylabel(r'n$_e [10^{20}$m$^{-3}]$')
         ax[1, 0].set_ylabel(r'n$_e$/n$_e (\rho=1)$')
         ax[2, 0].set_ylabel(r'n$_e^t [10^{19}$m$^{-3}]$')
-
-        for i in range(3):
-            ax[0, i].set_xlabel(r'$\rho_p$')
-            ax[1, i].set_xlabel(r'$\rho_p$')
-            ax[2, i].set_xlabel(r'$\rho_p$')
-            ax[0, i].legend(loc='best', numpoints=1,
+        ax[3, 0].set_ylabel(r'$\Lambda_{div}$')
+        
+        for c in range(3):
+            for r in range(4):
+                ax[r, c].set_xlabel(r'$\rho_p$')
+            ax[0, c].legend(loc='best', numpoints=1,
                             fontsize=10, frameon=False)
-            ax[1, i].set_yscale('log')
+            ax[1, c].set_yscale('log')
+            ax[3, c].set_yscale('log')
+            ax[3, c].set_ylim([1e-2, 25])
+            ax[3, c].set_xlim([0.95, 1.08])
 
-        for i in np.linspace(1, 2, 2, dtype='int'):
-            ax[0, i].axes.get_yaxis().set_visible(False)
-            ax[1, i].axes.get_yaxis().set_visible(False)
-            ax[2, i].axes.get_yaxis().set_visible(False)
+        for i in range(4):
+            ax[i, 1].axes.get_yaxis().set_visible(False)
+            ax[i, 2].axes.get_yaxis().set_visible(False)
         fig.savefig('../pdfbox/ProfilesGPR_ConstantBt_IpScan.pdf',
                     bbox_to_inches='tight')
 
@@ -2519,7 +2536,7 @@ while loop:
         Df = pd.read_csv('../data/PlungeTimes.csv')
         # build the figure plot to be used
         fig, ax = mpl.pylab.subplots(figsize=(15, 15),
-                                     nrows=3, ncols=3)
+                                     nrows=4, ncols=3)
         fig.subplots_adjust(hspace=0.3, wspace=0.3)
 
         # color list
@@ -2578,7 +2595,7 @@ while loop:
                 ax[0, _ip].plot(rhoN, yN, '-', color=_col)
                 ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,
                                         color=_col, alpha=0.2)
-                
+
                 ax[0, _ip].set_xlim([0.8, 1.1])
                 ax[0, _ip].set_ylim([0, 0.8])
                 # now the same plot in the SOL region normalize to
@@ -2622,6 +2639,21 @@ while loop:
                 ax[2, _ip].fill_between(xN.ravel(), yFit-sigma, yFit+sigma,
                                         facecolor=_col, edgecolor='white',
                                         alpha=0.5)
+                fTree = mds.Tree('tcv_topic21', shot)
+                Lambda = fTree.getNode(
+                    r'\LDIVX').data()
+                LambdaT = fTree.getNode(
+                    r'\LDIVX').getDimensionAt(0).data()
+                LambdaRho = fTree.getNode(
+                    r'\LRHO').data()
+                _idx = np.where(((LambdaT >= tmin-0.05) &
+                                (LambdaT <= tmax+0.05)))[0]
+                LambdaErr = np.nanstd(Lambda[_idx, :], axis=0)
+                Lambda = np.nanmean(Lambda[_idx, :], axis=0)
+                LambdaRho = np.nanmean(LambdaRho[_idx, :], axis=0)
+                ax[3, _ip].errorbar(LambdaRho, Lambda, yerr=LambdaErr,
+                                    fmt='-', lw=2, color=_col)
+                fTree.quit()
 
         for i, _ip in zip(range(len(iPList)), iPList):
             ax[0, i].set_title(
@@ -2631,19 +2663,22 @@ while loop:
         ax[0, 0].set_ylabel(r'n$_e [10^{20}$m$^{-3}]$')
         ax[1, 0].set_ylabel(r'n$_e$/n$_e (\rho=1)$')
         ax[2, 0].set_ylabel(r'n$_e^t [10^{19}$m$^{-3}]$')
+        ax[3, 0].set_ylabel(r'$\Lambda_{div}$')
 
         for i in range(3):
-            ax[0, i].set_xlabel(r'$\rho_p$')
-            ax[1, i].set_xlabel(r'$\rho_p$')
-            ax[2, i].set_xlabel(r'$\rho_p$')
+            for c in range(4):
+                ax[c, i].set_xlabel(r'$\rho_p$')
             ax[0, i].legend(loc='best', numpoints=1,
                             fontsize=10, frameon=False)
             ax[1, i].set_yscale('log')
+            ax[3, i].set_yscale('log')
+            ax[3, i].axhline(1, ls='--', color='gray')
+            ax[3, i].set_ylim([1e-2, 25])
+            ax[3, i].set_xlim([0.95, 1.08])
 
-        for i in np.linspace(1, 2, 2, dtype='int'):
-            ax[0, i].axes.get_yaxis().set_visible(False)
-            ax[1, i].axes.get_yaxis().set_visible(False)
-            ax[2, i].axes.get_yaxis().set_visible(False)
+        for r in range(4):
+            for i in np.linspace(1, 2, 2, dtype='int'):
+                ax[r, i].axes.get_yaxis().set_visible(False)
         fig.savefig('../pdfbox/ProfilesGPR_ConstantBt_IpScan2.pdf',
                     bbox_to_inches='tight')
 
@@ -2657,7 +2692,7 @@ while loop:
         Df = pd.read_csv('../data/PlungeTimes.csv')
         # build the figure plot to be used
         fig, ax = mpl.pylab.subplots(figsize=(12, 15),
-                                     nrows=3, ncols=2)
+                                     nrows=4, ncols=2)
         fig.subplots_adjust(hspace=0.3, wspace=0.3, top=0.96)
         # color list
         colorList = ('#2C3E50', '#FC4349', '#008F7E')
@@ -2758,6 +2793,22 @@ while loop:
                                         facecolor=_col, edgecolor='white',
                                         alpha=0.5)
 
+                fTree = mds.Tree('tcv_topic21', shot)
+                Lambda = fTree.getNode(
+                    r'\LDIVX').data()
+                LambdaT = fTree.getNode(
+                    r'\LDIVX').getDimensionAt(0).data()
+                LambdaRho = fTree.getNode(
+                    r'\LRHO').data()
+                _idx = np.where(((LambdaT >= tmin-0.05) &
+                                (LambdaT <= tmax+0.05)))[0]
+                LambdaErr = np.nanstd(Lambda[_idx, :], axis=0)
+                Lambda = np.nanmean(Lambda[_idx, :], axis=0)
+                LambdaRho = np.nanmean(LambdaRho[_idx, :], axis=0)
+                ax[3, _ip].errorbar(LambdaRho, Lambda, yerr=LambdaErr,
+                                    fmt='-', lw=2, color=_col)
+                fTree.quit()
+
         # for i, _ip in zip(range(len(iPList)), iPList):
         #     ax[0, i].set_title(
         #         r'$\langle n_e\rangle \approx %3.2f$' % _ip +
@@ -2768,19 +2819,22 @@ while loop:
         ax[2, 0].set_ylabel(r'n$_e^t [10^{19}$m$^{-3}]$')
 
         for i in range(2):
-            ax[0, i].set_xlabel(r'$\rho_p$')
-            ax[1, i].set_xlabel(r'$\rho_p$')
-            ax[2, i].set_xlabel(r'$\rho_p$')
+            for r in range(4):
+                ax[r, i].set_xlabel(r'$\rho_p$')
             ax[0, i].legend(loc='best', numpoints=1,
                             fontsize=10, frameon=False)
             ax[1, i].set_yscale('log')
-
-        for i in range(3):
-            ax[i, 1].axes.get_yaxis().set_visible(False)
+            ax[3, i].set_yscale('log')
+            ax[3, i].set_ylim([1e-2, 25])
+            ax[3, i].axhline(1, ls='--', color='gray')
+            ax[3, i].set_xlim([0.95, 1.08])
+            
+            for i in range(4):
+                ax[i, 1].axes.get_yaxis().set_visible(False)
 
         fig.savefig('../pdfbox/ProfilesGPR_ConstantQ95_IpScan.pdf',
                     bbox_to_inches='tight')
-        
+
     elif selection == 99:
         loop = False
     else:
