@@ -34,7 +34,7 @@ class LP:
         self.Probes = self._Tree.getNode(
             r'\results::langmuir:probes').data()
         # load the position of the langmuir probes
-        self.pos = io.loadmat(r'/home/vianello/work/tcv15.2.2.3/' +
+        self.pos = io.loadmat(r'/home/vianello/NoTivoli/work/tcv15.2.2.3/' +
                               'data/lp_codes/LPposit.mat')['lppos']
         # we now have properly defined all the quantities needed
         self._defineProbe(type=self.type)

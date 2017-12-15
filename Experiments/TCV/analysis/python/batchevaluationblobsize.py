@@ -7,7 +7,7 @@ import numpy as np
 import MDSplus as mds
 import pandas as pd
 
-shotList = (58629, 58635)
+shotList = (57082, 57086, 57087, 57088, 57089)
 Shots = np.asarray([])
 # quantity
 Ip = np.asarray([])
@@ -130,6 +130,9 @@ outdict = {'Shots': Shots,
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
-df['Conf'] = np.repeat('LSN-FF', df.index.size)
-df.to_csv('../../data/BlobDatabseFF.csv')
-
+df['Conf'] = np.repeat('LSN', df.index.size)
+# load existing database and merge them
+dfOriginal = pd.read_csv('../../data/BlobDatabse.csv')
+frames = [dfOriginal, df]
+out = pd.concat(frames)
+df.to_csv('../../data/BlobDatabse.csv')
