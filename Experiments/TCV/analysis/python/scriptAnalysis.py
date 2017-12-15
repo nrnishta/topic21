@@ -56,6 +56,7 @@ def print_menu():
     print "28. Roll over vs Density constant Bt"
     print "29. Compare blob LSN-DN"
     print "30. Better comparison profiles at constant Bt"
+    print "31. Better comparison profiles at constant q95"
     print "99: End"
     print 67 * "-"
 
@@ -2433,9 +2434,9 @@ while loop:
                 ax[0, _ip].errorbar(
                     EnProf.X.ravel(), EnProf.y,
                     xerr=EnProf.err_X.flatten(),
-                    yerr=EnProf.err_y, fmt='o', ms=8,
+                    yerr=EnProf.err_y, fmt='o', ms=11,
                     color=_col, alpha=0.5,
-                    label=r'n$_e$ = %3.2f' % en +
+                    label=r'# %5i' % shot +' n$_e$ = %3.2f' % en +
                     r' 10$^{19}$m$^{-3}$')
                 ax[0, _ip].plot(rhoN, yN, '-', color=_col)
                 ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,
@@ -2449,6 +2450,11 @@ while loop:
                 ax[1, _ip].fill_between(rhoN, (yN-yE)/_norm,
                                         (yN+yE)/_norm,
                                         color=_col, alpha=0.2)
+                ax[1, _ip].errorbar(
+                    EnProf.X.ravel(), EnProf.y/_norm,
+                    xerr=EnProf.err_X.flatten(),
+                    yerr=EnProf.err_y/_norm, fmt='o', ms=11,
+                    color=_col, alpha=0.5)
                 ax[1, _ip].set_xlim([0.95, 1.08])
                 ax[1, _ip].set_ylim([0.05, 2])
 
@@ -2565,13 +2571,14 @@ while loop:
                 ax[0, _ip].errorbar(
                     EnProf.X.ravel(), EnProf.y,
                     xerr=EnProf.err_X.flatten(),
-                    yerr=EnProf.err_y, fmt='o', ms=8,
+                    yerr=EnProf.err_y, fmt='o', ms=11,
                     color=_col, alpha=0.5,
-                    label=r'I$_p$ = %3i' % en +
+                    label=r'# %5i' % shot + ' I$_p$ = %3i' % en +
                     r' kA')
                 ax[0, _ip].plot(rhoN, yN, '-', color=_col)
                 ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,
                                         color=_col, alpha=0.2)
+                
                 ax[0, _ip].set_xlim([0.8, 1.1])
                 ax[0, _ip].set_ylim([0, 0.8])
                 # now the same plot in the SOL region normalize to
@@ -2581,6 +2588,11 @@ while loop:
                 ax[1, _ip].fill_between(rhoN, (yN-yE)/_norm,
                                         (yN+yE)/_norm,
                                         color=_col, alpha=0.2)
+                ax[1, _ip].errorbar(
+                    EnProf.X.ravel(), EnProf.y/_norm,
+                    xerr=EnProf.err_X.flatten(),
+                    yerr=EnProf.err_y/_norm, fmt='o', ms=11,
+                    color=_col, alpha=0.5)
                 ax[1, _ip].set_xlim([0.95, 1.08])
                 ax[1, _ip].set_ylim([0.05, 2])
 
@@ -2635,6 +2647,140 @@ while loop:
         fig.savefig('../pdfbox/ProfilesGPR_ConstantBt_IpScan2.pdf',
                     bbox_to_inches='tight')
 
+    elif selection == 31:
+        # we also build a second plot where we compare
+        # similar densities but different current
+        shotList = ((57461, 57454, 57497),
+                    (57461, 57454, 57497))
+        plungeList = ((1, 1, 1),
+                      (2, 2, 2))
+        Df = pd.read_csv('../data/PlungeTimes.csv')
+        # build the figure plot to be used
+        fig, ax = mpl.pylab.subplots(figsize=(12, 15),
+                                     nrows=3, ncols=2)
+        fig.subplots_adjust(hspace=0.3, wspace=0.3, top=0.96)
+        # color list
+        colorList = ('#2C3E50', '#FC4349', '#008F7E')
+        for sL, pL, _ip in zip(
+                shotList, plungeList, range(len(shotList))):
+            for shot, _pl, _col in zip(sL, pL, colorList):
+                Target = langmuir.LP(shot)
+                # determine the trange
+                tmin = Df['tmin' + str(int(_pl))][
+                    Df['shots'] == shot].values[0] - 0.01
+                tmax = Df['tmin' + str(int(_pl))][
+                    Df['shots'] == shot].values[0] + 0.01
+                # determine the value of density to be written
+                ip = Df['ip' + str(int(_pl))][
+                    Df['shots'] == shot].values[0]
+                en = Df['en' + str(int(_pl))][
+                    Df['shots'] == shot].values[0]
+
+                # now the profile
+                Profile = tcvProfiles.tcvProfiles(shot)
+                EnProf = Profile.profileNe(
+                    t_min=tmin,
+                    t_max=tmax,
+                    abscissa='sqrtpsinorm')
+                # now we need to tweak some of the profiles
+                # for the outliers
+                rhoN = np.linspace(0, 1.1, 111)
+                if shot == 57461 and _pl == 1:
+                    _ = EnProf.remove_points(
+                        ((EnProf.X[:, 0] < 1) &
+                         (EnProf.y < 0.05)) |
+                        ((EnProf.X[:, 0] < 0.6) &
+                         (EnProf.y < 0.2)))
+                    rhoN = rhoN[rhoN < 1.06]
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN)
+                elif shot == 57497 and _pl == 2:
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN, gaussian_length_scale=2,
+                        nu_length_scale=0.12)
+                else:
+                    yN, yE, gp = Profile.gpr_robustfit(
+                        rhoN)
+
+                # now the plot of the data with the fit
+                # in the range 0.8, 1.1 and in y 0, 0.7
+                ax[0, _ip].errorbar(
+                    EnProf.X.ravel(), EnProf.y,
+                    xerr=EnProf.err_X.flatten(),
+                    yerr=EnProf.err_y, fmt='o', ms=11,
+                    color=_col, alpha=0.5,
+                    label='# %5i' % shot + r' I$_p$ = %3i' % ip +
+                    r' kA,  n$_e$ = %3.2f' % en)
+                ax[0, _ip].plot(rhoN, yN, '-', color=_col)
+                ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,
+                                        color=_col, alpha=0.2)
+                ax[0, _ip].set_xlim([0.8, 1.1])
+                ax[0, _ip].set_ylim([0, 0.8])
+                # now the same plot in the SOL region normalize to
+                # the value at the separatrix and only for the fit
+                _norm = yN[np.argmin(np.abs(rhoN-1))]
+                ax[1, _ip].plot(rhoN, yN/_norm, '-', color=_col)
+                ax[1, _ip].fill_between(rhoN, (yN-yE)/_norm,
+                                        (yN+yE)/_norm,
+                                        color=_col, alpha=0.2)
+                ax[1, _ip].errorbar(
+                    EnProf.X.ravel(), EnProf.y/_norm,
+                    xerr=EnProf.err_X.flatten(),
+                    yerr=EnProf.err_y/_norm, fmt='o', ms=11,
+                    color=_col, alpha=0.5)
+                ax[1, _ip].set_xlim([0.95, 1.08])
+                ax[1, _ip].set_ylim([0.05, 2])
+
+                # now the plot at the Target
+                out = Target.UpStreamProfile(trange=[tmin-0.05, tmax+0.05])
+                ax[2, _ip].plot(out['rho'], out['en']/1e19, 'o', ms=5,
+                                color=_col, alpha=0.2)
+                ax[2, _ip].set_xlim([0.95, 1.08])
+                ax[2, _ip].set_ylim([0, 3])
+                # we make a GPR fit usint scikit-learn
+                xx = out['rho']
+                yy = out['en']/1e19
+                xx = xx[~np.isnan(yy)]
+                yy = yy[~np.isnan(yy)]
+                X = np.atleast_2d(xx)
+                kernel = ConstantKernel(0.5, (1e-3, 1e3))*RBF(
+                    5, (1e-2, 1e2)) + WhiteKernel(noise_level=1)
+                gp = GaussianProcessRegressor(
+                    kernel=kernel,
+                    n_restarts_optimizer=11)
+                gp.fit(X.T, yy)
+                xN = np.atleast_2d(np.linspace(
+                    X.min(), X.max(), 100))
+                yFit, sigma = gp.predict(
+                    xN.T, return_std=True)
+                ax[2, _ip].plot(xN.ravel(), yFit, '-', color=_col, lw=2)
+                ax[2, _ip].fill_between(xN.ravel(), yFit-sigma, yFit+sigma,
+                                        facecolor=_col, edgecolor='white',
+                                        alpha=0.5)
+
+        # for i, _ip in zip(range(len(iPList)), iPList):
+        #     ax[0, i].set_title(
+        #         r'$\langle n_e\rangle \approx %3.2f$' % _ip +
+        #         r' $10^{19}$m$^{-3}$')
+
+        ax[0, 0].set_ylabel(r'n$_e [10^{20}$m$^{-3}]$')
+        ax[1, 0].set_ylabel(r'n$_e$/n$_e (\rho=1)$')
+        ax[2, 0].set_ylabel(r'n$_e^t [10^{19}$m$^{-3}]$')
+
+        for i in range(2):
+            ax[0, i].set_xlabel(r'$\rho_p$')
+            ax[1, i].set_xlabel(r'$\rho_p$')
+            ax[2, i].set_xlabel(r'$\rho_p$')
+            ax[0, i].legend(loc='best', numpoints=1,
+                            fontsize=10, frameon=False)
+            ax[1, i].set_yscale('log')
+
+        for i in range(3):
+            ax[i, 1].axes.get_yaxis().set_visible(False)
+
+        fig.savefig('../pdfbox/ProfilesGPR_ConstantQ95_IpScan.pdf',
+                    bbox_to_inches='tight')
+        
     elif selection == 99:
         loop = False
     else:
