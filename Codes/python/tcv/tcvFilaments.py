@@ -278,7 +278,7 @@ class Turbo(object):
         _idx = np.where(((self.rhoArray >= self.RRsep[_idx].min()) &
                         (self.rhoArray <= self.RRsep[_idx].max())))[0]
         data.attrs['Efold'] = self.Efolding[_idx].mean()
-        data.attrs['Efold Err'] = self.Efolding[_idx].std()
+        data.attrs['EfoldErr'] = self.Efolding[_idx].std()
         # add also the results of the conditional average
         # which is useful
         data.attrs['CAS'] = cs
