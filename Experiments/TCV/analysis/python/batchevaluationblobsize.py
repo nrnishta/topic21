@@ -25,6 +25,7 @@ shotList = shotList[np.where(shotList < 58640)[0]]
 Shots = np.asarray([])
 # quantity
 Ip = np.asarray([])
+Bt = np.asarray([])
 Rho = np.asarray([])
 AvDens = np.asarray([])
 LambdaDiv = np.asarray([])
@@ -55,6 +56,9 @@ for shot in shotList:
     iPTime = iP.getDimensionAt().data()
     enAVG = Tree.getNode(r'\results::fir:n_average')
     enAVGTime = enAVG.getDimensionAt().data()
+    bTN = mds.Data.compile(r'tcv_eq("BZERO")').evaluate()
+    bT = bTN.data().ravel()
+    bTTime = bTN.getDimensionAt().data()
     Data = tcvFilaments.Turbo(shot)
     for plunge in (1, 2):
         for r in np.arange(0, 0.025, 0.005):
@@ -91,7 +95,12 @@ for shot in shotList:
                     iP.data()[
                         np.where(
                             ((iPTime >= Blob.tmin - 0.1) &
-                             (iPTime <= Blob.tmax + 0.1)))[0]]).mean())
+                             (iPTime <= Blob.tmax + 0.1)))[0]]).mean()/1e3)
+
+                Bt = np.append(Bt, bT[np.where(
+                        ((iPTime >= Blob.tmin - 0.1) &
+                         (iPTime <= Blob.tmax + 0.1)))[0]].mean())
+
                 AvDens = np.append(
                     AvDens,
                     enAVG.data()[
@@ -145,7 +154,7 @@ outdict = {'Shots': Shots,
            'Lambda Div Err':LambdaDivErr, 'Theta Div Err':ThetaDivErr,
            'Blob size Err [rhos]':SizeErr, 'Tau Err':TauErr, 'vR Err':vRErr,
            'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr,
-           'Efold':Efold, 'EfoldErr':EfoldErr}
+           'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt}
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
