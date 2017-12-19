@@ -57,7 +57,8 @@ def print_menu():
     print "29. Compare blob LSN-DN"
     print "30. Better comparison profiles at constant Bt"
     print "31. Better comparison profiles at constant q95"
-    print "32. Blob size vs Lambda with classes in Current"
+    print "32. Blob size vs Lambda with classes in Current Constant Bt"
+    print "33. Blob size vs Lambda with classes in Current Constant Q95"
     print "99: End"
     print 67 * "-"
 
@@ -2866,6 +2867,32 @@ while loop:
         ax.legend(loc='upper left', numpoints=1, frameon=False)
         fig.savefig('../pdfbox/BlobSizeVsLambdaDivIpScalingConstantBt.pdf',
                     bbox_to_inches='tight')
+
+    elif selection == 33:
+        Df = pd.read_csv('../../data/BlobDatabase.csv')
+        shotList = (57461, 57454, 57497)
+        ipLabel = ('190kA', '245kA', '330kA')
+        colorList = ('#2C3E50', '#FC4349', '#008F7E')
+        DDf = Df[Df['Rho'] > 1.05]
+        fig, ax = mpl.pylab.subplots(figsize=(9, 5),
+                                     nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.15, top=0.96)
+        for shot, _col, _t in zip(shotList, colorList, ipLabel):
+            _dummy = DDf[DDf['Shots'] == shot]
+            ax.errorbar(_dummy['Lambda Div'],
+                        _dummy['Blob Size [rhos]'],
+                        xerr = _dummy['Lambda Div Err'],
+                        yerr = _dummy['Blob size Err [rhos]']/3,
+                        fmt='o', color=_col, label=_t, ms=10)
+        ax.set_xscale('log')
+        ax.set_xlim([1e-1, 30])
+        ax.set_xlabel(r'$\Lambda_{div}$')
+        ax.set_ylabel(r'$\delta_b [\rho_s]$')
+        ax.set_ylim([5, 100])
+        ax.legend(loc='upper left', numpoints=1, frameon=False)
+        fig.savefig('../pdfbox/BlobSizeVsLambdaDivIpScalingConstantQ95.pdf',
+                    bbox_to_inches='tight')
+            
     elif selection == 99:
         loop = False
     else:
