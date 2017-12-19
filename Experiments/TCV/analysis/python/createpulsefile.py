@@ -1,6 +1,6 @@
 import topic21Mds
 
-shotL = (57082, 57086, 57087, 57088, 57089)
+shotL = (51180)
 for shot in shotL:
     try:
         Out = topic21Mds.Tree(shot)

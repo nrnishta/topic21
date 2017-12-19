@@ -6,11 +6,26 @@ import langmuir
 import numpy as np
 import MDSplus as mds
 import pandas as pd
+import warnings
+import numpy as np
+from os import listdir
+from os.path import isfile, join
+mypath = '/home/vianello/NoTivoli/work/topic21/Experiments/TCV/data/tree'
+onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+shots = []
+for f in onlyfiles:
+    try:
+        shots.append(int(f[12:17]))
+    except:
+        pass
 
-shotList = (57082, 57086, 57087, 57088, 57089)
+shotList = np.unique(np.asarray(shots)).astype('int')
+# limit to L-Mode plasmas
+shotList = shotList[np.where(shotList < 58640)[0]]
 Shots = np.asarray([])
 # quantity
 Ip = np.asarray([])
+Bt = np.asarray([])
 Rho = np.asarray([])
 AvDens = np.asarray([])
 LambdaDiv = np.asarray([])
@@ -33,12 +48,17 @@ vPErr = np.asarray([])
 vPExBErr = np.asarray([])
 RhosErr = np.asarray([])
 SizeErr = np.asarray([])
+Efold = np.asarray([])
+EfoldErr = np.asarray([])
 for shot in shotList:
     Tree = mds.Tree('tcv_shot', shot)
     iP = mds.Data.compile(r'tcv_ip()').evaluate()
     iPTime = iP.getDimensionAt().data()
     enAVG = Tree.getNode(r'\results::fir:n_average')
     enAVGTime = enAVG.getDimensionAt().data()
+    bTN = mds.Data.compile(r'tcv_eq("BZERO")').evaluate()
+    bT = bTN.data().ravel()
+    bTTime = bTN.getDimensionAt().data()
     Data = tcvFilaments.Turbo(shot)
     for plunge in (1, 2):
         for r in np.arange(0, 0.025, 0.005):
@@ -75,7 +95,12 @@ for shot in shotList:
                     iP.data()[
                         np.where(
                             ((iPTime >= Blob.tmin - 0.1) &
-                             (iPTime <= Blob.tmax + 0.1)))[0]]).mean())
+                             (iPTime <= Blob.tmax + 0.1)))[0]]).mean()/1e3)
+
+                Bt = np.append(Bt, bT[np.where(
+                        ((iPTime >= Blob.tmin - 0.1) &
+                         (iPTime <= Blob.tmax + 0.1)))[0]].mean())
+
                 AvDens = np.append(
                     AvDens,
                     enAVG.data()[
@@ -103,6 +128,7 @@ for shot in shotList:
                 Rhos = np.append(Rhos, Blob.rhos)
                 Size = np.append(Size, _size)
                 Cs = np.append(Cs, Blob.Cs)
+                Efold = np.append(Efold, Blob.Efold)
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
                                          Blob.LambdaDivErr)
@@ -113,6 +139,7 @@ for shot in shotList:
                 vPExBErr = np.append(vPExBErr, Blob.vpExBerr)
                 RhosErr = np.append(RhosErr, Blob.drhos)
                 SizeErr = np.append(SizeErr, _dSize)
+                EfoldErr = np.append(EfoldErr, Blob.EfoldErr)
                 print('Computed for Shot %5i' % shot +' Plunge %1i' % plunge)
     Tree.quit()
 
@@ -126,13 +153,15 @@ outdict = {'Shots': Shots,
            'Ip Err': IpErr, '<n_e> Err': AvDensErr,
            'Lambda Div Err':LambdaDivErr, 'Theta Div Err':ThetaDivErr,
            'Blob size Err [rhos]':SizeErr, 'Tau Err':TauErr, 'vR Err':vRErr,
-           'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr}
+           'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr,
+           'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt}
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
 df['Conf'] = np.repeat('LSN', df.index.size)
+# change only for thos in DN
+shotDN = (58611, 58614, 58623, 58624)
+for ss in shotDN:
+    df['Conf'][df['Shots'] == ss] = 'DN'
 # load existing database and merge them
-dfOriginal = pd.read_csv('../../data/BlobDatabse.csv')
-frames = [dfOriginal, df]
-out = pd.concat(frames)
-df.to_csv('../../data/BlobDatabse.csv')
+df.to_csv('../../data/BlobDatabase.csv')
