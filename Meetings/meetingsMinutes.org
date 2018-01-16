@@ -296,3 +296,15 @@
      - C. Theiler: further reference at High Ip to be explored together with
        N seeding
      - A. Hakkola: suggests the need to ask for further contingency shot
+*** COMPASS meeting 12.01.18
+    - Presentation from Jirka Adamek:
+      - There are inconsistencies between in/out profiles from RCP even though it is
+	not clear if the steeper density profile is observed
+      - No results from the N injection
+      - *Remind they are puffing from the midplane*
+      - Strong inconsistency in the computation of the LCFS (2cm at the midplane)
+    - Check the evolution of separatrix and SP pressure during the density ramp to
+      get an idea if there is a real drop of the pressure at the divertor which hints
+      to the appearance of detachment or edge cooling
+    - 
+      
