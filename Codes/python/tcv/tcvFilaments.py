@@ -234,6 +234,11 @@ class Turbo(object):
         data.attrs['vAutoP'] = out['vpol']
         data.attrs['vAutoR'] = out['vrad']
         data.attrs['vAutoPErr'] = out['vpolErr']
+        # now we also add the secont type of evaluation of
+        # the vperp and different component
+        data.attrs['vperp2'] = out['vperp2']
+        data.attrs['vrad2'] = out['vrad2']
+        data.attrs['vpol2'] = out['vpol2']
         # autocorrelation time
         data.attrs['T_ac'] = self.Structure.act
         # compute the Ion sound gyroradius in this zone
@@ -561,7 +566,9 @@ class Turbo(object):
         Takes the xarray DataArray as results
         from the computation of CAS and compute the
         vperp assumed from propagation of floating
-        potential structure
+        potential structure.
+        We also include the evaluation of the binormal velocity
+        using the formula in D. Carralero NF vol54, p 123005 (2014)
         """
 
         # for noisy signal we perform a moving average
@@ -610,7 +617,6 @@ class Turbo(object):
         vpC = (0.0855 + 0.1512) * constants.inch / (lagC[np.argmax(xcorC)] * self.dt)
         deltaPoloidal = np.nanmean([vpA, vpB, vpC])
         deltaPoloidalStd = np.nanstd([vpA, vpB, vpC])
-
         a = bottleneck.move_mean(
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
@@ -619,8 +625,18 @@ class Turbo(object):
             np.nanargmin(a) - np.nanargmin(b))
         deltaRadial = 4e-3 / (deltaTimeR * self.dt)
         vperp = np.sqrt(deltaPoloidal ** 2 + deltaRadial ** 2)
+        # for the formula used in paper we take the more distant probes
+        Ltheta = (0.2433 + 0.1512) * constants.inch
+        Lr = 4e-3
+        _dummy = np.sqrt(
+            np.power(lagB[np.argmax(xcorB)] * self.dt/Ltheta,2) +
+        np.power((2*(deltaTimeR * self.dt) - lagB[np.argmax(xcorB)] * self.dt)/(2*Lr),2))
+        vperp2 = 1./_dummy
+        vrad2 = np.cos(np.arcsin(vperp2*lagB[np.argmax(xcorB)] * self.dt/Ltheta))*vperp2
+        vpol2 = vperp2*(lagB[np.argmax(xcorB)] * self.dt/Ltheta)
         out = {'vperp': vperp, 'vpol': deltaPoloidal,
-               'vrad': deltaRadial, 'vpolErr': deltaPoloidalStd}
+               'vrad': deltaRadial, 'vpolErr': deltaPoloidalStd,
+               'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2}
         return out
 
     def _computeLambda(self, rrsep=[0.001,0.003],
