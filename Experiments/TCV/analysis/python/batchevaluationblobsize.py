@@ -37,6 +37,10 @@ vPExB = np.asarray([])
 Rhos = np.asarray([])
 Cs = np.asarray([])
 Size = np.asarray([])
+Size2 = np.asarray([])
+vR2 = np.asarray([])
+vP2 = np.asarray([])
+vBin = np.asarray([])
 # error
 IpErr = np.asarray([])
 AvDensErr = np.asarray([])
@@ -50,6 +54,7 @@ RhosErr = np.asarray([])
 SizeErr = np.asarray([])
 Efold = np.asarray([])
 EfoldErr = np.asarray([])
+Size2Err = np.asarray([])
 for shot in shotList:
     Tree = mds.Tree('tcv_shot', shot)
     iP = mds.Data.compile(r'tcv_ip()').evaluate()
@@ -90,6 +95,7 @@ for shot in shotList:
                         (Blob.vrExBerr/Blob.vrExB)**2 +
                         (Blob.vAutoPErr/Blob.vpExB)**2)
 
+                _size2 = Blob.FWHM*Blob.vperp2/Blob.rhos
                 Shots = np.append(Shots, shot)
                 Ip = np.append(Ip, np.abs(
                     iP.data()[
@@ -129,6 +135,10 @@ for shot in shotList:
                 Size = np.append(Size, _size)
                 Cs = np.append(Cs, Blob.Cs)
                 Efold = np.append(Efold, Blob.Efold)
+                Size2 = np.append(Size2, _size2)
+                vR2 = np.append(vR2, Blob.vrad2)
+                vP2 = np.append(vP2, Blob.vpol2)
+                vBin = np.append(vBin, Blob.vperp2)
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
                                          Blob.LambdaDivErr)
@@ -154,7 +164,9 @@ outdict = {'Shots': Shots,
            'Lambda Div Err':LambdaDivErr, 'Theta Div Err':ThetaDivErr,
            'Blob size Err [rhos]':SizeErr, 'Tau Err':TauErr, 'vR Err':vRErr,
            'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr,
-           'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt}
+           'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt,
+           'Blob Size2 [rhos]': Size2, 'vR2': vR2, 'vP2': vP2,
+           'vBin':vBin, 'Blob size2 Err [rhos]': SizeErr}
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)

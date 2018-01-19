@@ -2438,7 +2438,7 @@ while loop:
                     xerr=EnProf.err_X.flatten(),
                     yerr=EnProf.err_y, fmt='o', ms=11,
                     color=_col, alpha=0.5,
-                    label=r'# %5i' % shot +' n$_e$ = %3.2f' % en +
+                    label=r'# %5i' % shot + ' n$_e$ = %3.2f' % en +
                     r' 10$^{19}$m$^{-3}$')
                 ax[0, _ip].plot(rhoN, yN, '-', color=_col)
                 ax[0, _ip].fill_between(rhoN, yN-yE, yN+yE,

@@ -565,7 +565,7 @@ class equilibrium(object):
         if with_bfield: self.calc_bfield()
 
 
-    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False):
+    def load_TCV(self,shot,time,port=None,with_bfield=True,verbose=False,remote=None):
         import socket
         Host = socket.gethostname()
         if Host[-7:] == 'epfl.ch':
