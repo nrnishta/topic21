@@ -730,7 +730,7 @@ class equilibrium(object):
             self._cplasma = Spl(self._time_array)
             # we want to load also the plasma curent
             self._loaded = True
-        
+            self._Eqm = Eqm
         tind = np.abs(self._time_array - time).argmin()     
         self.R = self._r#.data[0,:]
         self.Z = self._z#.data[0,:]

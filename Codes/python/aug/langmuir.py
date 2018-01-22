@@ -951,8 +951,12 @@ class Target(object):
         nlist = c.trace(psiN)
         segs=nlist[: len(nlist)//2]
         if len(segs) > 1:
-            R = segs[1].transpose()[0]
-            Z = segs[1].transpose()[1]
+            if len(segs[1]) > 20:
+                R = segs[1].transpose()[0]
+                Z = segs[1].transpose()[1]
+            else:
+                R = segs[0].transpose()[0]
+                Z = segs[0].transpose()[1]
         else:
             R = segs[0].transpose()[0]
             Z = segs[0].transpose()[1]
