@@ -79,7 +79,8 @@ j\end{frame}
 \end{enumerate}}
 \onslide<3>{
 I will report only on few of the deliverables since part of them will
-be studied in forthcoming campaigns
+be studied in forthcoming campaigns. \textcolor{red}{Remember this is
+  still a work in progress}
 }
 \end{frame}
 
@@ -95,6 +96,8 @@ be studied in forthcoming campaigns
       \includegraphics<7>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
       \includegraphics<8>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
       \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
+      \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
+      \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{itemize}
@@ -123,13 +126,62 @@ be studied in forthcoming campaigns
           \alert{shoulder amplitude metric} introduce by Wynn and
           Lipschultz for JET. \alert{Amplitude is the difference
             between normalized upstream density profiles}
-        \item<8-9> Amplitude evolve faster in density at lower
-          current \onslide<9>{\alert{but once evolution \textit{vs} greenwald
+        \only<8-9>{\item Amplitude evolve faster in density at lower
+          current in the far SOL \onslide<9>{\alert{but once evolution \textit{vs} greenwald
             fraction is considered the evolution is equivalent between
-          different current}}  
+            different current}}}
+        \item<10|only@10> Amplitude evolution still reconciled in AUG if
+          considered as a function of local evolution of $\Lambda_{div}$
+        \item<11|only@11> For both AUG and TCV $\lambda_n$ increases
+          with blob size without significant difference within the
+          current explored
       \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}  
+
+\begin{frame}{Current scan at constant q$_{95}$}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
+      \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}
+      \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}
+      \includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantQ95}
+      \includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantQ95}
+      \includegraphics<6>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CompareTargetProfilesConstantQ95}
+      \includegraphics<7>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantQ95}
+      \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{itemize}
+        \item<1|only@1> Shape matched in within the single scan even
+          though this required for TCV operation with very low
+          toroidal field (0.8T)
+        \item<1|only@1> The parallel connection length remains almost unchanged
+        \item<2|only@2> AUG: As for the case of constant B$_t$ we have
+          pretty reproducible behavior matching basically the plasma
+          condition in within the current scan
+        \item<3|only@3> TCV: Even at such an high density at lower
+          current (and lower B$_t$) no sign of target ion flux
+          rollover/detachment
+        \item<4|only@4> AUG: Divertor neutral density exhibits still
+          the same behavior is considered as a function of greenwald fraction
+        \item<5|only@5> For AUG upstream and target profiles exhibit
+          the same behavior with flattening observed at large values
+          of $\Lambda_{div}$. TCV actually even at high value of
+          density no sign of upstream profile flattening \alert{even
+            at very large values of $\Lambda_{div}$}
+        \item<6|only@6> This is due to the fact we did not reach
+          divertor detachment which \alert{seems necessary for
+            upstream profile modification}  
+        \item<7|only@7> AUG: Amplitude evolution as a function of $\Lambda_{div}$ 
+          still reconcile the explored current scan
+          
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
 \end{document}
 
