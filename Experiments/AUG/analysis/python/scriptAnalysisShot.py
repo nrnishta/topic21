@@ -3689,43 +3689,77 @@ while loop:
     elif selection == 51:
         shotList = (34103, 34102, 34104)
         currentL = (0.6, 0.8, 0.99)
-        colorL = ('#82A17E', '#1E4682', '#DD6D3D')        
-        # this is the far and near SOL shoulde amplitude for current scant at consant q95
-        fig, ax = mpl.pylab.subplots(figsize=(10, 10), nrows=2, ncols=1, sharex=True)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        # this is the far and near SOL shoulde amplitude
+        # for current scant at consant q95
+        fig, ax = mpl.pylab.subplots(figsize=(10, 10),
+                                     nrows=2, ncols=1, sharex=True)
         fig.subplots_adjust(bottom=0.15)
-        for shot, _ip,_idx, col in zip(
-            shotList, currentL,
-            range(len(shotList)), colorL):
+        # open a second figure where we will plot also
+        # the evolution of lambda_n
+        fig2, ax2 = mpl.pylab.subplots(figsize=(10, 10),
+                                       nrows=2, ncols=1, sharex=True)
+        fig2.subplots_adjust(bottom=0.15)
+        for shot, _ip, _idx, col in zip(shotList, currentL,
+                                        range(len(shotList)), colorL):
             N = neutrals.Neutrals(shot)
             LiB = libes.Libes(shot)
             dt = 0.05
-            LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=N.n0Time.min())
+            LiB.amplitudeShoulder(dt=dt,
+                                  reference=[1.2, 1.4], start=N.n0Time.min())
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            # replicate for the Efold length
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1)
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1)
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1)
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1)
+
             # interpolate the neutrals on the same time basis
             S = UnivariateSpline(N.n0Time, N.n0, s=0)
-            x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0], AmpAS[AmpA>0]
+            x, y, e = S(LiB.timeAmplitude[AmpA > 0]), AmpA[AmpA > 0], AmpAS[AmpA > 0]
             ax[0].errorbar(x[np.argsort(x)],
                            y[np.argsort(x)],
-                           yerr=e[np.argsort(x)],
+                           err=e[np.argsort(x)],
                            fmt='o', ms=8, mec=col, color=col,
                            capsize=0)
-            ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
-                          transform=ax[0].transAxes)            
-            x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
+            ax[0].text(0.15, 0.85,
+                       r'$1\leq \rho< 1.03$',
+                       transform=ax[0].transAxes)
+            x, y, e = S(LiB.timeAmplitude[AmpB > 0]), AmpB[AmpB > 0], AmpBS[AmpB > 0]
             ax[1].errorbar(x[np.argsort(x)],
                            y[np.argsort(x)],
                            yerr=e[np.argsort(x)],
                            fmt='o', ms=8, mec=col, color=col,
                            capsize=0)
             ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)
+
+            # same plot but with the efold in cm
+            x, y, e = S(LiB.timeAmplitude), EfoldA*1e2, EfoldAS*1e2
+            ax2[0].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)
+            x, y, e = S(LiB.timeAmplitude), EfoldB*1e2, EfoldBS*1e2
+            ax2[1].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
 
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
@@ -3738,34 +3772,72 @@ while loop:
         ax[1].set_xlim([1e18, 1e23])
         ax[1].set_xlabel(r'n$_0 [10^{19}$m$^{-3}]$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx * 0.12,
+                       r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes, fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12,
+                       r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes, fontsize=14, color=col)
         fig.savefig('../pdfbox/AmplitudeVsNeutralIpConstantQ95.pdf',
                     bbox_ot_inches='tight')
+        # this is for the second of the figure
+        ax2[0].set_xscale('log')
+        ax2[1].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[1].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [cm]$')
+        ax2[0].set_ylim([0, 0.6])
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n [cm]$')
+        ax2[1].set_ylim([0, 0.6])
+        ax2[1].set_xlim([1e18, 1e23])
+        ax2[1].set_xlabel(r'n$_0 [10^{19}$m$^{-3}]$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes, fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes, fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsNeutralIpConstantQ95.pdf',
+                    bbox_ot_inches='tight')
+
         # constant bt
         shotList = (34105, 34102, 34106)
         currentL = (0.6, 0.8, 0.99)
-        colorL = ('#82A17E', '#1E4682', '#DD6D3D')        
-        # this is the far and near SOL shoulde amplitude for current scant at consant q95
-        fig, ax = mpl.pylab.subplots(figsize=(10, 10), nrows=2, ncols=1, sharex=True)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        # this is the far and near SOL shoulde amplitude
+        # for current scant at consant q95
+        fig, ax = mpl.pylab.subplots(figsize=(10, 10),
+                                     nrows=2, ncols=1,
+                                     sharex=True)
         fig.subplots_adjust(bottom=0.15)
-        for shot, _ip,_idx, col in zip(
-            shotList, currentL,
-            range(len(shotList)), colorL):
+        fig2, ax2 = mpl.pylab.subplots(figsize=(10, 10),
+                                       nrows=2, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(bottom=0.15)
+        for shot, _ip, _idx, col in zip(
+                shotList, currentL,
+                range(len(shotList)), colorL):
             N = neutrals.Neutrals(shot)
             LiB = libes.Libes(shot)
             dt = 0.05
-            LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=N.n0Time.min())
+            LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4],
+                                  start=N.n0Time.min())
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            # replicate for the Efold length
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1) * 1e2
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1) * 1e2
             # interpolate the neutrals on the same time basis
             S = UnivariateSpline(N.n0Time, N.n0, s=0)
             x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0], AmpAS[AmpA>0]
@@ -3773,7 +3845,7 @@ while loop:
                            y[np.argsort(x)],
                            yerr=e[np.argsort(x)],
                            fmt='o', ms=8, mec=col, color=col,
-                           capsize=0)  
+                           capsize=0)
             ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
                           transform=ax[0].transAxes)            
             x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
@@ -3783,8 +3855,25 @@ while loop:
                            fmt='o', ms=8, mec=col, color=col,
                            capsize=0)
             ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)  
 
+            # same plot but with the efold in cm
+            x, y, e = S(LiB.timeAmplitude), EfoldA, EfoldAS
+            ax2[0].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)
+            x, y, e = S(LiB.timeAmplitude), EfoldB, EfoldBS
+            ax2[1].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
 
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
@@ -3797,20 +3886,44 @@ while loop:
         ax[1].set_xlim([1e18, 1e23])
         ax[1].set_xlabel(r'n$_0 [10^{19}$m$^{-3}]$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes, fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes, fontsize=14, color=col)
         fig.savefig('../pdfbox/AmplitudeVsNeutralIpConstantBt.pdf',
                     bbox_ot_inches='tight')
 
+        # this is for the second of the figure
+        ax2[0].set_xscale('log')
+        ax2[1].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[1].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [cm]$')
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n [cm]$')
+        ax2[1].set_xlim([1e18, 1e23])
+        ax2[1].set_xlabel(r'n$_0 [10^{19}$m$^{-3}]$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes, fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes, fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsNeutralIpConstantBt.pdf',
+                    bbox_ot_inches='tight')
 
     elif selection == 52:
         shotList = (34103, 34102, 34104)
         currentL = (0.6, 0.8, 0.99)
-        colorL = ('#82A17E', '#1E4682', '#DD6D3D')      
-        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6),
+                                     nrows=2, ncols=1,
+                                     sharex=True)
         fig.subplots_adjust(bottom=0.15)
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 6),
+                                       nrows=2, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(bottom=0.15)
         Directory = '/afs/ipp-garching.mpg.de/home/n/nvianell/analisi/iaea2018/data/aug/'
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
@@ -3819,17 +3932,26 @@ while loop:
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
-            # restore now the value of LambdaDiv from the save data in the IAEA2018 folder
+            # replicate for the Efold length
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1) * 1e2
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1) * 1e2
+            # restore now the value of LambdaDiv from the
+            # save data in the IAEA2018 folder
             File = h5py.File(Directory+'Shot%5i' % shot + '.h5')
             _idx = np.where((File['LambdaDivRho'].value >= 1) &
                             (File['LambdaDivRho'].value < 1.02))[0]
-            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
+            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :],
+                               axis=0).ravel()
             _idx = np.where((File['LambdaDivRho'].value >= 1.02) &
                             (File['LambdaDivRho'].value < 1.06))[0]
             LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
@@ -3844,7 +3966,7 @@ while loop:
                 mec=col, color=col,
                 capsize=0)
             ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
-                       transform=ax[0].transAxes)  
+                       transform=ax[0].transAxes)
             S = interp1d(File['LambdaDivTime'].value.ravel(), LFar,
                          kind='linear', fill_value='extrapolate')
             x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
@@ -3855,7 +3977,31 @@ while loop:
                 mec=col, color=col,
                 capsize=0)
             ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)
+            # ---------
+            # now the plot for the efold
+            S = interp1d(File['LambdaDivTime'].value.ravel(), LNear,
+                         kind='linear', fill_value='extrapolate')
+            x, y, e = S(LiB.timeAmplitude),  EfoldA, EfoldAS
+            ax2[0].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)], fmt='o', ms=8,
+                mec=col, color=col,
+                capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)  
+            S = interp1d(File['LambdaDivTime'].value.ravel(), LFar,
+                         kind='linear', fill_value='extrapolate')
+            x, y, e = S(LiB.timeAmplitude),  EfoldB, EfoldBS
+            ax2[1].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)], fmt='o', ms=8,
+                mec=col, color=col,
+                capsize=0)
+            ax2[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
             File.close()
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
@@ -3868,17 +4014,38 @@ while loop:
         ax[1].set_xlim([0.05, 25])
         ax[1].set_xlabel(r'$\Lambda_{div}$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx*0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes,
                        fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes,
                        fontsize=14, color=col)
         fig.savefig('../pdfbox/AmplitudeVsLambdaIpConstantQ95.pdf',
                     bbox_ot_inches='tight')
-
+        # second plot
+        ax2[0].set_xscale('log')
+        ax2[1].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[1].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [cm]$')
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n [cm]$')
+        ax2[1].set_xlim([0.05, 25])
+        ax2[1].set_xlabel(r'$\Lambda_{div}$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx*0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes,
+                        fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes,
+                        fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsLambdaIpConstantQ95.pdf',
+                    bbox_ot_inches='tight')
+        # ----------
         # constant bt
-        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6),
+                                     nrows=2, ncols=1, sharex=True)
         fig.subplots_adjust(bottom=0.15)
         shotList = (34105, 34102, 34106)
         currentL = (0.6, 0.8, 0.99)
@@ -3889,43 +4056,79 @@ while loop:
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
-            # restore now the value of LambdaDiv from the save data in the IAEA2018 folder
+            # replicate for the Efold length
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1) * 1e2
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1) * 1e2
+            # restore now the value of LambdaDiv from the
+            # save data in the IAEA2018 folder
             File = h5py.File(Directory+'Shot%5i' % shot + '.h5')
             _idx = np.where((File['LambdaDivRho'].value >= 1) &
                             (File['LambdaDivRho'].value < 1.025))[0]
-            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
+            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :],
+                               axis=0).ravel()
             _idx = np.where((File['LambdaDivRho'].value >= 1.025) &
                             (File['LambdaDivRho'].value < 1.06))[0]
             LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
             # Univariate and plot
-            S = interp1d(File['LambdaDivTime'].value.ravel(), LNear, kind='linear',
-                         fill_value='extrapolate')
+            S = interp1d(
+                File['LambdaDivTime'].value.ravel(),
+                LNear, kind='linear',
+                fill_value='extrapolate')
             x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0], AmpAS[AmpA>0]
             ax[0].errorbar(
                 x[np.argsort(x)],
                 y[np.argsort(x)],
-                e[np.argsort(x)], 
-                fmt='o', ms=8, color=col, mec=col, 
+                e[np.argsort(x)],
+                fmt='o', ms=8, color=col, mec=col,
                 capsize=0)
             ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
-                       transform=ax[0].transAxes)  
-            S = interp1d(File['LambdaDivTime'].value.ravel(), LFar, kind='linear',
+                       transform=ax[0].transAxes)
+            S = interp1d(File['LambdaDivTime'].value.ravel(),
+                         LFar, kind='linear',
                          fill_value='extrapolate')
             x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
             ax[1].errorbar(
                 x[np.argsort(x)],
                 y[np.argsort(x)],
-                e[np.argsort(x)], 
-                fmt='o', ms=8, color=col, mec=col, 
+                e[np.argsort(x)],
+                fmt='o', ms=8, color=col, mec=col,
                 capsize=0)
             ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)
+            # ---------
+            # now the plot for the efold
+            S = interp1d(File['LambdaDivTime'].value.ravel(), LNear,
+                         kind='linear', fill_value='extrapolate')
+            x, y, e = S(LiB.timeAmplitude),  EfoldA, EfoldAS
+            ax2[0].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)], fmt='o', ms=8,
+                mec=col, color=col,
+                capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)
+            S = interp1d(File['LambdaDivTime'].value.ravel(), LFar,
+                         kind='linear', fill_value='extrapolate')
+            x, y, e = S(LiB.timeAmplitude),  EfoldB, EfoldBS
+            ax2[1].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)], fmt='o', ms=8,
+                mec=col, color=col,
+                capsize=0)
+            ax2[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
             File.close()
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
@@ -3938,20 +4141,48 @@ while loop:
         ax[1].set_xlim([0.05, 25])
         ax[1].set_xlabel(r'$\Lambda_{div}$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes, fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes, fontsize=14, color=col)
         fig.savefig('../pdfbox/AmplitudeVsLambdaIpConstantBt.pdf',
                     bbox_ot_inches='tight')
+        # second plot
+        ax2[0].set_xscale('log')
+        ax2[1].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[1].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [cm]$')
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n [cm]$')
+        ax2[1].set_xlim([0.05, 25])
+        ax2[1].set_xlabel(r'$\Lambda_{div}$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx*0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes,
+                        fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes,
+                        fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsLambdaIpConstantBt.pdf',
+                    bbox_ot_inches='tight')
+
     elif selection == 53:
         # produce amplitude vs Greenwald fraction
         # for current scan at constant Q95
         shotList = (34103, 34102, 34104)
         currentL = (0.6, 0.8, 0.99)
-        colorL = ('#82A17E', '#1E4682', '#DD6D3D')      
-        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6),
+                                     nrows=2, ncols=1,
+                                     sharex=True)
         fig.subplots_adjust(bottom=0.15)
+        # second plot for the Efold
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 6),
+                                       nrows=2, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(bottom=0.15)
         Directory = '/afs/ipp-garching.mpg.de/home/n/nvianell/analisi/iaea2018/data/aug/'
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
@@ -3960,12 +4191,20 @@ while loop:
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            # replicate for the Efold length
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1) * 1e2
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1) * 1e2
+            # greenwald fraction
             Tot = dd.shotfile('TOT', shot)
             nnG = Tot('n/nGW').data
             nnGt = Tot('n/nGW').time
@@ -3979,7 +4218,7 @@ while loop:
                            fmt='o', ms=8, mec=col, color=col,
                            capsize=0)
             ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
-                       transform=ax[0].transAxes)  
+                       transform=ax[0].transAxes)
             x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
             ax[1].errorbar(x[np.argsort(x)],
                            y[np.argsort(x)],
@@ -3987,25 +4226,68 @@ while loop:
                            fmt='o', ms=8, mec=col, color=col,
                            capsize=0)
             ax[1].text(0.1, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)  
+            # plot for the Efold
+            # Univariate and plot
+            x, y, e = S(LiB.timeAmplitude), EfoldA, EfoldAS
+            ax2[0].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)
+            x, y, e = S(LiB.timeAmplitude),  EfoldB, EfoldBS
+            ax2[1].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[1].text(0.1, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
+
         ax[0].axes.get_xaxis().set_visible(False)
-        ax[0].set_ylabel('Amplitude')
-        ax[0].set_ylim([0, 0.6])
+        ax[0].set_ylabel('$\lambda_n$ [cm]')
+        ax[0].set_yscale('log')
         ax[0].set_title(r'Constant q$_{95}$')
-        ax[1].set_ylabel('Amplitude')
-        ax[1].set_ylim([0, 0.6])
+        ax[1].set_ylabel('$\lambda_n$ [cm]')
+        ax[1].set_yscale('log')
         ax[1].set_xlim([0.1, 0.7])
         ax[1].set_xlabel(r'n/n$_{G}$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes, fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes, fontsize=14, color=col)
         fig.savefig('../pdfbox/AmplitudeVsGreenwaldIpConstantQ95.pdf',
                     bbox_ot_inches='tight')
+        # efold
+        ax2[0].set_ylabel('$\lambda_n$ [cm]')
+        ax2[0].set_yscale('log')
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n$ [cm]')
+        ax2[1].set_yscale('log')
+        ax2[1].set_xlim([0.1, 0.7])
+        ax2[1].set_xlabel(r'n/n$_{G}$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes, fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes, fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsGreenwaldIpConstantQ95.pdf',
+                     bbox_ot_inches='tight')
+
+        # -----------
         # constant bt
-        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        fig, ax = mpl.pylab.subplots(
+            figsize=(8, 6),
+            nrows=2, ncols=1, sharex=True)
         fig.subplots_adjust(bottom=0.15)
+        # this is for the efold
+        fig2, ax2 = mpl.pylab.subplots(
+            figsize=(8, 6),
+            nrows=2, ncols=1, sharex=True)
+        fig2.subplots_adjust(bottom=0.15)
         shotList = (34105, 34102, 34106)
         currentL = (0.6, 0.8, 0.99)
         for shot, _ip, col in zip(shotList, currentL, colorL):
@@ -4015,12 +4297,20 @@ while loop:
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
-            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
-            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            _idA = np.where((LiB.rhoAmplitude >= 1) &
+                            (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) &
+                            (LiB.rhoAmplitude < 1.06))[0]
             AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
             AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
             AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
             AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            # efold
+            EfoldA = np.nanmean(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldB = np.nanmean(LiB.Efold[:, _idB], axis=1) * 1e2
+            EfoldAS = np.nanstd(LiB.Efold[:, _idA], axis=1) * 1e2
+            EfoldBS = np.nanstd(LiB.Efodl[:, _idB], axis=1) * 1e2
+            # greenwald fraction
             Tot = dd.shotfile('TOT', shot)
             nnG = Tot('n/nGW').data
             nnGt = Tot('n/nGW').time
@@ -4028,18 +4318,43 @@ while loop:
             # Univariate and plot
             S = UnivariateSpline(nnGt, nnG, s=0)
             x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0],  AmpAS[AmpA>0]
-            ax[0].errorbar(x[np.argsort(x)], y[np.argsort(x)],
-                           yerr=e[np.argsort(x)], fmt='o', ms=8,
-                           color=col, mec=col,  
-                           capsize=0)
+            ax[0].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)],
+                fmt='o', ms=8,
+                color=col, mec=col,
+                capsize=0)
             ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
                        transform=ax[0].transAxes)  
             x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
-            ax[1].errorbar(x[np.argsort(x)],y[np.argsort(x)],
-                           yerr=e[np.argsort(x)], fmt='o', ms=8, color=col,
-                           capsize=0, mec=col)
+            ax[1].errorbar(
+                x[np.argsort(x)],
+                y[np.argsort(x)],
+                yerr=e[np.argsort(x)],
+                fmt='o', ms=8, color=col,
+                capsize=0, mec=col)
             ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
-                          transform=ax[1].transAxes)  
+                       transform=ax[1].transAxes)  
+            # plot for the Efold
+            # Univariate and plot
+            x, y, e = S(LiB.timeAmplitude), EfoldA, EfoldAS
+            ax2[0].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                        transform=ax[0].transAxes)
+            x, y, e = S(LiB.timeAmplitude),  EfoldB, EfoldBS
+            ax2[1].errorbar(x[np.argsort(x)],
+                            y[np.argsort(x)],
+                            yerr=e[np.argsort(x)],
+                            fmt='o', ms=8, mec=col, color=col,
+                            capsize=0)
+            ax2[1].text(0.1, 0.85, r'$1.03\leq \rho< 1.06$',
+                        transform=ax[1].transAxes)
+
         ax[0].axes.get_xaxis().set_visible(False)
         ax[0].set_ylabel('Amplitude')
         ax[0].set_ylim([0, 0.6])
@@ -4049,15 +4364,30 @@ while loop:
         ax[1].set_xlim([0.1, 0.7])
         ax[1].set_xlabel(r'n/n$_G$')
         for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
-            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[0].transAxes,
                        fontsize=14, color=col)
-            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+            ax[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
                        transform=ax[1].transAxes,
                        fontsize=14, color=col)
-
         fig.savefig('../pdfbox/AmplitudeVsGreenwaldIpConstantBt.pdf',
                     bbox_ot_inches='tight')
+
+        # efold
+        ax2[0].set_ylabel('$\lambda_n$ [cm]')
+        ax2[0].set_yscale('log')
+        ax2[0].set_title(r'Constant q$_{95}$')
+        ax2[1].set_ylabel('$\lambda_n$ [cm]')
+        ax2[1].set_yscale('log')
+        ax2[1].set_xlim([0.1, 0.7])
+        ax2[1].set_xlabel(r'n/n$_{G}$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax2[0].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[0].transAxes, fontsize=14, color=col)
+            ax2[1].text(0.1, 0.7 - _idx * 0.12, r'I$_p$ = %2.1f' % _ip + ' MA',
+                        transform=ax2[1].transAxes, fontsize=14, color=col)
+        fig2.savefig('../pdfbox/EfoldVsGreenwaldIpConstantBt.pdf',
+                     bbox_ot_inches='tight')
 
     elif selection == 54:
         # produce amplitude vs Greenwald fraction
