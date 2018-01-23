@@ -3825,11 +3825,11 @@ while loop:
             # restore now the value of LambdaDiv from the save data in the IAEA2018 folder
             File = h5py.File(Directory+'Shot%5i' % shot + '.h5')
             _idx = np.where((File['LambdaDivRho'].value >= 1) &
-                            (File['LambdaDivRho'].value < 1.02))
-            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=1).ravel()
+                            (File['LambdaDivRho'].value < 1.02))[0]
+            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
             _idx = np.where((File['LambdaDivRho'].value >= 1.02) &
-                            (File['LambdaDivRho'].value < 1.06))
-            LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=1).ravel()
+                            (File['LambdaDivRho'].value < 1.06))[0]
+            LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
             # Univariate and plot
             S = interp1d(File['LambdaDivTime'].value.ravel(), LNear,
                          kind='linear', fill_value='extrapolate')
@@ -3895,11 +3895,11 @@ while loop:
             # restore now the value of LambdaDiv from the save data in the IAEA2018 folder
             File = h5py.File(Directory+'Shot%5i' % shot + '.h5')
             _idx = np.where((File['LambdaDivRho'].value >= 1) &
-                            (File['LambdaDivRho'].value < 1.03))
-            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=1).ravel()
-            _idx = np.where((File['LambdaDivRho'].value >= 103) &
-                            (File['LambdaDivRho'].value < 1.06))
-            LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=1).ravel()
+                            (File['LambdaDivRho'].value < 1.025))[0]
+            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
+            _idx = np.where((File['LambdaDivRho'].value >= 1.025) &
+                            (File['LambdaDivRho'].value < 1.06))[0]
+            LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
             # Univariate and plot
             S = interp1d(File['LambdaDivTime'].value.ravel(), LNear, kind='linear',
                          fill_value='extrapolate')
