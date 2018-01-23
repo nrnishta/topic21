@@ -146,8 +146,7 @@ class Libes(object):
             Amplitude.append(pDummy-pN)
             Location.append(rhoDummy[np.argmax(pDummy-pN)])
             time[i] = (start+i*dt+dt/2)
-            Rmid = self.eq.rho2rho('sqrtpsinorm', 'Rmid', self.rho, time[i])
-            Efold.append(c)
+            Efold.append(c[self.rho>1])
 
             
         self.Amplitude = np.asarray(Amplitude)

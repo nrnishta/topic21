@@ -89,7 +89,9 @@ def print_menu():
     print "50. Neutral density vs density and normalized greenwald fraction for Ip scan"
     print "51. Shoulder amplitude vs neutral density"
     print "52. Shoulder amplitude vs LambdaDiv"
-    print "53. Shoulder amplitude vs Greenwalrd fraction"
+    print "53. Shoulder amplitude vs Greenwald fraction"
+    print "54. Shoulder amplitude vs Edge density fraction"
+    print "55. Neutrals vs Edge density"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -3588,6 +3590,7 @@ while loop:
         currentL = (0.6, 0.8, 0.99)
         colorL = ('#82A17E', '#1E4682', '#DD6D3D')        
         fig, ax = mpl.pylab.subplots(figsize=(10, 10), nrows=2, ncols=1, sharex=True)
+        fig.subplots_adjust(bottom=0.15)
         fig2, ax2 = mpl.pylab.subplots(figsize=(10, 5), nrows=1, ncols=1)
         fig2.subplots_adjust(bottom=0.15)
         for shot, _ip, col in zip(shotList, currentL, colorL):
@@ -4056,7 +4059,202 @@ while loop:
         fig.savefig('../pdfbox/AmplitudeVsGreenwaldIpConstantBt.pdf',
                     bbox_ot_inches='tight')
 
+    elif selection == 54:
+        # produce amplitude vs Greenwald fraction
+        # for current scan at constant Q95
+        shotList = (34103, 34102, 34104)
+        currentL = (0.6, 0.8, 0.99)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')      
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        fig.subplots_adjust(bottom=0.15)
+        Directory = '/afs/ipp-garching.mpg.de/home/n/nvianell/analisi/iaea2018/data/aug/'
+        for shot, _ip, col in zip(shotList, currentL, colorL):
+            # compute the amplitude of the LiB
+            LiB = libes.Libes(shot)
+            dt = 0.05
+            LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
+            # now integrate in the near and far SOL defining respectively for
+            # (1<rho<1.02 and 1.02<rho<1.04)
+            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
+            AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
+            AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
+            AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            Tot = dd.shotfile('DCN', shot)
+            nnG = Tot('H-5').data/1e19
+            nnGt = Tot('H-5').time
+            Tot.close()
+            # Univariate and plot
+            S = UnivariateSpline(nnGt, nnG, s=0)
+            x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0], AmpAS[AmpA>0]
+            ax[0].errorbar(x[np.argsort(x)],
+                           y[np.argsort(x)],
+                           yerr=e[np.argsort(x)],
+                           fmt='o', ms=8, mec=col, color=col,
+                           capsize=0)
+            ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                       transform=ax[0].transAxes)  
+            x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
+            ax[1].errorbar(x[np.argsort(x)],
+                           y[np.argsort(x)],
+                           yerr=e[np.argsort(x)],
+                           fmt='o', ms=8, mec=col, color=col,
+                           capsize=0)
+            ax[1].text(0.1, 0.85, r'$1.03\leq \rho< 1.06$',
+                          transform=ax[1].transAxes)  
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylabel('Amplitude')
+        ax[0].set_ylim([0, 0.6])
+        ax[0].set_title(r'Constant q$_{95}$')
+        ax[1].set_ylabel('Amplitude')
+        ax[1].set_ylim([0, 0.6])
+        ax[1].set_xlim([0., 4])
+        ax[1].set_xlabel(r'n$_{e} H-5 [10^{19}$m$^{-3}]$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+                       transform=ax[0].transAxes, fontsize=14, color=col)
+            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+                       transform=ax[1].transAxes, fontsize=14, color=col)
+        fig.savefig('../pdfbox/AmplitudeVsNe5IpConstantQ95.pdf',
+                    bbox_ot_inches='tight')
+        # constant bt
+        fig, ax = mpl.pylab.subplots(figsize=(8, 6), nrows=2, ncols=1, sharex=True)
+        fig.subplots_adjust(bottom=0.15)
+        shotList = (34105, 34102, 34106)
+        currentL = (0.6, 0.8, 0.99)
+        for shot, _ip, col in zip(shotList, currentL, colorL):
+            # compute the amplitude of the LiB
+            LiB = libes.Libes(shot)
+            dt = 0.05
+            LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
+            # now integrate in the near and far SOL defining respectively for
+            # (1<rho<1.02 and 1.02<rho<1.04)
+            _idA = np.where((LiB.rhoAmplitude >= 1) & (LiB.rhoAmplitude < 1.03))[0]
+            _idB = np.where((LiB.rhoAmplitude >= 1.03) & (LiB.rhoAmplitude < 1.06))[0]
+            AmpA = np.nanmean(LiB.Amplitude[:, _idA], axis=1)
+            AmpB = np.nanmean(LiB.Amplitude[:, _idB], axis=1)
+            AmpAS = np.nanstd(LiB.Amplitude[:, _idA], axis=1)
+            AmpBS = np.nanstd(LiB.Amplitude[:, _idB], axis=1)
+            Tot = dd.shotfile('DCN', shot)
+            nnG = Tot('H-5').data/1e19
+            nnGt = Tot('H-5').time
+            Tot.close()
+            # Univariate and plot
+            S = UnivariateSpline(nnGt, nnG, s=0)
+            x, y, e = S(LiB.timeAmplitude[AmpA>0]),  AmpA[AmpA>0],  AmpAS[AmpA>0]
+            ax[0].errorbar(x[np.argsort(x)], y[np.argsort(x)],
+                           yerr=e[np.argsort(x)], fmt='o', ms=8,
+                           color=col, mec=col,  
+                           capsize=0)
+            ax[0].text(0.15, 0.85, r'$1\leq \rho< 1.03$',
+                       transform=ax[0].transAxes)  
+            x, y, e = S(LiB.timeAmplitude[AmpB>0]),  AmpB[AmpB>0], AmpBS[AmpB>0]
+            ax[1].errorbar(x[np.argsort(x)],y[np.argsort(x)],
+                           yerr=e[np.argsort(x)], fmt='o', ms=8, color=col,
+                           capsize=0, mec=col)
+            ax[1].text(0.15, 0.85, r'$1.03\leq \rho< 1.06$',
+                          transform=ax[1].transAxes)  
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylabel('Amplitude')
+        ax[0].set_ylim([0, 0.6])
+        ax[0].set_title(r'Constant B$_{t}$')
+        ax[1].set_ylabel('Amplitude')
+        ax[1].set_ylim([0, 0.6])
+        ax[1].set_xlim([0., 4])
+        ax[1].set_xlabel(r'n$_{e} H-5 [10^{19}$m$^{-3}]$')
+        for _ip, col, _idx in zip(currentL, colorL, range(len(currentL))):
+            ax[0].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+                       transform=ax[0].transAxes,
+                       fontsize=14, color=col)
+            ax[1].text(0.1, 0.7-_idx*0.12, r'I$_p$ = %2.1f' % _ip +' MA',
+                       transform=ax[1].transAxes,
+                       fontsize=14, color=col)
 
+        fig.savefig('../pdfbox/AmplitudeVsNe5IpConstantBt.pdf',
+                    bbox_ot_inches='tight')
+
+    elif selection == 55:
+        # create a figure with neutral density vs edge density and vs normalized
+        # greenwald fraction comparing 
+        # Constant Q95
+        shotList = (34103, 34102, 34104)
+        currentL = (0.6, 0.8, 0.99)
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')        
+        fig2, ax2 = mpl.pylab.subplots(figsize=(10, 5), nrows=1, ncols=1)
+        fig2.subplots_adjust(bottom=0.15)
+        for shot, _ip, col in zip(shotList, currentL, colorL):
+                N = neutrals.Neutrals(shot)
+                # load also the edge density
+                Tot = dd.shotfile('DCN', shot)
+                nnG = Tot('H-5').data/1e19
+                nnGt = Tot('H-5').time
+                Tot.close()
+                # 
+                S = UnivariateSpline(nnGt, nnG, s=0)
+                # determine tmin and tmax as time larger then 0.5 and
+                # time lower then  the maximum achieved fueling after 2.5 s
+                tmin = N.n0Time.min()
+                _idx = np.argmax(N.gas['D2']['data'][
+                        ((N.gas['D2']['t'] > 2.5) &
+                        (N.gas['D2']['t'] < 5))])
+                _i0 = np.argmin(np.abs(N.gas['D2']['t']-2.5))
+                tmax = N.gas['D2']['t'][_i0+_idx]
+                _idx = np.where((N.n0Time >= tmin) &
+                                (N.n0Time <= tmax))[0]
+                x, y = S(N.n0Time[_idx]), N.n0[_idx]
+                ax2.semilogy(x[np.argsort(x)], y[np.argsort(x)],'.',ms=5,  
+                               color=col, label=r'# %5i' % shot +
+                               r' I$_p$ = %2.1f' % _ip + ' MA')           
+
+        ax2.set_title(r'Constant q$_{95}$')
+        ax2.set_xlabel(r'n$_{e} H-5 [10^{19}$m$^{-3}]$')
+        ax2.set_ylabel(r'n$_0[$m$^{-3}]$')
+        ax2.set_xlim([0, 4])
+        ax2.set_ylim([5e17, 1e23])
+        leg = ax2.legend(loc='best', numpoints=1,
+                         frameon=False, fontsize=14)
+        for t, c in zip(leg.get_texts(), colorL):
+            t.set_color(c)
+        fig2.savefig('../pdfbox/NeutralsVsNe5IpConstantQ95.pdf', bbox_to_inches='tight')
+        # constant bt
+        shotList = (34105, 34102, 34106)
+        currentL = (0.6, 0.8, 0.99)
+        fig2, ax2 = mpl.pylab.subplots(figsize=(10, 5), nrows=1, ncols=1)
+        fig2.subplots_adjust(bottom=0.15)
+        for shot, _ip, col in zip(shotList, currentL, colorL): 
+                N = neutrals.Neutrals(shot)
+                # load also the edge density
+                Tot = dd.shotfile('DCN', shot)
+                nnG = Tot('H-5').data/1e19
+                nnGt = Tot('H-5').time
+                Tot.close()
+                # 
+                S = UnivariateSpline(nnGt, nnG, s=0)
+                # determine tmin and tmax as time larger then 0.5 and
+                # time lower then  the maximum achieved fueling after 2.5 s
+                tmin = N.n0Time.min()
+                _idx = np.argmax(N.gas['D2']['data'][
+                        ((N.gas['D2']['t'] > 2.5) &
+                        (N.gas['D2']['t'] < 5))])
+                _i0 = np.argmin(np.abs(N.gas['D2']['t']-2.5))
+                tmax = N.gas['D2']['t'][_i0+_idx]
+                _idx = np.where((N.n0Time >= tmin) &
+                                (N.n0Time <= tmax))[0]
+                x, y = S(N.n0Time[_idx]), N.n0[_idx]
+                ax2.semilogy(x[np.argsort(x)], y[np.argsort(x)],'.',ms=5,  
+                               color=col, label=r'# %5i' % shot +
+                               r' I$_p$ = %2.1f' % _ip + ' MA')   
+     
+        ax2.set_title(r'Constant B$_{t}$')
+        ax2.set_xlabel(r'n$_{e} H-5 [10^{19}$m$^{-3}]$')
+        ax2.set_ylabel(r'n$_0[$m$^{-3}]$')
+        ax2.set_xlim([0., 4])
+        ax2.set_ylim([5e17, 5e22])
+        leg = ax2.legend(loc='best', numpoints=1, frameon=False)
+        for t, c in zip(leg.get_texts(), colorL):
+            t.set_color(c)
+        fig2.savefig('../pdfbox/NeutralsVsNe5IpConstantBt.pdf', bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
