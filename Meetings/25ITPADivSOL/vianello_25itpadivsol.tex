@@ -3,6 +3,8 @@
 \usepackage{listings,amsmath,multimedia, amssymb}
 \usepackage{tangocolors}
 \usepackage{rfxcolor}
+% multiple figure location
+%\graphicspath{{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/}{../Experiments/}}
 % for drawing
 \usepackage{pgf}
 \usepackage{tikz}
@@ -87,8 +89,9 @@ be studied in forthcoming campaigns
       \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
-      %\includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantBt}
-      \includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantBt}
+      \includegraphics<4>[width=\textwidth]{NeutralsVsGreenwaldConstantBt}
+      \includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantBt}
+      \includegraphics<6>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantBt}
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{itemize}
@@ -101,12 +104,15 @@ be studied in forthcoming campaigns
           avoid earlier disruption. Similar neutral pressure in the
           subdivertor region reached. NBI additional power added to
           keep power in the SOL approximately constant
-        \item<3|only@3> TCV: Similar neutral compression reached and
-          D$_{\alpha}$ radiation from the floor.
+        \item<3|only@3> TCV: Ohmic heating only. Similar neutral compression reached and
+          D$_{\alpha}$ radiation from the floor. 
         \item<4|only@4> Divertor neutral density estimated starting
           from D$_{\alpha}$ calibrated camera and using electron
-          density and temperature from LP data.
-        \item<5|only@5> For both AUG and TCV flattening of normalized
+          density and temperature from LP data. Neutral density
+          increase earlier in edge density at smaller current
+        \item<5|only@5> Neutrals behavior reconciled whenever
+          comparison considered as a function of Greenwald fractin  
+        \item<6|only@6> For both AUG and TCV flattening of normalized
           upstream profile reached \alert{earlier in density at lower
             current.} For both the machine the increase of $\lambda_n$
           reached for larger values of $\Lambda_{div}$
