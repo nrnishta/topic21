@@ -4759,9 +4759,9 @@ while loop:
         ax6 = mpl.pylab.subplot2grid((4, 3), (2, 1))        
         ax7 = mpl.pylab.subplot2grid((4, 3), (2, 2))
         # these are the panel for Lambda
-        ax8 = mpl.pylab.subplot2grid((4, 3), (2, 0))
-        ax9 = mpl.pylab.subplot2grid((4, 3), (2, 1))        
-        ax10 = mpl.pylab.subplot2grid((4, 3), (2, 2))
+        ax8 = mpl.pylab.subplot2grid((4, 3), (3, 0))
+        ax9 = mpl.pylab.subplot2grid((4, 3), (3, 1))        
+        ax10 = mpl.pylab.subplot2grid((4, 3), (3, 2))
         # list of axes
         axProf = (ax2, ax3, ax4)
         axTarg = (ax5, ax6, ax7) 
@@ -4781,20 +4781,22 @@ while loop:
             for t, _axp, _axt, _axl, _tr in zip(
                 tList, axProf, axTarg, axLamb, thresh):
                 ax1.axvline((t[0]+t[1])/2, ls='-', lw=2, color='gray')
-                p, e, ef, pN, eN = LiB.averageProfiles(
+                p, e, ef, pN, eN = LiB.averageProfile(
                     trange=[t[0], t[1]],
                     interelm=True, threshold=_tr)
                 _axp.semilogy(LiB.rho, pN, color=col, lw=2)
-                _axp.fill_between(LiB.rho, pN-eN, pN+eN, color=col, alpha=0.3)
+                _axp.errorbar(LiB.rho, pN, yerr=eN, fmt='none',
+                              ecolor=col, alpha=0.3)
                 
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t[0], t[1]], interelm=True,
                     threshold=_tr, Plot=False)
-                _axt.errorbar(rho, en/1e19, yerr=err/1e19,
-                              fmt='--o', capsize=0, color=col)
+                _axt.errorbar(rho, en/1e19, yerr=err/1e19/2,
+                              fmt='--o', capsize=0, color=col, ms=12,
+                              mec=col, alpha=0.5)
                 rhoL, Lambda = Target.computeLambda(
                     trange=[t[0], t[1]], interelm=True,
-                    threshold=_thr, Plot=False)
+                    threshold=_tr, Plot=False)
 
                 _axl.semilogy(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],'-', 
                               color=col, lw=2)
@@ -4803,14 +4805,14 @@ while loop:
             _p.set_xlim([0.98, 1.06])
             _t.set_xlim([0.98, 1.06])
             _p.set_ylim([5e-2, 3])
-            _t.set_ylim([0, 5])
+            _t.set_ylim([0, 10])
             _p.axes.get_xaxis().set_visible(False)
             _t.axes.get_xaxis().set_visible(False)
             
         for i in np.linspace(1, 2, 2, dtype='int'):
             axProf[i].axes.get_yaxis().set_visible(False)
             axTarg[i].axes.get_yaxis().set_visible(False)
-            axLamb[i].axes.get_yaxis().set_visible(false)
+            axLamb[i].axes.get_yaxis().set_visible(False)
 
         label = (r'n$_e$/n$_e(\rho_p = 1)$',
                  r'n$_e[10^{19}$m$^{-3}]$',
@@ -4818,9 +4820,18 @@ while loop:
         for l, ax in zip(label, (axProf, axTarg, axLamb)):
             ax[0].set_ylabel(l)
         for ax in axLamb:
-            ax.set_ylim([0.01, 30])
+            ax.set_ylim([0.08, 30])
             ax.set_xlabel(r'$\rho$')
             ax.set_xlim([0.98, 1.06])
+            ax.set_xticks([0.98, 1, 1.02, 1.04])
+            ax.axhline(1, ls='--', lw=2, color='gray')
+        ax1.set_ylabel(r'n$_e$ H-5 [10$^{19}$]')
+        ax1.set_xlabel(r't[s]')
+        ax1.set_xlim([0, 7])
+        ax1.set_ylim([0, 6])
+        leg = ax1.legend(loc='best', numpoints=1, frameon=False)
+        for t, c in zip(leg.get_texts(), colorList):
+            t.set_color(c)
         fig.savefig('../pdfbox/UpstreamDivertorProfiles%5i' % shotList[0] +
                     '_%5i' % shotList[1] + '_%5i' % shotList[2]+'.pdf',
                     bbox_to_inches='tight')
