@@ -3,6 +3,9 @@
 \usepackage{listings,amsmath,multimedia, amssymb}
 \usepackage{tangocolors}
 \usepackage{rfxcolor}
+\definecolor{colorA}{HTML}{324D5C}
+\definecolor{colorB}{HTML}{E37B40}
+\definecolor{colorC}{HTML}{60A65F}
 % multiple figure location
 %\graphicspath{{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/}{../Experiments/}}
 % for drawing
@@ -32,7 +35,8 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
 \title{SOL Filamentary transport: update from joint AUG-TCV MST1 experiment}
 \date{29 January 2018}
-\author[N.Vianello]{presented by N. Vianello}
+\author[N.Vianello]{presented by N. Vianello for the MST1-Topic 21
+  scientific team}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
@@ -187,76 +191,100 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
   \end{columns}
 \end{frame}
 %% H-Mode same fueling
-\begin{frame}{H-Mode compare fueling with/wo
-      cryopump}
+\begin{frame}{H-Mode analysis on AUG}
     \Fontvi
   \vspace{-1cm}
   \begin{columns}
-  \begin{column}{0.65\textwidth}
-    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34278}}
-    \centering{\includegraphics<2>[height=.65\textheight]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34278}}
-    \only<3>{
-    \begin{tikzonimage}[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34278}
-      \draw [->, ultra thick, white] (0.2, 0.45) -- (0.3, 0.55);
-      \draw [->, ultra thick, dashed, red] (0.62, 0.45) -- (0.72, 0.55);
-    \end{tikzonimage}}
-  \centering{\includegraphics<4>[height=.85\textheight]{../../Experiments/AUG/analysis/pdfbox/Shot_34276_34278_InterELMprofiles}}
-  \centering{\includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278}}
+  \begin{column}{0.55\textwidth}
+    \centering{\includegraphics<1>[height=0.8\textheight]{../../Experiments/AUG/analysis/pdfbox/GeneralComparisonShot34276_34278_34281.pdf}}
+    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34278_34281}}
+  \centering{\includegraphics<4>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278}}
+  \centering{\includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278_34281}}
   \end{column}
-  \begin{column}{0.35\textwidth}
+  \begin{column}{0.45\textwidth}
     \begin{itemize}
-    \item<1|only@1> Same fueling but with cryo-pumps. \alert{To check role
-        of neutral density in H-Mode}
-      \item<1|only@1> H-5 density is different and remain constant, both
-        divertor and midplane pressure are reduced (to 1/3
-        approximately) no sign of detachment
-      \item<2|only@2> Different ELMy regimes reached with reduced size and
-        increased frequency without the cryopumps
-      \item<3|only@3> Also with this amount of fueling weaker indication of SOL
-        saturation observed as confirmed by Li-Beam and by RIC (Antenna 4)
-      \item<4|only@4> Inter-ELM resolved profile suggest a flattening even
-        with the cryompumps still even though $\Lambda_{div}$ is
-        marginal above 1 only in the near SOL
-       \item<5|only@5> Without the cryopumps, we reached flatter
+    \item<1|only@1> We perform a series of shots in H-Mode with 6.5
+      total heating power where we changed the fueling and the
+      efficiency of cryopumps. Specifically we have
+      \begin{itemize}
+        \item<1|only@1>\textcolor{colorA}{\# 34276 without the
+            cryompumps}
+        \item<1|only@1> \textcolor{colorB}{\# 34278 with the same
+            fueling as \# 34276 but with the cryompump}
+        \item<1|only@1> \textcolor{colorC}{\#34281 where we increase
+            fueling and seeding trying to mimic the same subdivertor
+            pressure as \# 34276}
+      \end{itemize}
+    \item<1|only@1> Keeping the same fueling with the cryopump clearly
+      reduce the pressure in the the sub-divertor area, we don't reach
+      clear detachment and the edge density is constant even during
+      the fueling ramp. Degraded H-mode reached later without the cryopump
+      
+    \item<2|only@2> Different behavior of ELM during the fueling
+      ramp. ELM size and frequency changes strongly without the
+      cryopump or during extreme fueling case
+    \item<3|only@3> Profiles
+    \item<4|only@4> Without the cryopumps, we reached flatter
          profiles with comparable inter-ELM resolved blob-size. This
          indicates strong neutral pressure effects in determining
          upstream profiles
+    \item<5|only@5> Increasing the fueling and correspondingly the
+      divertor neutral pressure move towards a situation similar to
+      \# 34276 without the cryopump
       \end{itemize}
   \end{column}
 \end{columns}
 \end{frame}
-%% H-Mode different torus
-\begin{frame}{Matching scenarios with cryo-pumps}
-\Fontvi
-  \vspace{-1cm}
-\begin{columns}
-  \begin{column}{0.65\textwidth}
-    \centering{\includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/CompareShot34276_34281}}
-    \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34281}}
-    \centering{\includegraphics<3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/EvolutionEdgeProfiles_34276_34281}}
-    \centering{\includegraphics<4>[height=0.9\textheight]{../../Experiments/AUG/analysis/pdfbox/Shot_34278_34281_InterELMprofiles}}
-    \centering{\includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34281}}
-  \end{column}
-  \begin{column}{0.35\textwidth}
-    \begin{itemize}
-      \item<1|only@1> To match similar edge density and divertor pressure
-        and to reach the same level of detachment we increase the
-        fueling by almost a factor of 3, increasing also the rate. In
-        addition to that we also increase substantially the N
-        puffing. \alert{Degraded H-Mode reached earlier in density
-          without the cryopumps}
-      \item<2|only@2> Similar ELMy behavior obtained during the density ramp  
-      \item<3|only@3> Now the scenario suggest a strong profile flattening
-        even with the cryopumps
-       \item<4|only@4> Inter-ELM resolved Li-Be profiles confirm this with
-         shoulder formed with similar strength even with the cryopumps
-         in operation.
-         \item<5|only@5> Both size and $\lambda_n$ closer with/wo the cryopumps 
-       \end{itemize}
-  \end{column}
-\end{columns}
+
+\begin{frame}{Conclusion}
+  \Fontvi
+  \begin{itemize}
+    \item Current scan at constant B$_t$ and at constant q$_{95}$
+      performed during density ramps L-Mode experiments both at AUG
+      and TCV
+    \item In both the case shoulder appear earlier in density at lower
+      current but AUG shows reconciliation of behavior if considered
+      as a function of greenwald fraction and $\Lambda_{div}$
+    \item Both the experiments exhibit at constant B$_t$ flattening of the profile as
+      blob size is increasing, independently from the current. The
+      same behavior is observed during current scan at constant
+      q$_{95}$ \alert{only on AUG}
+    \item On TCV during the current scan at constant q$_{95}$
+      detachment not reached and this \alert{prevent upstream profile
+        flattening}
+    \item H-Mode experiments performed on AUG where fueling and
+      pumping have been varied. Proved inter-ELM profile flattening
+      also in H-Mode with a more efficient puffing without the
+      cryopump. \alert{Hints on the role of neutrals also in H-Mode}
+  \end{itemize}
 \end{frame}
 
+\begin{frame}{D$_{\alpha}$ tomography: work in progress}
+\Fontvi
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \includegraphics<1>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/Dalpha/inv_alfa_34104_2000}
+      \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/Dalpha/inv_alfa_34104_2700}
+      \includegraphics<3>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/Dalpha/inv_alfa_34104_3100}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \alert{Preliminary} results from inversion tomography
+          from calibrated D$_{\alpha}$ camera under the assumption of
+          toroidally symmetric emission limited to the region outside
+          the LCFS
+        \item \emph{Simultaneous Algebraic Reconstruction Technique
+            (SART) (A.H. Anderson and A.C.Kak,  Ultrasonic Imaging
+            \textbf{6},  81 (1984))}
+        \item As time evolves during the L-Mode ramp we observe
+          D$_{\alpha}$ radiation moving from HFS towards the LFS
+          common flux region
+        \item \alert{This is consistent with JET observation in
+            Horizontal target regime whenever shoulder is observed}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
 
 
 \end{document}
