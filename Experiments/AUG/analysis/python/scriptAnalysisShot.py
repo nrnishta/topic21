@@ -92,6 +92,9 @@ def print_menu():
     print "53. Shoulder amplitude vs Greenwald fraction"
     print "54. Shoulder amplitude vs Edge density fraction"
     print "55. Neutrals vs Edge density"
+    print "56. Compare shots 34276-34278-34281 general"
+    print "57. Compare shots 34276-34278-34281 profiles"
+    print "58. Elm behavior 34276-34278-34281 "
     print "99: End"
     print 67 * "-"
 loop = True
@@ -275,7 +278,7 @@ while loop:
             ax[1, 1].set_ylabel(r'D$_2$  [10$^{21}$]')
 
             ax[2, 1].plot(Gas.signal['F01']['t'],
-                          Gas.signal['F01']['data']/1e21, color=_col, lw=3)
+                          Gas.signal['F01']['data']/1e22, color=_col, lw=3)
             ax[2, 1].set_ylabel(r'F01 [10$^{21}$m$^{-2}$s$^{-1}$]')
             ax[2, 1].axes.get_xaxis().set_visible(False)
             diag.close
@@ -4700,6 +4703,154 @@ while loop:
         for t, c in zip(leg.get_texts(), colorL):
             t.set_color(c)
         fig2.savefig('../pdfbox/NeutralsVsNe5IpConstantBt.pdf', bbox_to_inches='tight')
+
+    elif selection == 56:
+        shotList = (34276, 34278, 34281)
+        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        fig, ax = mpl.pylab.subplots(figsize=(10, 14), nrows=5, ncols=1, sharex=True)
+        fig.subplots_adjust(hspace=0.05, top=0.96, bottom=0.1)
+        for shot, col in zip(shotList, colorList):
+            diag = dd.shotfile('DCN', shot)('H-5')
+            ax[0].plot(diag.time, diag.data/1e19, color=col, lw=3, label='# %5i' % shot)
+            diag = dd.shotfile('UVS', shot)('D_tot')
+            ax[1].plot(diag.time, diag.data/1e21, color=col, lw=3)
+            diag = dd.shotfile('UVS', shot)('N_tot')
+            ax[2].plot(diag.time, diag.data/1e21, color=col, lw=3)
+            diag = dd.shotfile('IOC', shot)('F01')
+            ax[3].plot(diag.time, diag.data/1e22, color=col, lw=3)
+            diag = dd.shotfile('MAC', shot)('Tdiv')
+            ax[4].plot(diag.time, diag.data, color=col, lw=3)
+
+        for i in range(3):
+            ax[i].axes.get_xaxis().set_visible(False)
+        label = (r'n$_e$ H-5 [10$^{19}$m$^{-3}$]',
+                 r'D$_2 [10^{21}]$',
+                 r'N$_2 [10^{21}]$',
+                 r'F01 [10$^{22}$]',
+                 r'T$_{div}$')
+        for i, l in enumerate(label):
+            ax[i].set_ylabel(l)
+        ax[0].set_ylim([0, 8])
+        ax[1].set_ylim([0, 45])
+        ax[2].set_ylim([0, 35])
+        ax[3].set_ylim([0, 45])
+        ax[4].set_ylim([-10, 50])
+        ax[4].set_xlim([0, 7])
+        ax[4].set_xlabel(r't [s]')
+        l = ax[0].legend(loc='best', numpoints=1, markerscale=0,
+                         fontsize=16, frameon=False)
+        for t, c in zip(l.get_texts(), colorList):
+            t.set_color(c)
+        fig.savefig('../pdfbox/GeneralComparisonShot%5i' % shotList[0] +
+                    '_%5i' % shotList[1] + '_%5i' % shotList[2]+'.pdf',
+                    bbox_to_inches='tight')
+    elif selection == 57:
+        shotList = (34276, 34278, 34281)
+        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        fig = mpl.pylab.figure(figsize=(14, 14))
+        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        # these are the panel for upstream profiles
+        ax2 = mpl.pylab.subplot2grid((4, 3), (1, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 3), (1, 1))
+        ax4 = mpl.pylab.subplot2grid((4, 3), (1, 2))
+        # these are the panel for target profiles
+        ax5 = mpl.pylab.subplot2grid((4, 3), (2, 0))
+        ax6 = mpl.pylab.subplot2grid((4, 3), (2, 1))        
+        ax7 = mpl.pylab.subplot2grid((4, 3), (2, 2))
+        # these are the panel for Lambda
+        ax8 = mpl.pylab.subplot2grid((4, 3), (2, 0))
+        ax9 = mpl.pylab.subplot2grid((4, 3), (2, 1))        
+        ax10 = mpl.pylab.subplot2grid((4, 3), (2, 2))
+        # list of axes
+        axProf = (ax2, ax3, ax4)
+        axTarg = (ax5, ax6, ax7) 
+        axLamb = (ax8, ax9, ax10)
+        # tranges
+        tList = ((3, 3.1), (4, 4.1), (4.9, 5))
+        # now we need to find for each of the time intervals
+        # the appropriate threshold for inter-ELM
+        thresholdList = ((1000, 500, 250),
+                         (1800, 1200, 1200),
+                         (1000, 500, 350))
+        for shot, col, thresh in zip(shotList, colorList, thresholdList):
+            diag = dd.shotfile('DCN', shot)('H-5')
+            ax1.plot(diag.time, diag.data/1e19, color=col, label='# %5i' % shot, lw=3)
+            LiB = libes.Libes(shot)
+            Target = langmuir.Target(shot)
+            for t, _axp, _axt, _axl, _tr in zip(
+                tList, axProf, axTarg, axLamb, thresh):
+                ax1.axvline((t[0]+t[1])/2, ls='-', lw=2, color='gray')
+                p, e, ef, pN, eN = LiB.averageProfiles(
+                    trange=[t[0], t[1]],
+                    interelm=True, threshold=_tr)
+                _axp.semilogy(LiB.rho, pN, color=col, lw=2)
+                _axp.fill_between(LiB.rho, pN-eN, pN+eN, color=col, alpha=0.3)
+                
+                rho, en, err = Target.PlotEnProfile(
+                    trange=[t[0], t[1]], interelm=True,
+                    threshold=_tr, Plot=False)
+                _axt.errorbar(rho, en/1e19, yerr=err/1e19,
+                              fmt='--o', capsize=0, color=col)
+                rhoL, Lambda = Target.computeLambda(
+                    trange=[t[0], t[1]], interelm=True,
+                    threshold=_thr, Plot=False)
+
+                _axl.semilogy(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],'-', 
+                              color=col, lw=2)
+
+        for _p, _t in zip(axProf, axTarg):
+            _p.set_xlim([0.98, 1.06])
+            _t.set_xlim([0.98, 1.06])
+            _p.set_ylim([5e-2, 3])
+            _t.set_ylim([0, 5])
+            _p.axes.get_xaxis().set_visible(False)
+            _t.axes.get_xaxis().set_visible(False)
+            
+        for i in np.linspace(1, 2, 2, dtype='int'):
+            axProf[i].axes.get_yaxis().set_visible(False)
+            axTarg[i].axes.get_yaxis().set_visible(False)
+            axLamb[i].axes.get_yaxis().set_visible(false)
+
+        label = (r'n$_e$/n$_e(\rho_p = 1)$',
+                 r'n$_e[10^{19}$m$^{-3}]$',
+                 r'$\Lambda_{div}$')
+        for l, ax in zip(label, (axProf, axTarg, axLamb)):
+            ax[0].set_ylabel(l)
+        for ax in axLamb:
+            ax.set_ylim([0.01, 30])
+            ax.set_xlabel(r'$\rho$')
+            ax.set_xlim([0.98, 1.06])
+        fig.savefig('../pdfbox/UpstreamDivertorProfiles%5i' % shotList[0] +
+                    '_%5i' % shotList[1] + '_%5i' % shotList[2]+'.pdf',
+                    bbox_to_inches='tight')
+
+    elif selection == 58:
+        shotList = (34276, 34278, 34281)
+        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        fig, ax = mpl.pylab.subplots(figsize=(11, 8), nrows=3,
+                                     ncols=1, sharex=True)
+        for _idx, shot in enumerate(shotList):
+            diag = dd.shotfile('UVS', shot)('D_tot')
+            ax[_idx].plot(diag.time, diag.data/1e21, 'k')
+            ax[_idx].set_ylabel(r'D$_2$ [10$^{21}$s$^{-1}$]')
+            ax[_idx].text(0.1, 0.85, '#%5i ' % shot,
+                          fontsize=22, transform=ax[_idx].transAxes)
+            diag = dd.shotfile('MAC', shot)('Ipolsola')
+            T = ax[_idx].twinx()
+            T.plot(diag.time, -diag.data/1e3,
+                   color='red', rasterized=True)
+            T.set_ylabel(r'Ipolsola [kA]', color='red')
+            T.set_yticks([0, 10, 20, 30])
+            T.set_ylim([-10, 30])
+            for t in T.yaxis.get_ticklabels(): t.set_color('red')
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[1].axes.get_xaxis().set_visible(False)
+        ax[2].set_xlim([0, 7])
+        ax[2].set_xlabel(r't[s]')
+        mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
+                          '_%5i' %shotList[1]+'_%5i' % shotList[2] + '.pdf', bbox_to_inches='tight')
+
 
     elif selection == 99:
         loop = False
