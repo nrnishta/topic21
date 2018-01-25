@@ -4747,8 +4747,9 @@ while loop:
     elif selection == 57:
         shotList = (34276, 34278, 34281)
         colorList = ('#324D5C', '#E37B40', '#60A65F')
+        colorTimeList = ('#FF4F00', '#00A963', '#0080B6')
         fig = mpl.pylab.figure(figsize=(14, 14))
-        fig.subplots_adjust(hspace=0.25, right=0.96, top=0.96)
+        fig.subplots_adjust(hspace=0.28, right=0.96, top=0.96)
         ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
         # these are the panel for upstream profiles
         ax2 = mpl.pylab.subplot2grid((4, 3), (1, 0))
@@ -4767,48 +4768,49 @@ while loop:
         axTarg = (ax5, ax6, ax7) 
         axLamb = (ax8, ax9, ax10)
         # tranges
-        tList = ((3, 3.1), (4, 4.1), (4.9, 5))
+        tList = ((3, 3.1), (3.8, 3.9), (5.1, 5.2))
         # now we need to find for each of the time intervals
         # the appropriate threshold for inter-ELM
         thresholdList = ((1000, 500, 250),
-                         (1800, 1200, 1200),
-                         (1000, 500, 350))
-        for shot, col, thresh in zip(shotList, colorList, thresholdList):
+                         (1800, 1200, 800),
+                         (1000, 500, 250))
+        for shot, col, thresh, _axp, _axt, _axl in itertools.izip(
+            shotList, colorList, thresholdList, axProf, axTarg, axLamb):
             diag = dd.shotfile('DCN', shot)('H-5')
             ax1.plot(diag.time, diag.data/1e19, color=col, label='# %5i' % shot, lw=3)
             LiB = libes.Libes(shot)
             Target = langmuir.Target(shot)
-            for t, _axp, _axt, _axl, _tr in zip(
-                tList, axProf, axTarg, axLamb, thresh):
-                ax1.axvline((t[0]+t[1])/2, ls='-', lw=2, color='gray')
+            for t, _tr, _colorT in zip(
+                tList, thresh, colorTimeList):
                 p, e, ef, pN, eN = LiB.averageProfile(
                     trange=[t[0], t[1]],
                     interelm=True, threshold=_tr)
-                _axp.semilogy(LiB.rho, pN, color=col, lw=2)
+                _axp.semilogy(LiB.rho, pN, color=_colorT, lw=2)
                 _axp.errorbar(LiB.rho, pN, yerr=eN, fmt='none',
-                              ecolor=col, alpha=0.3)
-                
+                              ecolor=_colorT, alpha=0.3)
                 rho, en, err = Target.PlotEnProfile(
                     trange=[t[0], t[1]], interelm=True,
                     threshold=_tr, Plot=False)
                 _axt.errorbar(rho, en/1e19, yerr=err/1e19/2,
-                              fmt='--o', capsize=0, color=col, ms=12,
-                              mec=col, alpha=0.5)
+                              fmt='--o', capsize=0, color=_colorT, ms=12,
+                              mec=_colorT, alpha=0.5)
                 rhoL, Lambda = Target.computeLambda(
                     trange=[t[0], t[1]], interelm=True,
                     threshold=_tr, Plot=False)
 
                 _axl.semilogy(rhoL[rhoL<rho.max()], Lambda[rhoL<rho.max()],'-', 
-                              color=col, lw=2)
+                              color=_colorT, lw=2)
 
-        for _p, _t in zip(axProf, axTarg):
+        for _p, _t, _s in zip(axProf, axTarg, shotList):
             _p.set_xlim([0.98, 1.06])
             _t.set_xlim([0.98, 1.06])
-            _p.set_ylim([5e-2, 3])
+            _p.set_ylim([1e-1, 3])
             _t.set_ylim([0, 10])
             _p.axes.get_xaxis().set_visible(False)
             _t.axes.get_xaxis().set_visible(False)
-            
+            _p.text(0.1, 0.86, r'#%5i' % _s, transform=_p.transAxes)
+            _t.text(0.1, 0.86, r'#%5i' % _s, transform=_t.transAxes)
+
         for i in np.linspace(1, 2, 2, dtype='int'):
             axProf[i].axes.get_yaxis().set_visible(False)
             axTarg[i].axes.get_yaxis().set_visible(False)
@@ -4819,12 +4821,17 @@ while loop:
                  r'$\Lambda_{div}$')
         for l, ax in zip(label, (axProf, axTarg, axLamb)):
             ax[0].set_ylabel(l)
-        for ax in axLamb:
+        for ax, _s in zip(axLamb, shotList):
             ax.set_ylim([0.08, 30])
             ax.set_xlabel(r'$\rho$')
             ax.set_xlim([0.98, 1.06])
             ax.set_xticks([0.98, 1, 1.02, 1.04])
             ax.axhline(1, ls='--', lw=2, color='gray')
+            ax.text(0.1, 0.86, r'#%5i' % _s, transform=ax.transAxes)
+
+        for _t, _c in zip(tList, colorTimeList):
+            ax1.axvline((_t[0]+_t[1])/2, ls='-', lw=2, color=_c)
+
         ax1.set_ylabel(r'n$_e$ H-5 [10$^{19}$]')
         ax1.set_xlabel(r't[s]')
         ax1.set_xlim([0, 7])
