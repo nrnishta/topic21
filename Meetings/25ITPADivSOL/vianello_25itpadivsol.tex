@@ -35,16 +35,17 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
 \title{SOL Filamentary transport: update from joint AUG-TCV MST1 experiment}
 \date{29 January 2018}
-\author[N.Vianello]{presented by N. Vianello for the MST1-Topic 21
+\author[N.Vianello]{presented by N. Vianello on behalf of  MST1-Topic 21
   scientific team}
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
 \maketitle
 \begin{frame}{Scientific team}
   \centering{
-  Volker Naulin, Jiri Adamek, Matteo Agostini, Diogo Aguiam, Scott Allan, Matthias Bernert, Daniel Carralero Ortiz, 
+  Volker Naulin, Matteo Agostini, Diogo Aguiam, Scott Allan, Matthias Bernert, Daniel Carralero Ortiz, 
 Stefan Costea, Istvan Cziegler, Hugo De Oliveira, Joaquin Galdon-Quiroga, Gustavo Grenfell, Antti Hakola, 
-Codrina Ionita-Schrittwieser, Heinz Isliker, Alexander Karpushov, Jernej Kovacic, Benoît Labit, Florian Laggner, Jens Madsen, 
+Codrina Ionita-Schrittwieser, Heinz Isliker, Alexander Karpushov,
+Jernej Kovacic, Benoît Labit, Bruce Lipschultz, 
 Roberto Maurizio, Ken McClements, Fulvio Militello, Jeppe Miki Busk Olsen, Jens Juul Rasmussen, Timo Ravensbergen, Bernd Sebastian Schneider, Roman Schrittwieser, Jakub Seidl, Monica Spolaore, Christian Theiler, Cedric Kar-Wai Tsui, Kevin Verhaegh, Jose Vicente, 
 Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
 j\end{frame}
@@ -88,7 +89,7 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
 }
 \end{frame}
 
-\begin{frame}{Current scan at constant B$_t$}
+\begin{frame}{Current scan at constant B$_t$ in L-Mode plasma}
   \begin{columns}
     \begin{column}{0.6\textwidth}
       \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
@@ -110,12 +111,14 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
         \item<1|only@1> The scan implies a modification of the
           L$_{\parallel}$. AUG exhibit a parallel connection length
           which is 5 times smaller then TCV
-        \item<2|only@2> AUG: Fueling reduced only at smaller current to
+        \item<2|only@2> AUG: Fueling reduced only at lower I$_p$ to
           avoid earlier disruption. Similar neutral pressure in the
           subdivertor region reached. NBI additional power added to
           keep power in the SOL approximately constant
         \item<3|only@3> TCV: Ohmic heating only. Similar neutral compression reached and
-          D$_{\alpha}$ radiation from the floor. 
+          D$_{\alpha}$ radiation from the floor. Ion flux rollover
+          reached in all the three current,  although marginally at
+          330 kA
         \item<4|only@4> Divertor neutral density estimated starting
           from D$_{\alpha}$ calibrated camera and using electron
           density and temperature from LP data. Neutral density
@@ -169,15 +172,15 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
         \item<3|only@3> TCV: Even at such an high density at lower
           current (and lower B$_t$) no sign of target ion flux
           rollover/detachment
-        \item<4|only@4> AUG: Divertor neutral density exhibits still
-          the same behavior is considered as a function of greenwald fraction
-        \item<5|only@5> For AUG upstream and target profiles exhibit
-          the same behavior with flattening observed at large values
-          of $\Lambda_{div}$. TCV actually even at high value of
-          density no sign of upstream profile flattening \alert{even
+        \item<4|only@4> AUG: Divertor neutral density exhibits 
+          the same behavior if considered as a function of greenwald fraction
+        \item<5|only@5> For AUG upstream and target profiles still
+          exhibit flattening earlier in density at lower current but
+          \alert{always at large values of 
+          $\Lambda_{div}$}. For TCV no sign of upstream profile flattening \alert{even
             at very large values of $\Lambda_{div}$}
         \item<6|only@6> This is due to the fact we did not reach
-          divertor detachment which \alert{seems necessary for
+          divertor detachment which \alert{seems mandatory for
             upstream profile modification}  
         \item<7|only@7> AUG: Amplitude evolution as a function of $\Lambda_{div}$ 
           still reconcile the explored current scan
@@ -185,7 +188,9 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
           $\lambda_n$ with blob-size whereas for TCV the profile
           remains flat consistently with a small variation of
           $\delta_b$
-        \item<9|only@9> And for TCV this is true even at high value of $\Lambda_{div}$
+        \item<9|only@9> And for TCV this is true even at high value of
+          $\Lambda_{div}$. \alert{$\Lambda_{div}$ is not sufficient to
+          guarantee flat profiles on TCV.}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -198,6 +203,7 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
   \begin{column}{0.55\textwidth}
     \centering{\includegraphics<1>[height=0.8\textheight]{../../Experiments/AUG/analysis/pdfbox/GeneralComparisonShot34276_34278_34281.pdf}}
     \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34278_34281}}
+  \centering{\includegraphics<3>[height=0.75\textheight]{../../Experiments/AUG/analysis/pdfbox/UpstreamDivertorProfiles34276_34278_34281}}
   \centering{\includegraphics<4>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278}}
   \centering{\includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278_34281}}
   \end{column}
@@ -223,7 +229,11 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
     \item<2|only@2> Different behavior of ELM during the fueling
       ramp. ELM size and frequency changes strongly without the
       cryopump or during extreme fueling case
-    \item<3|only@3> Profiles
+    \item<3|only@3> The profiles for shot \# 34278 with the cryopum
+      and lower fueling remains more steep in all the three timing
+      wind and the plasma is still attached. Interestingly for shot \#
+      34281 with the cryopumps and higher fueling the detachment is
+      more pronounced
     \item<4|only@4> Without the cryopumps, we reached flatter
          profiles with comparable inter-ELM resolved blob-size. This
          indicates strong neutral pressure effects in determining
@@ -276,10 +286,10 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
         \item \emph{Simultaneous Algebraic Reconstruction Technique
             (SART) (A.H. Anderson and A.C.Kak,  Ultrasonic Imaging
             \textbf{6},  81 (1984))}
-        \item As time evolves during the L-Mode ramp we observe
+        \item<2-> As time evolves during the L-Mode ramp we observe
           D$_{\alpha}$ radiation moving from HFS towards the LFS
           common flux region
-        \item \alert{This is consistent with JET observation in
+        \item<3-> \alert{This is consistent with JET observation in
             Horizontal target regime whenever shoulder is observed}
       \end{itemize}
     \end{column}
