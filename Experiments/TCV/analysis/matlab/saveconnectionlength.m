@@ -3,7 +3,7 @@
 % time basis of LP probes for each of the shots 
 % analyzed
 
-shotList = [51180];
+shotList = [52022 52126 52128 52129 52131 52198 52121 52205];
 for shot = 1:length(shotList)
         disp(['Working on shot ' num2str(shotList(shot))])
         % get the time basis
