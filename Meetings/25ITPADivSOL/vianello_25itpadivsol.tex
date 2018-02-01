@@ -1,5 +1,5 @@
 \documentclass[10pt, compress]{beamer}
-\usetheme[conference=25th ITPA-DivSOL,venue=Chengdu, date=29/01/2018, titleprogressbar, logo=RFX-logo]{Eurof}
+\usetheme[conference=25th ITPA-DivSOL,venue=Chengdu, date=31/01/2018, titleprogressbar, logo=RFX-logo]{Eurof}
 \usepackage{listings,amsmath,multimedia, amssymb}
 \usepackage{tangocolors}
 \usepackage{rfxcolor}
@@ -7,7 +7,7 @@
 \definecolor{colorB}{HTML}{E37B40}
 \definecolor{colorC}{HTML}{60A65F}
 % multiple figure location
-%\graphicspath{{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/}{../Experiments/}}
+%\graphicspath{{/Users/nicola/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/}{../Experiments/}}
 % for drawing
 \usepackage{pgf}
 \usepackage{tikz}
@@ -34,7 +34,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 % for reducing font on a single slide
 \newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
 \title{SOL Filamentary transport: update from joint AUG-TCV MST1 experiment}
-\date{29 January 2018}
+\date{31 January 2018}
 \author[N.Vianello]{presented by N. Vianello on behalf of  MST1-Topic 21
   scientific team}
 \begin{document}
@@ -48,7 +48,7 @@ Codrina Ionita-Schrittwieser, Heinz Isliker, Alexander Karpushov,
 Jernej Kovacic, Benoît Labit, Bruce Lipschultz, 
 Roberto Maurizio, Ken McClements, Fulvio Militello, Jeppe Miki Busk Olsen, Jens Juul Rasmussen, Timo Ravensbergen, Bernd Sebastian Schneider, Roman Schrittwieser, Jakub Seidl, Monica Spolaore, Christian Theiler, Cedric Kar-Wai Tsui, Kevin Verhaegh, Jose Vicente, 
 Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
-j\end{frame}
+\end{frame}
 
 \begin{frame}{Motivation and deliverables}
   \Fontvi
@@ -92,17 +92,17 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
 \begin{frame}{Current scan at constant B$_t$ in L-Mode plasma}
   \begin{columns}
     \begin{column}{0.6\textwidth}
-      \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
+      \includegraphics<1>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
       \includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsNe5IpConstantBt}
       \includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantBt}
-      \includegraphics<6>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantBt}
-      \includegraphics<7>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
+      \includegraphics<6>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantBt}
+      \includegraphics<7>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
       \includegraphics<8>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
       \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
       \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
-      \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
+      \includegraphics<11>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{itemize}
@@ -119,16 +119,16 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
           D$_{\alpha}$ radiation from the floor. Ion flux rollover
           reached in all the three current,  although marginally at
           330 kA
-        \item<4|only@4> Divertor neutral density estimated starting
+        \item<4|only@4> AUG: Divertor neutral density estimated starting
           from D$_{\alpha}$ calibrated camera and using electron
           density and temperature from LP data. Neutral density
           increases earlier in edge density at lower current
-        \item<5|only@5> Neutrals behavior reconciled whenever
+        \item<5|only@5> AUG: Neutrals behavior reconciled whenever
           comparison considered as a function of Greenwald fraction  
         \item<6|only@6> For both AUG and TCV flattening of normalized
           upstream profile reached \alert{earlier in density at lower
             current.} For both the machine the increase of $\lambda_n$
-          reached for larger values of $\Lambda_{div}$
+          reached for larger values of divertor collisionality $\Lambda_{div}$
         \item<7|only@7> Quantifying profile evolution using the
           \alert{shoulder amplitude metric} introduce by Wynn and
           Lipschultz for JET. \alert{Amplitude is the difference
@@ -139,7 +139,8 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
             different current}}}
         \item<10|only@10> Amplitude evolution still reconciled in AUG if
           considered as a function of local evolution of $\Lambda_{div}$
-        \item<11|only@11> For both AUG and TCV $\lambda_n$ increases
+        \item<11|only@11> For both AUG and TCV density decay length
+          $\lambda_n$ increases
           with blob size without significant difference within the
           current explored
       \end{itemize}
@@ -150,15 +151,15 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
 \begin{frame}{Current scan at constant q$_{95}$}
   \begin{columns}
     \begin{column}{0.6\textwidth}
-      \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
+      \includegraphics<1>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}
-      \includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantQ95}
-      \includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantQ95}
-      \includegraphics<6>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CompareTargetProfilesConstantQ95}
-      \includegraphics<7>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantQ95}
-      \includegraphics<8>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldVBlobAllColorConstantQ95}         
-      \includegraphics<9>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/BlobLambdaAllColorConstantQ95}         
+      % \includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantQ95}
+      \includegraphics<4>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantQ95}
+      % \includegraphics<5>[width=\textwidth]{../../Experiments/TCV/analysis/pdfbox/CompareTargetProfilesConstantQ95}
+      \includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantQ95}
+      \includegraphics<6>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldVBlobAllColorConstantQ95}         
+      \includegraphics<7>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/BlobLambdaAllColorConstantQ95}         
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{itemize}
@@ -172,23 +173,24 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
         \item<3|only@3> TCV: Even at such an high density at lower
           current (and lower B$_t$) no sign of target ion flux
           rollover/detachment
-        \item<4|only@4> AUG: Divertor neutral density exhibits 
-          the same behavior if considered as a function of greenwald fraction
-        \item<5|only@5> For AUG upstream and target profiles still
+        % \item<4|only@4> AUG: Divertor neutral density exhibits 
+        %   the same behavior if considered as a function of greenwald fraction
+        \item<4|only@4> For AUG upstream and target profiles still
           exhibit flattening earlier in density at lower current but
           \alert{always at large values of 
           $\Lambda_{div}$}. For TCV no sign of upstream profile flattening \alert{even
-            at very large values of $\Lambda_{div}$}
-        \item<6|only@6> This is due to the fact we did not reach
-          divertor detachment which \alert{seems mandatory for
-            upstream profile modification}  
-        \item<7|only@7> AUG: Amplitude evolution as a function of $\Lambda_{div}$ 
+            at very large values of $\Lambda_{div}$. No clear sign of detachment which is mandatory for
+            upstream profile modication in TCV}
+        % \item<5|only@5> TCV: This is due to the fact we did not reach
+        %   divertor detachment which \alert{seems mandatory for
+        %     upstream profile modification}  
+        \item<5|only@5> AUG: Amplitude evolution as a function of $\Lambda_{div}$ 
           still reconcile the explored current scan
-        \item<8|only@8> AUG exhibit consistently an increase of
+        \item<6|only@6> AUG exhibit consistently an increase of
           $\lambda_n$ with blob-size whereas for TCV the profile
           remains flat consistently with a small variation of
           $\delta_b$
-        \item<9|only@9> And for TCV this is true even at high value of
+        \item<7|only@7> And for TCV this is true even at high value of
           $\Lambda_{div}$. \alert{$\Lambda_{div}$ is not sufficient to
           guarantee flat profiles on TCV.}
       \end{itemize}
@@ -204,12 +206,12 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
     \centering{\includegraphics<1>[height=0.8\textheight]{../../Experiments/AUG/analysis/pdfbox/GeneralComparisonShot34276_34278_34281.pdf}}
     \centering{\includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/PuffingIpolsola34276_34278_34281}}
   \centering{\includegraphics<3>[height=0.75\textheight]{../../Experiments/AUG/analysis/pdfbox/UpstreamDivertorProfiles34276_34278_34281}}
-  \centering{\includegraphics<4>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278}}
-  \centering{\includegraphics<5>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278_34281}}
+  \centering{\includegraphics<4>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278}}
+  \centering{\includegraphics<5>[width=\textwidth]{\string~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldSizeShots34276_34278_34281}}
   \end{column}
   \begin{column}{0.45\textwidth}
     \begin{itemize}
-    \item<1|only@1> We perform a series of shots in H-Mode with 6.5
+    \item<1|only@1> We perform a series of shots in H-Mode with 6.5 MW 
       total heating power where we changed the fueling and the
       efficiency of cryopumps. Specifically we have
       \begin{itemize}
@@ -221,26 +223,28 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
             fueling and seeding trying to mimic the same subdivertor
             pressure as \# 34276}
       \end{itemize}
-    \item<1|only@1> Keeping the same fueling with the cryopump clearly
-      reduce the pressure in the the sub-divertor area, we don't reach
-      clear detachment and the edge density is constant even during
-      the fueling ramp. Degraded H-mode reached later without the cryopump
-      
+    \item<1|only@1> Keeping the same fueling with the cryopump in
+      operation clearly
+      reduce the pressure in the the sub-divertor area, plasma
+      detachment is not reached and edge density is constant despite
+      the increase fueling. Degraded H-mode reached later without the cryopump
     \item<2|only@2> Different behavior of ELM during the fueling
       ramp. ELM size and frequency changes strongly without the
       cryopump or during extreme fueling case
-    \item<3|only@3> The profiles for shot \# 34278 with the cryopum
-      and lower fueling remains more steep in all the three timing
-      wind and the plasma is still attached. Interestingly for shot \#
-      34281 with the cryopumps and higher fueling the detachment is
-      more pronounced
+    \item<3|only@3> The profiles for shot \# 34278 with the cryopump
+      and lower fueling remains steeper in all the three timing
+      window and the plasma is still attached. Interestingly for shot \#
+      34281 with the cryopumps and higher fueling target profiles are broader
     \item<4|only@4> Without the cryopumps, we reached flatter
-         profiles with comparable inter-ELM resolved blob-size. This
+         profiles and relatively large inter-ELM resolved blob-size of
+         the same size as L-Mode. This
          indicates strong neutral pressure effects in determining
-         upstream profiles
+         upstream profiles. \alert{Preliminary work. Further analysis
+           needed to confirm the observed values.}
     \item<5|only@5> Increasing the fueling and correspondingly the
       divertor neutral pressure move towards a situation similar to
-      \# 34276 without the cryopump
+      \# 34276 without the cryopump. \alert{Preliminary work. Further analysis
+           needed to confirm the observed values.}
       \end{itemize}
   \end{column}
 \end{columns}
@@ -252,7 +256,8 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
     \item Current scan at constant B$_t$ and at constant q$_{95}$
       performed during density ramps L-Mode experiments both at AUG
       and TCV
-    \item In both the case shoulder appear earlier in density at lower
+    \item For the scan at constant B$_t$ nn both the machines shoulder
+      appear earlier in density at lower
       current but AUG shows reconciliation of behavior if considered
       as a function of greenwald fraction and $\Lambda_{div}$
     \item Both the experiments exhibit at constant B$_t$ flattening of the profile as
@@ -260,12 +265,13 @@ be studied in forthcoming campaigns. \textcolor{red}{Remember this is
       same behavior is observed during current scan at constant
       q$_{95}$ \alert{only on AUG}
     \item On TCV during the current scan at constant q$_{95}$
-      detachment not reached and this \alert{prevent upstream profile
+      detachment not reached and this \alert{prevents upstream profile
         flattening}
     \item H-Mode experiments performed on AUG where fueling and
       pumping have been varied. Proved inter-ELM profile flattening
-      also in H-Mode with a more efficient puffing without the
-      cryopump. \alert{Hints on the role of neutrals also in H-Mode}
+      also in H-Mode with a more efficient shoulder formation with
+      high neutral pressure (no cryopumps or very high fueling).
+      \alert{Hints on the role of neutrals also in H-Mode}
   \end{itemize}
 \end{frame}
 
