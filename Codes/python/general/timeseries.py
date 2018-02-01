@@ -277,7 +277,7 @@ class Timeseries(object):
         else:
             if rmsNorm:
                 threshold = 3
-             else:
+            else:
                 threshold = 3 * np.sqrt(self.variance) + self.mean
         if 'nw' in kwargs:
             nw = kwargs['nw']
@@ -286,7 +286,7 @@ class Timeseries(object):
         if 'Type' in kwargs:
             Type = kwargs['Type']
         else:
-            Type='THRESHOLD'
+            Type = 'THRESHOLD'
         if 'oldmethod' in kwargs:
             oldmethod = kwargs['oldmethod']
         else:
