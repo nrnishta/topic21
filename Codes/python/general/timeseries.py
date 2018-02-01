@@ -50,11 +50,16 @@ class Timeseries(object):
         # at the initial
         self.moments()
         _nPoint = int(dtS / self.dt)
+        # self.rmsnorm = (
+        #                    self.sig -
+        #                    bottleneck.move_mean(self.sig, window=_nPoint)) / \
+        #                bottleneck.move_std(self.sig, window=_nPoint)
         self.rmsnorm = (
                            self.sig -
-                           bottleneck.move_mean(self.sig, window=_nPoint)) / \
-                       bottleneck.move_std(self.sig, window=_nPoint)
+                           self._smooth(self.sig, window_len=_nPoint)) / \
+                           bottleneck.move_std(self.sig, window=_nPoint)
 
+        
     def moments(self):
         """
         Compute moments of the signal
@@ -547,7 +552,7 @@ class Timeseries(object):
                 else:
                     thresh = 3 * np.sqrt(self.variance) + self.mean
                     print('Threshold is 3 sigma in signal not normalized')
-            if not 'oldmethod':
+            if not oldmethod:
                 Nbursts, ratio, av_width, windows = self.identify_bursts(
                     thresh, rmsNorm=rmsNorm)
                 print('Using new threshold method')
@@ -585,16 +590,19 @@ class Timeseries(object):
                     csTot = csTot[:, :-1]
             else:
                 maxima, allmaxima = self._threshold(thresh,rmsNorm=rmsNorm)
-                print('Using new threshold method')
-
+                print('Using old threshold method')
+                print('method', oldmethod)
                 if nw is None:
                     print('Window length not set assumed 501 points')
                     nw = 501
                 if nw % 2 == 0:
+                    iwin = nw/2
                     nw += 1
+                else:
+                    iwin = (nw-1)/2
                 self.location = self.time[maxima == 1]
                 self._locationindex = np.where(maxima == 1)[0]
-                self._allmaxima = allmax
+                self._allmaxima = allmaxima
                 iwin = np.int(iwin)
                 maxima[0: iwin - 1] = 0
                 maxima[-iwin:] = 0
@@ -620,6 +628,7 @@ class Timeseries(object):
                         _dummy /= _dummy.std()
 
                     csTot[:, i] = _dummy
+                    oldmethod=None
         self.nw = nw
         self.iwin = (nw - 1) / 2
         cs = np.mean(csTot, axis=1)
@@ -806,3 +815,52 @@ class Timeseries(object):
                     d = signal[imin: imax].argmax()
                 maxima[imin + d] = 1
         return maxima, allmax
+
+    def _smooth(self, x, window_len=10, window='hanning'):
+        """
+        Smooth the data using a window with requested size.
+
+        This method is based on the convolution of a scaled
+        window with the signal.
+        The signal is prepared by introducing
+        reflected copies of the signal
+        (with the window size) in both ends so that transient
+        parts are minimized
+        in the begining and end part of the output signal.
+
+        input:
+        ------
+            x: the input signal
+            window_len: the dimension of the smoothing window
+            window: the type of window from 'flat', 'hanning',
+                    'hamming', 'bartlett', 'blackman'
+                     flat window will produce a moving average smoothing.
+        output:
+        -------
+            the smoothed signal
+        """
+
+        if x.ndim != 1:
+            raise ValueError, "smooth only accepts 1 dimension arrays."
+
+        if x.size < window_len:
+            raise ValueError, '''Input vector needs to be bigger than
+            window size.'''
+
+        if window_len < 3:
+            return x
+
+        if window not in ['flat', 'hanning', 'hamming', 'bartlett',
+                          'blackman']:
+            raise ValueError, '''Window is on of 'flat', 'hanning', 'hamming',
+            'bartlett', 'blackman'''
+
+        s = np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
+
+        if window == 'flat': #moving average
+            w = np.ones(window_len,'d')
+        else:
+            w = getattr(np, window)(window_len)
+        y = np.convolve(w/w.sum(), s, mode='same')
+        return y[window_len-1:-window_len+1]
+    
