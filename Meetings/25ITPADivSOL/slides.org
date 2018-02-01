@@ -1,0 +1,121 @@
+* ITPA 25th Div-SOL
+** Talk
+   1. *Slide 1*: Good morning the talk I'm presenting is the results of the experiments
+      performed both at ASDEX-Upgrade and TCV tokamaks within the EUROfusion
+      consortium devoted to the investigation of the relation between filamentary transport
+      and SOL profiles in high density regimes
+   2. *Slide 2*: Within the EUROfusion program a series of deliverables have been
+      determined for this program including operations in both L and H-Mode,
+      at different plasma current and in different plasma configuration. In
+      particular a great effort has been attributed to the invesitgation on the
+      role of neutrals which have been indicated to play a major role in the
+      establishment of the so-called /density shoulder/. Actually only part of
+      this deliverables have been addressed so far and this preliminary work will
+      report on some of them
+   3. *Slide 3*: The first series of experiments was a current scan performed in both
+      the machines at constant toroidal field. This implies a modification of the parallel
+      connection length shown in the bottom panels as the Lparallel from the
+      height of the X-point to the target. Please not that between the two machines
+      we have big differences with a 5 times larger Lparallel in TCV than in
+      AUG
+   4. *Slide 4*: In AUG we have performed fueling ramp (adjusting it at lower current)
+      with addition of 0.5 MW of NBH. Here we have central and peripherical densities,
+      total and radiated power, and pressure in the sub-divertor area plus the
+      estimate of divertor temperature used to monitor the detachment at the
+      divertor.
+   5. *Slide 5*: The same exercise performed on TCV with just Ohmic heating. The
+      total ion flux to the outer divertor shows a clear rollover (at least at lower current)
+      whereas Halpha emission and neutral compression seem rather comparable.
+   6. *Slide 6-7*: Estimation of Neutral density from calibrated Dalpha and
+      density and temperature from the LP data exibhits an earlier increase
+      in density for the lower current but the behavior is well reconciled in terms
+      of greenwald fraction
+   7. *Slide 8*: These are the profiles upstream and at the target at comparable
+      density but different current. In AUG in particular it is clear that we
+      reach flatter profile at lower current but in any case flattening seems
+      correlated with increase of divertor collisionality LambdaDiv
+   8. *Slide 9* To quantify we use the metric introduce by Wynn and Lipschultz for JET
+      where the amplitude profile is defined as the difference with respet to normalized
+      upstream profile density
+   9. *Slide 10-12* Again the amplitude computed respectivel in the near and far SOL
+      increase earleir in density at lower current but the evolution seem
+      rather comparable in terms of greenwald fraction and even better for the
+      the far SOL if considered as a function of divertor collisionality
+   10. *Slide 13* The density decay length in the far SOL once considered as a function of
+       blob size exhibit the well known increase for both AUG and TCV but
+       without a signifcant difference in current level
+   11. *Slide 14-16* We performed the same scan in fueling an current by keeping
+       constant q95 in order disentangle the role of plasma current from the
+       on of parallel connection length. The important thing here is that
+       operation at low toroidal field prevent target ion flux rollover in TCV. This has
+       profound influence also for the upstream profiles because while AUG clearly exhibit
+       flattening (earlier in density for lower current) no changes in upstream
+       profiles observed in TCV neither at very high density values even though
+       we reach pretty large values of LambdaDiv.
+   12. *Slide 15*: in AUG even during this scan we don't see differences of the
+       amplitude both in the near and far SOL as a function of LambdaDiv.
+   13. *Slide 16* The density decay length remains small in TCV, but this is consistent
+       with no variation in the blob-size and this is true even at larger values
+       of LambdaDiv
+   14. *Slide 17* We have performed also detailed analysis in H-Mode plasma, with
+       a total power of 6.5 MW of NBH plus ECRH heating. Two of the shots were
+       performed with the same fueling and seeding scheme but without and with
+       cryompumps in operation to infer possible role of neutral pressure in the
+       development of H-Mode shoulder formation. The third shot, the green, one was
+       performed with the cryompump in operation and strongly increasing both
+       the puffing and the level of seeding trying to match the temporal evolution
+       of the edge density, neutral subdivertor pressure and target divertor
+       temperature
+   15. *Slide 18* This has clearly a difference in terms of ELM behavior with
+       ELM size reduction and ELM frequency increase stronger in the two
+       shots at larger neutral pressure and higher degree of detachment
+   16. *Slide 19* Now we examine the upstream and target profiles at
+       three different timing. Profile flattening is more robust withouth the
+       cryopump ror during extreme fueling case even though we observe a more
+       modest variation in the case with the cryopump and lower fueling.
+   17. *Slide 20* As far as blob size is concerned we observe a flattening
+       as blob-size is increased with flatter profile and larger blobs with higher
+       neutral pressure. Once the fueling is further increased we observer a
+       small increase of blob-size and contemporary a flattening of profile
+** Summary
+   A series of experiments have been performed in a coordinated effort in AUG and
+   TCV. Density ramps in L-Mode at different current levels have been performed,
+   with either toroidal field or q95 kept constant. At constant toroidal field, SOL shoulder
+   occurs earlier in edge density at lower current but the behavior, from both the machines.
+   Differently at constant q95 TCV does not exhibit any signature of detachment or shoulder whenever
+   operated at lower current/field. Together the two experiments strognly support the abrupt modification j
+   of density decay length as a function of blob-size indipendently from the current level. H-Mode experiment
+   on AUG confirms that profile flattening at high density is observed even in the inter-ELM phases in 
+   H-Mode (up to 6.5 MW of heating power). Experiments with modification of fueling and pumping efficiency
+   points towards a strong role of neutral divertor pressure in determining the condition for
+   shoulder formation. Preliminary indication of larger blobs at higher neutral pressure obtained on AUG.
+
+** Notes
+*** Detachment session <2018-01-31 Wed>
+    * DSOL-41: Presented the necessary N2 seeding vs Power for reaching
+      detachment, high recycling, attached condition in AUG
+      - Necessary to identify the Operational Space for detachment aka as
+	Lay of the Land.
+      - Check Goldston Reinke NF 2017,  Kallenback PPCF 2016,  Henderson NF 2018
+      - X-point radiation observed in N and Ar seeding experiment on AUG and JET
+      - AUG-JET-ITER similarity on MST1-T17 and JET M18-40
+      - Cliff-EDGE on DIII-D
+      - N seeding in an Helium campaign
+    * HFSHD Meeting AUG-CMOD
+      - HFSHD exists in C-mod and how it is influencd by seeding (reduced)
+      - Role of geometry if the nose of the inner divertor: can be checked c
+	comparing old/new shots in C-Mod
+    * EAST:
+      - experiment with reversed Bfield with evidence of different target
+	profile
+      - Feedback controlled detachment
+***  Far SOL session <2018-01-31 Wed>
+     - *Clarify with Richard the blob-size determination*
+     - Opacity of neutrals in high density
+     - Ratio between parallel/perpendicul transport is increased from measurement
+     - Clogging and ion temperature reduction are not compatible as the ions should be
+       hot since they are coming from main plasma (and not drained )
+     - See Scott PPCF 2016 for Ion temperature
+     - *Near SOL behavior* and *ExB flow*
+     - Neutral Opacity
+     - Inner divertor
