@@ -1,15 +1,12 @@
 from __future__ import print_function
-
 __author__ = 'N. Vianello and N. Walkden'
 __version__ = '0.2'
 __data__ = '19.04.2017'
-
 import numpy as np
 import scipy
 import pycwt as wav
 import astropy.stats as Astats
 from scipy.interpolate import UnivariateSpline
-from scipy import signal
 import copy
 import bottleneck
 
@@ -55,11 +52,10 @@ class Timeseries(object):
         #                    bottleneck.move_mean(self.sig, window=_nPoint)) / \
         #                bottleneck.move_std(self.sig, window=_nPoint)
         self.rmsnorm = (
-                           self.sig -
-                           self._smooth(self.sig, window_len=_nPoint)) / \
-                           bottleneck.move_std(self.sig, window=_nPoint)
+            self.sig -
+            self._smooth(self.sig, window_len=_nPoint)) / \
+            bottleneck.move_std(self.sig, window=_nPoint)
 
-        
     def moments(self):
         """
         Compute moments of the signal
@@ -296,7 +292,7 @@ class Timeseries(object):
             oldmethod = kwargs['oldmethod']
         else:
             oldmethod = False
-            
+
         nSig = inputS.shape[0]
         if Type == 'LIM':
             if 'frequency' in kwargs:
@@ -318,8 +314,8 @@ class Timeseries(object):
             csO, tau, errO = self.cas(
                 Type='LIM',
                 frequency=frequency,
-                wavelet= wavelet,
-                peaks=peaks,valleys=valleys,
+                wavelet=wavelet,
+                peaks=peaks, valleys=valleys,
                 detrend=detrend)
         else:
             csO, tau, errO = self.cas(
@@ -331,7 +327,7 @@ class Timeseries(object):
         maxima[self._locationindex] = 1
         # we need to ensure that we have 0 up to iwin
         maxima[-self.iwin-1:] = 0
-        maxima[:self.iwin]=0
+        maxima[:self.iwin] = 0
         csTot = np.zeros((nSig + 1, self.nw,
                           maxima.sum()))
         print('Number of structure mediated %4i' % maxima.sum())
@@ -340,15 +336,16 @@ class Timeseries(object):
         for i in range(d_ev.size):
             for n in range(nSig):
                 dummy = inputS[n,
-                        d_ev[i] - self.iwin:d_ev[i] + self.iwin + 1]
+                               d_ev[i] - self.iwin:
+                               d_ev[i] + self.iwin + 1]
                 if detrend:
                     dummy = scipy.signal.detrend(dummy, type='linear')
                 else:
                     dummy -= dummy.mean()
                 ampTot[n + 1, i] = dummy[
-                                   int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
-                                   dummy[int(self.iwin / 2):
-                                   int(3 * self.iwin / 2)].min()
+                    int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
+                    dummy[int(self.iwin / 2):
+                          int(3 * self.iwin / 2)].min()
                 if normalize:
                     dummy /= dummy.std()
                 csTot[n + 1, :, i] = dummy
@@ -362,9 +359,9 @@ class Timeseries(object):
             else:
                 dummy -= dummy.mean()
             ampTot[0, i] = dummy[
-                            int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
-                            dummy[int(self.iwin / 2):
-                            int(3 * self.iwin / 2)].min()
+                int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
+                dummy[int(self.iwin / 2):
+                      int(3 * self.iwin / 2)].min()
         # now compute the cas
         cs = np.mean(csTot, axis=2)
         cs[0, :] = csO
@@ -500,12 +497,12 @@ class Timeseries(object):
         if Type == 'LIM':
             peaks = kwargs.get('peaks', False)
             valleys = kwargs.get('valleys', False)
-            frequency = kwargs.get('frequency',100e3)
+            frequency = kwargs.get('frequency', 100e3)
             maxima, allmax = self.limStructure(
                 frequency=frequency,
                 peaks=peaks,
                 valleys=valleys,
-                wavelet=kwargs.get('wavelet','Mexican'))
+                wavelet=kwargs.get('wavelet', 'Mexican'))
             self.location = self.time[maxima == 1]
             self._locationindex = np.where(maxima == 1)[0]
             self._allmaxima = allmax
@@ -525,18 +522,12 @@ class Timeseries(object):
             for i in range(d_ev.size):
                 if detrend:
                     _dummy = scipy.signal.detrend(
-                        self.sig[
-                        d_ev[0][i] -
-                        iwin: d_ev[0][i] +
-                              iwin +
-                              1], type='linear')
+                        self.sig[d_ev[0][i] - iwin: d_ev[0][i] +
+                                 iwin + 1], type='linear')
                 else:
-                    _dummy = self.sig[
-                             d_ev[0][i] -
-                             iwin: d_ev[0][i] +
-                                   iwin +
-                                   1]
-                _dummy -= _dummy.mean()
+                    _dummy = self.sig[d_ev[0][i] - iwin: d_ev[0][i] +
+                                      iwin + 1]
+                    _dummy -= _dummy.mean()
                 if normalize is True:
                     _dummy /= _dummy.std()
 
@@ -571,8 +562,10 @@ class Timeseries(object):
                         np.max(self.sig[window[0]:window[1]]))[0][0]
                     if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
                        (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
-                        _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
-                        window[0] + ind_max + (nw - 1) / 2 + 1]
+                        _dummy = self.sig[window[0] + ind_max -
+                                          (nw - 1) / 2:
+                                          window[0] + ind_max +
+                                          (nw - 1) / 2 + 1]
                         if detrend:
                             _dummy = scipy.signal.detrend(
                                 _dummy, type='linear')
@@ -589,7 +582,7 @@ class Timeseries(object):
                 if cut:
                     csTot = csTot[:, :-1]
             else:
-                maxima, allmaxima = self._threshold(thresh,rmsNorm=rmsNorm)
+                maxima, allmaxima = self._threshold(thresh, rmsNorm=rmsNorm)
                 print('Using old threshold method')
                 print('method', oldmethod)
                 if nw is None:
@@ -600,41 +593,35 @@ class Timeseries(object):
                     nw += 1
                 else:
                     iwin = (nw-1)/2
-                self.location = self.time[maxima == 1]
-                self._locationindex = np.where(maxima == 1)[0]
-                self._allmaxima = allmaxima
                 iwin = np.int(iwin)
                 maxima[0: iwin - 1] = 0
                 maxima[-iwin:] = 0
+                self.location = self.time[maxima == 1]
+                self._locationindex = np.where(maxima == 1)[0]
+                self._allmaxima = allmaxima
                 print('Number of structures mediated %4i' % maxima.sum())
                 csTot = np.ones((int(nw), np.sum(maxima, dtype='int')))
                 d_ev = np.asarray(np.where(maxima >= 1))
                 for i in range(d_ev.size):
                     if detrend:
                         _dummy = scipy.signal.detrend(
-                            self.sig[
-                            d_ev[0][i] -
-                            iwin: d_ev[0][i] +
-                                  iwin +
-                                  1], type='linear')
+                            self.sig[d_ev[0][i] - iwin: d_ev[0][i] +
+                                     iwin +
+                                     1], type='linear')
                     else:
-                        _dummy = self.sig[
-                                 d_ev[0][i] -
-                                 iwin: d_ev[0][i] +
-                                       iwin +
-                                       1]
-                    _dummy -= _dummy.mean()
+                        _dummy = self.sig[d_ev[0][i] - iwin: d_ev[0][i] +
+                                          iwin + 1]
+                        _dummy -= _dummy.mean()
                     if normalize is True:
                         _dummy /= _dummy.std()
 
                     csTot[:, i] = _dummy
-                    oldmethod=None
+                    oldmethod = None
         self.nw = nw
         self.iwin = (nw - 1) / 2
         cs = np.mean(csTot, axis=1)
         tau = np.linspace(- self.iwin, self.iwin, self.nw) * self.dt
         err = scipy.stats.sem(csTot, axis=1)
-
         return cs, tau, err
 
     def pdf(self, bins=10, range=None, weights=None, normed=False, **kwargs):
@@ -736,10 +723,10 @@ class Timeseries(object):
         for i in np.arange(1, window):
             negs = self.signorm - np.roll(self.signorm, i)
             poss = self.signorm - np.roll(self.signorm, -i)
-            prevnegs[np.where(negs > prevnegs)
-            ] = negs[np.where(negs > prevnegs)]
-            prevposs[np.where(poss > prevposs)
-            ] = poss[np.where(poss > prevposs)]
+            prevnegs[np.where(negs > prevnegs)] = negs[
+                np.where(negs > prevnegs)]
+            prevposs[np.where(poss > prevposs)] = poss[
+                np.where(poss > prevposs)]
         snf = 0.5 * (prevnegs + prevposs)
         return snf
 
@@ -775,7 +762,6 @@ class Timeseries(object):
         S = UnivariateSpline(lag, result - 1. / np.exp(1), s=0)
         self.act = S.roots()[0]
         return result
-
 
     def _threshold(self, threshold, rmsNorm=False):
         """
@@ -841,26 +827,26 @@ class Timeseries(object):
         """
 
         if x.ndim != 1:
-            raise ValueError, "smooth only accepts 1 dimension arrays."
+            raise ValueError("smooth only accepts 1 dimension arrays.")
 
         if x.size < window_len:
-            raise ValueError, '''Input vector needs to be bigger than
-            window size.'''
+            raise ValueError("Input vector needs to be bigger than
+            window size.")
 
         if window_len < 3:
             return x
 
         if window not in ['flat', 'hanning', 'hamming', 'bartlett',
                           'blackman']:
-            raise ValueError, '''Window is on of 'flat', 'hanning', 'hamming',
-            'bartlett', 'blackman'''
+            raise ValueError("'Window is on of 'flat', 'hanning', 'hamming',
+                             'bartlett', 'blackman'")
 
         s = np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
 
-        if window == 'flat': #moving average
-            w = np.ones(window_len,'d')
+        # moving average
+        if window == 'flat':
+            w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
         y = np.convolve(w/w.sum(), s, mode='same')
         return y[window_len-1:-window_len+1]
-    
