@@ -38,9 +38,12 @@ Rhos = np.asarray([])
 Cs = np.asarray([])
 Size = np.asarray([])
 Size2 = np.asarray([])
+Size3 = np.asarray([])
 vR2 = np.asarray([])
 vP2 = np.asarray([])
 vBin = np.asarray([])
+vR3 = np.asarray([])
+vP3 = np.asarray([])
 # error
 IpErr = np.asarray([])
 AvDensErr = np.asarray([])
@@ -55,6 +58,7 @@ SizeErr = np.asarray([])
 Efold = np.asarray([])
 EfoldErr = np.asarray([])
 Size2Err = np.asarray([])
+Size3Err = np.asarray([])
 for shot in shotList:
     Tree = mds.Tree('tcv_shot', shot)
     iP = mds.Data.compile(r'tcv_ip()').evaluate()
@@ -82,7 +86,7 @@ for shot in shotList:
             if Found:    
                 if np.isfinite(Blob.vAutoP):
                     _size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
+                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
                     _dSize = _size*np.sqrt(
                         (Blob.FWHMerr/Blob.FWHM)**2 +
                         (Blob.vrExBerr/Blob.vrExB)**2 +
@@ -96,6 +100,8 @@ for shot in shotList:
                         (Blob.vAutoPErr/Blob.vpExB)**2)
 
                 _size2 = Blob.FWHM*Blob.vperp2/Blob.rhos
+                _size3 = Blob.FWHM*np.sqrt(
+                    Blob.vpol3**2 +Blob.vrExB**2)/Blob.rhos
                 Shots = np.append(Shots, shot)
                 Ip = np.append(Ip, np.abs(
                     iP.data()[
@@ -139,6 +145,9 @@ for shot in shotList:
                 vR2 = np.append(vR2, Blob.vrad2)
                 vP2 = np.append(vP2, Blob.vpol2)
                 vBin = np.append(vBin, Blob.vperp2)
+                Size3 = np.append(Size3, _size3)
+                vR3 = np.append(vR3, Blob.vrad3)
+                vP3 = np.append(vP3, Blob.vpol3)
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
                                          Blob.LambdaDivErr)
@@ -166,7 +175,8 @@ outdict = {'Shots': Shots,
            'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr,
            'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt,
            'Blob Size2 [rhos]': Size2, 'vR2': vR2, 'vP2': vP2,
-           'vBin':vBin, 'Blob size2 Err [rhos]': SizeErr}
+           'vBin':vBin, 'Blob size2 Err [rhos]': SizeErr,
+           'vR3': vR3, 'vP3':vP3, 'Blob Size3 [rhos]': Size3}
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
@@ -176,4 +186,4 @@ shotDN = (58611, 58614, 58623, 58624)
 for ss in shotDN:
     df['Conf'][df['Shots'] == ss] = 'DN'
 # load existing database and merge them
-df.to_csv('../../data/BlobDatabase.csv')
+df.to_csv('../../data/BlobDatabaseTmp.csv')

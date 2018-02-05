@@ -14,6 +14,7 @@ import timeseries
 import xarray as xray
 import bottleneck
 import quickspikes as qs
+from lmfit.models import GaussianModel
 
 
 class Turbo(object):
@@ -239,6 +240,10 @@ class Turbo(object):
         data.attrs['vperp2'] = out['vperp2']
         data.attrs['vrad2'] = out['vrad2']
         data.attrs['vpol2'] = out['vpol2']
+        # now we also add the third type of evaluation of
+        # the vperp and different component
+        data.attrs['vrad3'] = out['vrad3']
+        data.attrs['vpol3'] = out['vpol3']
         # autocorrelation time
         data.attrs['T_ac'] = self.Structure.act
         # compute the Ion sound gyroradius in this zone
@@ -360,11 +365,13 @@ class Turbo(object):
         # convert in a numpy array
         vF = np.asarray(vF)
         # get the time basis
-        time = self._tree.getNode(r'\FP' + self.vfNames[0]).getDimensionAt().data()
+        time = self._tree.getNode(
+            r'\FP' + self.vfNames[0]).getDimensionAt().data()
         # we need to build an appropriate time basis since it has not a
         # constant time step
         time = np.linspace(time.min(), time.max(), time.size, dtype='float64')
-        vF = xray.DataArray(vF, coords=[self.vfNames, time], dims=['Probe', 'time'])
+        vF = xray.DataArray(vF, coords=[self.vfNames, time],
+                            dims=['Probe', 'time'])
         # repeat for the ion saturation current
         if self.isNames.size == 1:
             iS = self._tree.getNode(r'\FP' + self.isNames[0]).data()
@@ -376,7 +383,8 @@ class Turbo(object):
             # convert in a numpy array
             iS = np.asarray(iS)
             # save an xarray dataset
-            iS = xray.DataArray(iS, coords=[self.isNames, time], dims=['Probe', 'time'])
+            iS = xray.DataArray(iS, coords=[self.isNames, time],
+                                dims=['Probe', 'time'])
         # this is upstream remapped I load the node not the data
         RRsep = self._filament.getNode(r'\FP_%1i' % plunge + 'PL_RRSEPT')
         # this is in Rhopoloidal
@@ -566,9 +574,14 @@ class Turbo(object):
         Takes the xarray DataArray as results
         from the computation of CAS and compute the
         vperp assumed from propagation of floating
-        potential structure.
-        We also include the evaluation of the binormal velocity
-        using the formula in D. Carralero NF vol54, p 123005 (2014)
+        potential structure. It uses both the simple
+        computation and also the estimate using the 
+        evaluation of the binormal velocity
+        using the formula in D. Carralero NF vol54, p 123005 (2014).
+        This can't be simply applied unfortunately since the radial
+        distances of the pins is too small and we get a zero time delay
+        cross-correlation. So basically we use the method of Daniel where
+        
         """
 
         # for noisy signal we perform a moving average
@@ -586,7 +599,7 @@ class Turbo(object):
         xcorA = np.correlate(a, b, mode='same')
         # normalize appropriately
         xcorA /= np.sqrt(np.dot(a, a) * np.dot(b, b))
-        lagA = np.arange(xcorA.size) - xcorA.size / 2
+        lagA = np.arange(xcorA.size, dtype='float') - xcorA.size / 2
         vpA = (0.2433 - 0.0855) * constants.inch / (lagA[np.argmax(xcorA)] * self.dt)
         # repeat for another couple
         a = bottleneck.move_mean(
@@ -599,7 +612,7 @@ class Turbo(object):
         b = _dummy[:, 1]
         xcorB = np.correlate(a, b, mode='same')
         xcorB /= np.sqrt(np.dot(a, a) * np.dot(b, b))
-        lagB = np.arange(xcorB.size) - xcorB.size / 2
+        lagB = np.arange(xcorB.size, dtype='float') - xcorB.size / 2
         vpB = (0.2433 + 0.1512) * constants.inch / (lagB[np.argmax(xcorB)] * self.dt)
         # repeat for the last couple
         a = bottleneck.move_mean(
@@ -613,30 +626,64 @@ class Turbo(object):
         # compute the cross correlation
         xcorC = np.correlate(a, b, mode='same')
         xcorC /= np.sqrt(np.dot(a, a) * np.dot(b, b))
-        lagC = np.arange(xcorC.size) - xcorC.size / 2
+        lagC = np.arange(xcorC.size, dtype='float') - xcorC.size / 2
         vpC = (0.0855 + 0.1512) * constants.inch / (lagC[np.argmax(xcorC)] * self.dt)
-        deltaPoloidal = np.nanmean([vpA, vpB, vpC])
-        deltaPoloidalStd = np.nanstd([vpA, vpB, vpC])
+        _all = np.asarray([vpA, vpB, vpC])
+        deltaPoloidal = np.mean(_all[np.isfinite(_all)])
+        deltaPoloidalStd = np.nanstd(_all[np.isfinite(_all)])
+
+        # now we compute the same stuff for the radially separated
+        # pins
         a = bottleneck.move_mean(
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
             data.sel(sig='VFR1_' + str(int(self.plunge))), window=3)
-        deltaTimeR = np.abs(
-            np.nanargmin(a) - np.nanargmin(b))
-        deltaRadial = 4e-3 / (deltaTimeR * self.dt)
+        xcorD = np.correlate(a, b, mode='same')
+        xcorD /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagD = np.arange(xcorD.size, dtype='float') - xcorD.size / 2
+        if np.argmax(xcorC) != 0:
+            vrA  = 0.00157/(lagD[np.argmax(xcorD)]*self.dt)
+            deltaTimeRA = lagD[np.argmax(xcorD)]*self.dt
+        else:
+            vrA = 0
+            deltaTimeRA = 0
+
+        a = bottleneck.move_mean(
+            data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
+        b = bottleneck.move_mean(
+            data.sel(sig='VFR2_' + str(int(self.plunge))), window=3)
+        xcorE = np.correlate(a, b, mode='same')
+        xcorE /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagE = np.arange(xcorE.size, dtype='float') - xcorE.size / 2
+        if np.argmax(xcorC) != 0:
+            vrB  = 0.00157/(lagE[np.argmax(xcorE)]*self.dt)
+            deltaTimeRB = lagE[np.argmax(xcorE)]*self.dt            
+        else:
+            vrB = 0
+            deltaTimeRB = 0
+            
+        deltaRadial = np.nanmean([vrA, vrB])
+        deltaRadialStd = np.nanstd([vrA, vpB])
+        deltaTimeR = np.mean(deltaTimeRA+deltaTimeRB)
         vperp = np.sqrt(deltaPoloidal ** 2 + deltaRadial ** 2)
-        # for the formula used in paper we take the more distant probes
+        # use the formula introduced in Carralero NF paper
         Ltheta = (0.2433 + 0.1512) * constants.inch
-        Lr = 4e-3
+        Lr = 0.00157
         _dummy = np.sqrt(
             np.power(lagB[np.argmax(xcorB)] * self.dt/Ltheta,2) +
         np.power((2*(deltaTimeR * self.dt) - lagB[np.argmax(xcorB)] * self.dt)/(2*Lr),2))
         vperp2 = 1./_dummy
         vrad2 = np.cos(np.arcsin(vperp2*lagB[np.argmax(xcorB)] * self.dt/Ltheta))*vperp2
-        vpol2 = vperp2*(lagB[np.argmax(xcorB)] * self.dt/Ltheta)
+        vpol2 = np.power(vperp2, 2)*(lagB[np.argmax(xcorB)] * self.dt/Ltheta)
+        # computatin similar to Tsui/Boedo
+        theta = np.arctan(deltaRadial/deltaPoloidal)
+        vpol3 = deltaPoloidal*np.power(np.sin(theta), 2)
+        vrad3 = vpol3/np.tan(theta)
+        
         out = {'vperp': vperp, 'vpol': deltaPoloidal,
                'vrad': deltaRadial, 'vpolErr': deltaPoloidalStd,
-               'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2}
+               'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2,
+               'vpol3': vpol3, 'vrad3': vrad3}
         return out
 
     def _computeLambda(self, rrsep=[0.001,0.003],
@@ -719,26 +766,30 @@ class Turbo(object):
         it compute the amplitude of radial and poloidal
         electric field fluctuations taking into account the
         amplitude of the Isat conditional average structure
+        and including only the fluctuation between 2.5 sigma of
+        the Isat amplitude
 
         """
 
         signal = data.sel(sig='Is') - data.sel(sig='Is').min()
         spline = UnivariateSpline(
-            data.t, signal.values - signal.max().item() / 6., s=0)
+            data.t, signal.values - signal.max().item() / 2., s=0)
         # find the roots and the closest roots to 0
         roots = spline.roots()
-        tmin = roots[roots < 0][-1]
+        tmin = roots[roots < 0][-1]*2
         try:
-            tmax = roots[roots > 0][0]
+            tmax = roots[roots > 0][0]*2
         except:
             tmax = 2.5e-5
         # now the fluctuations of the Epol
-        ii = ((data.t >= tmin) & (data.t <= tmax))
-        # recompute Epol from CAS floating potential
+        ii = np.where((data.t.values >= tmin) & (data.t.values <= tmax))[0]
+        # recompute Epol from CAS floating potential with an appropriate
+        # smoothing otherwise we have too noisy signal
         _Epol = (data.sel(sig='VFT_' + str(int(self.plunge))) -
                  data.sel(sig='VFM_' + str(int(self.plunge)))) / 4e-3
-        Epol = np.abs(_Epol[ii].max().item() -
-                      _Epol[ii].min().item())
+        _Epol = bottleneck.move_mean(_Epol, window=10)
+        Epol = np.abs(_Epol[ii].max() -
+                      _Epol[ii].min())
         Erad = np.abs(data.sel(sig='Erad')[ii].max().item() -
                       data.sel(sig='Erad')[ii].min().item())
         EpolErr = np.abs(
