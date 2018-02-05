@@ -296,3 +296,16 @@
      - C. Theiler: further reference at High Ip to be explored together with
        N seeding
      - A. Hakkola: suggests the need to ask for further contingency shot
+*** Meeting with C. Tsui <2018-02-05 Mon>
+    Skype meeting with C.Tsui. There are a lot of differences
+    for the computation of blob-size.
+    - The poloidal velocity is taken from 2D cross-correlation
+      but done on the entire signal time window (1-2 ms) not using
+      the conditional average sampling
+    - The radial velocity is taken from the ExB flow
+    - The blob-size is taken not as the FWHM of the CAS but he
+      previously make a gaussian fit and take the FWHM of the fit
+      so he intrinsically assume a symmetric shape neglecting the
+      tail of the positive skewness
+    - The autocorrelation time an be less the digitazion as he compute
+      a gaussfit on the autocorrelation
