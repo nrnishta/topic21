@@ -70,7 +70,7 @@ for shot in shotList:
     bTTime = bTN.getDimensionAt().data()
     Data = tcvFilaments.Turbo(shot)
     for plunge in (1, 2):
-        for r in np.arange(0, 0.025, 0.005):
+        for r in np.arange(0, 0.030, 0.006):
             try:
                 Blob = Data.blob(
                     plunge=plunge,
