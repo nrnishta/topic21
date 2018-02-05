@@ -296,15 +296,16 @@
      - C. Theiler: further reference at High Ip to be explored together with
        N seeding
      - A. Hakkola: suggests the need to ask for further contingency shot
-*** COMPASS meeting 12.01.18
-    - Presentation from Jirka Adamek:
-      - There are inconsistencies between in/out profiles from RCP even though it is
-	not clear if the steeper density profile is observed
-      - No results from the N injection
-      - *Remind they are puffing from the midplane*
-      - Strong inconsistency in the computation of the LCFS (2cm at the midplane)
-    - Check the evolution of separatrix and SP pressure during the density ramp to
-      get an idea if there is a real drop of the pressure at the divertor which hints
-      to the appearance of detachment or edge cooling
-    - 
-      
+*** Meeting with C. Tsui <2018-02-05 Mon>
+    Skype meeting with C.Tsui. There are a lot of differences
+    for the computation of blob-size.
+    - The poloidal velocity is taken from 2D cross-correlation
+      but done on the entire signal time window (1-2 ms) not using
+      the conditional average sampling
+    - The radial velocity is taken from the ExB flow
+    - The blob-size is taken not as the FWHM of the CAS but he
+      previously make a gaussian fit and take the FWHM of the fit
+      so he intrinsically assume a symmetric shape neglecting the
+      tail of the positive skewness
+    - The autocorrelation time an be less the digitazion as he compute
+      a gaussfit on the autocorrelation
