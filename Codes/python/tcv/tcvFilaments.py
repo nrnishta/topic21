@@ -8,6 +8,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import interp1d
 from scipy import constants
+from scipy import signal
 import eqtools
 import langmuir
 import timeseries
@@ -179,7 +180,12 @@ class Turbo(object):
                        (self.iS.time <= tmax))].values
         sVf = self.vF[:, ((self.vF.time >= tmin) &
                           (self.vF.time <= tmax))].values
-
+        # this is the high-pass filter signal floating potential
+        # used for the computation of cross-correlation velocity
+        # using the same method used by C.Tsui and J.Boedo
+        # only for this we don't take the value but the xarray
+        sVfF = self.vFF[:, ((self.vF.time >= tmin) &
+                          (self.vF.time <= tmax))]
         sEp = self.Epol[((self.Epol.time >= tmin) &
                          (self.Epol.time <= tmax))].values
         sEr = self.Erad[((self.Erad.time >= tmin) &
@@ -236,14 +242,15 @@ class Turbo(object):
         data.attrs['vAutoR'] = out['vrad']
         data.attrs['vAutoPErr'] = out['vpolErr']
         # now we also add the secont type of evaluation of
-        # the vperp and different component
+        # the vperp and different component as done by Carralero
         data.attrs['vperp2'] = out['vperp2']
         data.attrs['vrad2'] = out['vrad2']
         data.attrs['vpol2'] = out['vpol2']
         # now we also add the third type of evaluation of
-        # the vperp and different component
-        data.attrs['vrad3'] = out['vrad3']
-        data.attrs['vpol3'] = out['vpol3']
+        # the vperp as done by C. Tsui and J. Boedo
+        vpol3, dvpol3, _, _  = self._computeVpolCC(sVfF)
+        data.attrs['vpol3'] = vpol3
+        data.attrs['dvpol3'] = dvpol3
         # autocorrelation time
         data.attrs['T_ac'] = self.Structure.act
         # compute the Ion sound gyroradius in this zone
@@ -320,7 +327,8 @@ class Turbo(object):
         _dummy = self._tree.getNode(r'\results::fir:n_average').data()
         # determine the available probe names
         _string = 'getnci(getnci(\\TOP.DIAGZ.MEASUREMENTS.UCSDFP,"MEMBER_NIDS"),"NODE_NAME")'
-        _nameProbe = np.core.defchararray.strip(mds.Data.compile(_string).evaluate().data())
+        _nameProbe = np.core.defchararray.strip(
+            mds.Data.compile(_string).evaluate().data())
         # determine the names corresponding to the strokes
         _nameProbe = _nameProbe[
             np.asarray([int(n[-1:]) for n in _nameProbe]) == plunge]
@@ -336,7 +344,9 @@ class Turbo(object):
         Load the signal from the Probe and ensure
         we are using exclusively the insertion part of the
         plunge. If it has not been already loaded the profile
-        it loads also the profile
+        it loads also the profile. We also create the appropriate
+        attribute with floating potential with 10 kHz high pass
+        filtering due to a pick-up from FPS coils
 
         Parameters
         ----------
@@ -358,20 +368,29 @@ class Turbo(object):
         self.plunge = plunge
         # now load the data and save them in the appropriate xarray
         self._getNames(plunge=plunge)
-        # now we load the floating potential and save them in an xarray
-        vF = []
-        for name in self.vfNames:
-            vF.append(self._tree.getNode(r'\FP' + name).data())
-        # convert in a numpy array
-        vF = np.asarray(vF)
         # get the time basis
         time = self._tree.getNode(
             r'\FP' + self.vfNames[0]).getDimensionAt().data()
+        dt = (time.max()-time.min())/(time.size-1)
+        Fs = np.round(1./dt)
+        # now we load the floating potential and save them in an xarray
+        vF = []
+        vFF = []
+        for name in self.vfNames:
+            vF.append(self._tree.getNode(r'\FP' + name).data())
+            vFF.append(self.bw_filter(
+                self._tree.getNode(r'\FP' + name).data(),
+                10e3, Fs, 'highpass', order=5))
+            # convert in a numpy array
+        vF = np.asarray(vF)
+        vFF = np.asarray(vFF)
         # we need to build an appropriate time basis since it has not a
         # constant time step
         time = np.linspace(time.min(), time.max(), time.size, dtype='float64')
         vF = xray.DataArray(vF, coords=[self.vfNames, time],
                             dims=['Probe', 'time'])
+        vFF = xray.DataArray(vFF, coords=[self.vfNames, time],
+                             dims=['Probe', 'time'])
         # repeat for the ion saturation current
         if self.isNames.size == 1:
             iS = self._tree.getNode(r'\FP' + self.isNames[0]).data()
@@ -402,6 +421,7 @@ class Turbo(object):
         else:
             self.iS = iS[:, ii]
         self.vF = vF[:, ii]
+        self.vFF = vFF[:, ii]
         # now check if the number of size between position and signal
         # are the same otherwise univariate interpolate the position
         if Rtime.size != self.iS.time.size:
@@ -600,7 +620,15 @@ class Turbo(object):
         # normalize appropriately
         xcorA /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagA = np.arange(xcorA.size, dtype='float') - xcorA.size / 2
-        vpA = (0.2433 - 0.0855) * constants.inch / (lagA[np.argmax(xcorA)] * self.dt)
+        lagA *= self.dt
+        # replicate what done for Cedric, i.e. Gaussian Fit and centroid
+        mod = GaussianModel()
+        pars = mod.guess(xcorA, x=lagA)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorA, pars, x=lagA)
+        dtA = out.params['center'].value
+        vpA = (0.2433 - 0.0855) * constants.inch / (dtA)
+        vpAS = vpA*(out.params['center'].stderr/dtA)
         # repeat for another couple
         a = bottleneck.move_mean(
             data.sel(sig='VFB_' + str(int(self.plunge))), window=3)
@@ -613,7 +641,16 @@ class Turbo(object):
         xcorB = np.correlate(a, b, mode='same')
         xcorB /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagB = np.arange(xcorB.size, dtype='float') - xcorB.size / 2
-        vpB = (0.2433 + 0.1512) * constants.inch / (lagB[np.argmax(xcorB)] * self.dt)
+        lagB *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorB, x=lagB)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorB, pars, x=lagB)
+        dtB = out.params['center'].value
+        vpB = (0.2433 + 0.1512) * constants.inch / (dtB)
+        vpBS = vpB*(out.params['center'].stderr/dtB)
+
+        # --------------------------
         # repeat for the last couple
         a = bottleneck.move_mean(
             data.sel(sig='VFB_' + str(int(self.plunge))), window=3)
@@ -627,13 +664,26 @@ class Turbo(object):
         xcorC = np.correlate(a, b, mode='same')
         xcorC /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagC = np.arange(xcorC.size, dtype='float') - xcorC.size / 2
-        vpC = (0.0855 + 0.1512) * constants.inch / (lagC[np.argmax(xcorC)] * self.dt)
+        lagC *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorC, x=lagC)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorC, pars, x=lagC)
+        dtC = out.params['center'].value
+        vpC = (0.0855 + 0.1512) * constants.inch / (dtC)
+        vpCS = vpB*(out.params['center'].stderr/dtC)
+
         _all = np.asarray([vpA, vpB, vpC])
+        _allDt = np.asarray([dtA, dtB, dtC])
         deltaPoloidal = np.mean(_all[np.isfinite(_all)])
         deltaPoloidalStd = np.nanstd(_all[np.isfinite(_all)])
-
-        # now we compute the same stuff for the radially separated
+        deltaTPoloidal = np.mean(_allDt[_allDt != 0])
+        deltaTPoloidalStd = np.mean(_allDt[_allDt != 0])
+        # -----------------------------
+        # now we compute the same stuff
+        # for the radially separated
         # pins
+        # M-R1
         a = bottleneck.move_mean(
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
@@ -641,13 +691,19 @@ class Turbo(object):
         xcorD = np.correlate(a, b, mode='same')
         xcorD /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagD = np.arange(xcorD.size, dtype='float') - xcorD.size / 2
-        if np.argmax(xcorC) != 0:
-            vrA  = 0.00157/(lagD[np.argmax(xcorD)]*self.dt)
-            deltaTimeRA = lagD[np.argmax(xcorD)]*self.dt
-        else:
-            vrA = 0
-            deltaTimeRA = 0
-
+        lagD *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorD, x=lagD)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorD, pars, x=lagD)
+        # centroid with the error
+        dtD = out.params['center'].value
+        dtDS = out.params['center'].stderr
+        # compute velocity with error
+        vrD = (1.57e-3) / dtD
+        vrDS = vrD * (dtDS/dtD)
+        # ------------
+        # M-R2
         a = bottleneck.move_mean(
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
@@ -655,37 +711,179 @@ class Turbo(object):
         xcorE = np.correlate(a, b, mode='same')
         xcorE /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagE = np.arange(xcorE.size, dtype='float') - xcorE.size / 2
-        if np.argmax(xcorC) != 0:
-            vrB  = 0.00157/(lagE[np.argmax(xcorE)]*self.dt)
-            deltaTimeRB = lagE[np.argmax(xcorE)]*self.dt            
-        else:
-            vrB = 0
-            deltaTimeRB = 0
-            
-        deltaRadial = np.nanmean([vrA, vrB])
-        deltaRadialStd = np.nanstd([vrA, vpB])
-        deltaTimeR = np.mean(deltaTimeRA+deltaTimeRB)
+        lagE *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorE, x=lagE)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorE, pars, x=lagE)
+        # centroid with the error
+        dtE = out.params['center'].value
+        dtES = out.params['center'].stderr
+        # compute velocity with error
+        vrE = (1.57e-3) / dtE
+        vrES = vrE * (dtES/dtE)
+        #
+        _allDt = np.asarray([dtD, dtE])
+        deltaRadial = np.nanmean([vrD, vrE])
+        deltaRadialStd = np.nanstd([vrD, vrE])
+        deltaTimeR = np.mean(_allDt[_allDt != 0])
         vperp = np.sqrt(deltaPoloidal ** 2 + deltaRadial ** 2)
+
         # use the formula introduced in Carralero NF paper
         Ltheta = (0.2433 + 0.1512) * constants.inch
         Lr = 0.00157
-        _dummy = np.sqrt(
-            np.power(lagB[np.argmax(xcorB)] * self.dt/Ltheta,2) +
-        np.power((2*(deltaTimeR * self.dt) - lagB[np.argmax(xcorB)] * self.dt)/(2*Lr),2))
+        _dummy = np.sqrt(np.power(dtB/Ltheta,2) +
+                         np.power((2*deltaTimeR - dtB)/(2*Lr),2))
         vperp2 = 1./_dummy
-        vrad2 = np.cos(np.arcsin(vperp2*lagB[np.argmax(xcorB)] * self.dt/Ltheta))*vperp2
-        vpol2 = np.power(vperp2, 2)*(lagB[np.argmax(xcorB)] * self.dt/Ltheta)
-        # computatin similar to Tsui/Boedo
-        theta = np.arctan(deltaRadial/deltaPoloidal)
-        vpol3 = deltaPoloidal*np.power(np.sin(theta), 2)
-        vrad3 = vpol3/np.tan(theta)
+        vrad2 = np.cos(np.arcsin(vperp2*dtB/Ltheta))*vperp2
+        vpol2 = np.power(vperp2, 2)*(dtB/Ltheta)
         
         out = {'vperp': vperp, 'vpol': deltaPoloidal,
                'vrad': deltaRadial, 'vpolErr': deltaPoloidalStd,
-               'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2,
-               'vpol3': vpol3, 'vrad3': vrad3}
+               'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2}
         return out
 
+    def _computeVpolCC(self, data):
+        """
+        2D cross-correlation method to compute the poloidal flow
+        using the high-pass filtered floating potential signal.
+        Differently from before it uses a larger time window with
+        respect to CAS output and once the CC is computed is fit
+        with a gaussian using the centroid as better estimate of 
+        velocity.
+        """
+
+        # cross-correlation filtered vfm and vft
+        a = data.sel(Probe='VFM_' + str(int(self.plunge)))
+        b = data.sel(Probe='VFT_' + str(int(self.plunge)))
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
+        # compute the cross correlation
+        xcorA = np.correlate(a, b, mode='same')
+        # normalize appropriately
+        xcorA /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagA = np.arange(xcorA.size, dtype='float') - xcorA.size / 2
+        lagA *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorA, x=lagA)
+        # limit the sigma of the gaussian to a
+        # suitable initial value of 1e-5
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorA, pars, x=lagA)
+        # centroid with the error
+        dtA = out.params['center'].value
+        dtAS = out.params['center'].stderr
+        # compute velocity with error
+        vpA = (0.2433 - 0.0855) * constants.inch / dtA
+        vpAS = vpA * (dtAS/dtA)
+        # ---------------------
+        # repeat with the couple bottom top
+        a = data.sel(Probe='VFB_' + str(int(self.plunge)))
+        b = data.sel(Probe='VFT_' + str(int(self.plunge)))
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
+        # compute the cross correlation
+        xcorB = np.correlate(a, b, mode='same')
+        # normalize appropriately
+        xcorB /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagB = np.arange(xcorB.size, dtype='float') - xcorB.size / 2
+        lagB *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorB, x=lagB)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorB, pars, x=lagB)
+        # centroid with the error
+        dtB = out.params['center'].value
+        dtBS = out.params['center'].stderr
+        # compute velocity with error
+        vpB = (0.2433 + 0.1512) * constants.inch / dtB
+        vpBS = vpB * (dtBS/dtB)
+        # for some reason the use of the couple Top bottom yealds
+        # unreliable results. We introduce a confidence as normalized
+        # difference and eventually if too large we use only
+        # the couplbe Top middle
+        confidence = (vpA-vpB)/(vpA)
+        if confidence > 0.2:
+            vP = vpA
+            vPErr = vpAS
+        else:
+        # now determine the weighted average and corresponding error
+            vP = np.average(np.asarray([vpA, vpB]),
+                            weights=np.asarray([1./vpAS, 1./vpBS]))
+            vPErr = np.std(np.asarray([vpA, vpB]))
+        
+        # -------------------
+        # now do the same
+        # for the radial ones
+        # couple M-R1
+        a = data.sel(Probe='VFM_' + str(int(self.plunge)))
+        b = data.sel(Probe='VFR1_' + str(int(self.plunge)))
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
+        # compute the cross correlation
+        xcorC = np.correlate(a, b, mode='same')
+        # normalize appropriately
+        xcorC /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagC = np.arange(xcorC.size, dtype='float') - xcorC.size / 2
+        lagC *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorC, x=lagC)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorC, pars, x=lagC)
+        # centroid with the error
+        dtC = out.params['center'].value
+        dtCS = out.params['center'].stderr
+        # compute velocity with error
+        vrC = (1.57e-3) / dtC
+        vrCS = vrC * (dtCS/dtC)
+        # -----------
+        # couple M-R2
+        a = data.sel(Probe='VFM_' + str(int(self.plunge)))
+        b = data.sel(Probe='VFR2_' + str(int(self.plunge)))
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
+        # compute the cross correlation
+        xcorD = np.correlate(a, b, mode='same')
+        # normalize appropriately
+        xcorD /= np.sqrt(np.dot(a, a) * np.dot(b, b))
+        lagD = np.arange(xcorD.size, dtype='float') - xcorD.size / 2
+        lagD *= self.dt
+        mod = GaussianModel()
+        pars = mod.guess(xcorD, x=lagD)
+        pars['sigma'].set(value=1e-5, vary=True)
+        out = mod.fit(xcorD, pars, x=lagD)
+        # centroid with the error
+        dtD = out.params['center'].value
+        dtDS = out.params['center'].stderr
+        # compute velocity with error
+        vrD = (1.57e-3) / dtD
+        vrDS = vrD * (dtDS/dtD)
+        # now determine the weighted average and corresponding error
+        vR = np.average(np.asarray([vrC, vrD]),
+                        weights=np.asarray([1./vrCS, 1./vrDS]))
+        vRErr = np.std(np.asarray([vrC, vrD]))
+
+        # and now the 2D cross-correlation
+        # determine the angle
+        theta = np.arctan(vR/vP)
+        dtheta = theta*np.sqrt(
+            np.power(vRErr/vR, 2) + np.power(vPErr/vP, 2))
+        vZ = vP * np.power(np.sin(theta), 2)
+        # propagate the error
+        _dumm = np.sqrt(np.power(vPErr/vP, 2) +
+                        np.power(dtheta/theta, 2))
+        dvZ = vZ * _dumm
+        return vZ, dvZ, vP, vR
+
+        
     def _computeLambda(self, rrsep=[0.001,0.003],
                        trange=[0.8,0.9], Lp='Div'):
         """
@@ -749,11 +947,12 @@ class Turbo(object):
             Lpar = np.mean(tmp[_rdx],weights=1./tmpstd)
             dLpar = np.std(tmp[_rdx],weights=1./tmpstd)
             Theta = ((data.FWHM * np.sqrt(
-                data.vrExB ** 2 + data.vAutoP ** 2)) ** (5 / 2.) * np.sqrt(0.88)) / \
+                data.vrExB ** 2 + data.vpol3 ** 2)) ** (5 / 2.) * np.sqrt(0.88)) / \
                     (Lpar * data.rhos ** 2)
             dTheta = Theta * np.sqrt(
                 (data.FWHMerr / data.FWHM) ** 2 +
                 (data.vrExBerr / data.vrExB) ** 2 +
+                (data.dvpol3/data.vpol3) ** 2 +
                 (dLpar / Lpar) ** 2 + (data.drhos / data.rhos) ** 2)
         except:
             Theta = np.nan
@@ -832,3 +1031,14 @@ class Turbo(object):
         return data
 
     
+    def bw_filter(self, data, freq, fs, ty, order=5):
+        ny = 0.5 * fs
+        if np.size(freq) == 1:
+            fr = freq / ny
+            b, a = signal.butter(order, fr, btype=ty)
+        else:
+            frL = freq[0] / ny
+            frH = freq[1] / ny
+            b, a = signal.butter(order, [frL, frH], btype=ty)
+        y = signal.filtfilt(b, a, data)
+        return y

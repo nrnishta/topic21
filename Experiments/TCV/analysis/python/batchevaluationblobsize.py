@@ -1,5 +1,15 @@
 # script to evaluate the blob size at different position
 # for all the shots so far included in the Topic-21
+# in the database we save three different estimate
+# for blob size
+# 1) Size  is done with the Tsui/Boedo method. Also saved in the CSV the radial
+# velocit Vr = vrExB and vP = vZ from 2D cross-correlation
+# 2) Size2 is done using for poloidal velocity the 1D cross-correlation and
+# the ExB estimate as radial velocity. Correspondingly vP2 is the 1D cross-correlation
+# 3) Size3 is the computation using the method of Daniel which does not give
+# reasonable results using the floating potential. It is saved together with vBin
+
+
 
 import tcvFilaments
 import langmuir
@@ -42,7 +52,6 @@ Size3 = np.asarray([])
 vR2 = np.asarray([])
 vP2 = np.asarray([])
 vBin = np.asarray([])
-vR3 = np.asarray([])
 vP3 = np.asarray([])
 # error
 IpErr = np.asarray([])
@@ -53,6 +62,8 @@ TauErr = np.asarray([])
 vRErr = np.asarray([])
 vPErr = np.asarray([])
 vPExBErr = np.asarray([])
+vRExBErr = np.asarray([])
+vP3Err = np.asarray([])
 RhosErr = np.asarray([])
 SizeErr = np.asarray([])
 Efold = np.asarray([])
@@ -97,11 +108,15 @@ for shot in shotList:
                     _dSize = _size*np.sqrt(
                         (Blob.FWHMerr/Blob.FWHM)**2 +
                         (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vpExB)**2)
+                        (Blob.vpExBerr/Blob.vpExB)**2)
 
                 _size2 = Blob.FWHM*Blob.vperp2/Blob.rhos
                 _size3 = Blob.FWHM*np.sqrt(
                     Blob.vpol3**2 +Blob.vrExB**2)/Blob.rhos
+                _dSize3 = _size3*np.sqrt(
+                    (Blob.FWHMerr/Blob.FWHM)**2 +
+                    (Blob.dvpol3/Blob.vpol3)**2 +
+                    (Blob.vrExBerr/Blob.vrExB)**2)
                 Shots = np.append(Shots, shot)
                 Ip = np.append(Ip, np.abs(
                     iP.data()[
@@ -146,7 +161,6 @@ for shot in shotList:
                 vP2 = np.append(vP2, Blob.vpol2)
                 vBin = np.append(vBin, Blob.vperp2)
                 Size3 = np.append(Size3, _size3)
-                vR3 = np.append(vR3, Blob.vrad3)
                 vP3 = np.append(vP3, Blob.vpol3)
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
@@ -156,8 +170,10 @@ for shot in shotList:
                 vRErr = np.append(vRErr, Blob.vrExBerr)
                 vPErr = np.append(vPErr, Blob.vAutoPErr)
                 vPExBErr = np.append(vPExBErr, Blob.vpExBerr)
+                vP3Err = np.append(vP3Err, Blob.dvpol3)
                 RhosErr = np.append(RhosErr, Blob.drhos)
                 SizeErr = np.append(SizeErr, _dSize)
+                Size3Err = np.append(Size3Err, _dSize3)                
                 EfoldErr = np.append(EfoldErr, Blob.EfoldErr)
                 print('Computed for Shot %5i' % shot +' Plunge %1i' % plunge)
     Tree.quit()
@@ -166,17 +182,32 @@ for shot in shotList:
 outdict = {'Shots': Shots,
            'Ip': Ip,
            '<n_e>': AvDens, 'Rho': Rho, 'Lambda Div': LambdaDiv,
-           'Theta Div':ThetaDiv, 'Blob Size [rhos]': Size,
-           'Tau': Tau, 'vR': vR, 'vP': vP, 'vPExB': vPExB,
+           'Theta Div':ThetaDiv,
+           'Blob Size [rhos]': Size3, 
+           'Blob Size2 [rhos]': Size,
+           'Blob Size3 [rhos]': Size2, 
+           'Tau': Tau,
+           'vR': vR,
+           'vP': vP3,
+           'vP2': vP,
+           'vPExB': vPExB,
            'Rhos':Rhos, 'Cs':Cs,
            'Ip Err': IpErr, '<n_e> Err': AvDensErr,
-           'Lambda Div Err':LambdaDivErr, 'Theta Div Err':ThetaDivErr,
-           'Blob size Err [rhos]':SizeErr, 'Tau Err':TauErr, 'vR Err':vRErr,
-           'vP Err':vPErr, 'vPExB Err':vPExBErr, 'Rhos Err':RhosErr,
-           'Efold':Efold, 'EfoldErr':EfoldErr, 'Bt': Bt,
-           'Blob Size2 [rhos]': Size2, 'vR2': vR2, 'vP2': vP2,
-           'vBin':vBin, 'Blob size2 Err [rhos]': SizeErr,
-           'vR3': vR3, 'vP3':vP3, 'Blob Size3 [rhos]': Size3}
+           'Lambda Div Err':LambdaDivErr,
+           'Theta Div Err':ThetaDivErr,
+           'Blob size Err [rhos]':Size3Err,
+           'Blob size2 Err [rhos]': SizeErr,
+           'Tau Err':TauErr,
+           'vR Err':vRErr,
+           'vP Err':vP3Err,
+           'vPExB Err':vPExBErr,
+           'vP2 Err': vPErr, 
+           'Rhos Err':RhosErr,
+           'Efold':Efold,
+           'EfoldErr':EfoldErr,
+           'Bt': Bt,
+           'vBin3':vBin}
+
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
 df['Mu'] = np.repeat(2, df.index.size)
@@ -186,4 +217,4 @@ shotDN = (58611, 58614, 58623, 58624)
 for ss in shotDN:
     df['Conf'][df['Shots'] == ss] = 'DN'
 # load existing database and merge them
-df.to_csv('../../data/BlobDatabaseTmp.csv')
+df.to_csv('../../data/BlobDatabase.csv')
