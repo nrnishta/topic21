@@ -805,17 +805,17 @@ class Turbo(object):
         # for some reason the use of the couple Top bottom yealds
         # unreliable results. We introduce a confidence as normalized
         # difference and eventually if too large we use only
-        # the couplbe Top middle
+        # the couple Top middle
         confidence = (vpA-vpB)/(vpA)
         if confidence > 0.2:
             vP = vpA
             vPErr = vpAS
         else:
-        # now determine the weighted average and corresponding error
+            # now determine the weighted average and
+            # corresponding error
             vP = np.average(np.asarray([vpA, vpB]),
                             weights=np.asarray([1./vpAS, 1./vpBS]))
             vPErr = np.std(np.asarray([vpA, vpB]))
-        
         # -------------------
         # now do the same
         # for the radial ones
@@ -883,7 +883,6 @@ class Turbo(object):
         dvZ = vZ * _dumm
         return vZ, dvZ, vP, vR
 
-        
     def _computeLambda(self, rrsep=[0.001,0.003],
                        trange=[0.8,0.9], Lp='Div'):
         """
@@ -996,13 +995,8 @@ class Turbo(object):
                       _Epol[ii].min())
         Erad = np.abs(data.sel(sig='Erad')[ii].max().item() -
                       data.sel(sig='Erad')[ii].min().item())
-        EpolErr = np.abs(
-            np.max(data.sel(sig='Epol').values[ii] + data.err[1, ii]).item() -
-            np.min(data.sel(sig='Epol').values[ii] - data.err[1, ii]).item())
-        EradErr = np.abs(
-            np.max(data.sel(sig='Erad').values[ii] + data.err[2, ii]).item() -
-            np.min(data.sel(sig='Erad').values[ii] - data.err[2, ii]).item())
-
+        EpolErr = np.mean(data.err[1, ii])
+        EradErr = np.mean(data.err[2, ii])
         out = {'Er': Erad, 'ErErr': EradErr,
                'Epol': Epol, 'EpolErr': EpolErr}
         return out
