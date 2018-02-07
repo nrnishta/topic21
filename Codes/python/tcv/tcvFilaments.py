@@ -936,19 +936,24 @@ class Turbo(object):
                 LpN = self._filament.getNode(r'\LPDIVU')
             # the input Data has all the variables we need to compute
             # the averages
-            _idx = np.where(((LpN.getDimensionAt(0).data() >= data.tmin-0.06) &
-                             (LpN.getDimensionAt(0).data() <= data.tmax + 0.06)))[0]
+            _idx = np.where(
+                ((LpN.getDimensionAt(0).data() >= data.tmin-0.06) &
+                 (LpN.getDimensionAt(0).data() <= data.tmax + 0.06)))[0]
             # average over time
-            tmp = np.nanmean(LpN.data()[_idx, :],axis=0)
-            tmpstd = np.nanstd(LpN.data()[_idx, :], axis=0)
+            tmp = np.nanmean(LpN.data()[_idx, :], axis=0)
             # average over distance from the separatrix
-            _rdx = np.where(((LpN.getDimensionAt(1).data() >= data.RrsepMin) &
-                             (LpN.getDimensionAt(1).data() <= data.RrsepMax)))[0]
-            Lpar = np.mean(tmp[_rdx],weights=1./tmpstd)
-            dLpar = np.std(tmp[_rdx],weights=1./tmpstd)
-            Theta = ((data.FWHM * np.sqrt(
-                data.vrExB ** 2 + data.vpol3 ** 2)) ** (5 / 2.) * np.sqrt(0.88)) / \
-                    (Lpar * data.rhos ** 2)
+            _rdx = np.where(
+                ((LpN.getDimensionAt(1).data() >= data.RrsepMin) &
+                 (LpN.getDimensionAt(1).data() <= data.RrsepMax)))[0]
+            Lpar = np.mean(tmp[_rdx])
+            dLpar = np.std(tmp[_rdx])
+            _dBlob = data.FWHM*np.sqrt(
+                np.power(data.vrExB, 2) +
+                np.power(data.vpol3, 2))
+            _numerator = _dBlob * np.power(0.88, 1./5)
+            _denominator = (np.power(Lpar, 2./5) *
+                            np.power(data.rhos, 4./5.))
+            Theta = np.power(_numerator/_denominator, 5./2.)
             dTheta = Theta * np.sqrt(
                 (data.FWHMerr / data.FWHM) ** 2 +
                 (data.vrExBerr / data.vrExB) ** 2 +
