@@ -805,17 +805,17 @@ class Turbo(object):
         # for some reason the use of the couple Top bottom yealds
         # unreliable results. We introduce a confidence as normalized
         # difference and eventually if too large we use only
-        # the couplbe Top middle
+        # the couple Top middle
         confidence = (vpA-vpB)/(vpA)
         if confidence > 0.2:
             vP = vpA
             vPErr = vpAS
         else:
-        # now determine the weighted average and corresponding error
+            # now determine the weighted average and
+            # corresponding error
             vP = np.average(np.asarray([vpA, vpB]),
                             weights=np.asarray([1./vpAS, 1./vpBS]))
             vPErr = np.std(np.asarray([vpA, vpB]))
-        
         # -------------------
         # now do the same
         # for the radial ones
@@ -883,7 +883,6 @@ class Turbo(object):
         dvZ = vZ * _dumm
         return vZ, dvZ, vP, vR
 
-        
     def _computeLambda(self, rrsep=[0.001,0.003],
                        trange=[0.8,0.9], Lp='Div'):
         """
@@ -936,19 +935,24 @@ class Turbo(object):
                 LpN = self._filament.getNode(r'\LPDIVU')
             # the input Data has all the variables we need to compute
             # the averages
-            _idx = np.where(((LpN.getDimensionAt(0).data() >= data.tmin-0.06) &
-                             (LpN.getDimensionAt(0).data() <= data.tmax + 0.06)))[0]
+            _idx = np.where(
+                ((LpN.getDimensionAt(0).data() >= data.tmin-0.06) &
+                 (LpN.getDimensionAt(0).data() <= data.tmax + 0.06)))[0]
             # average over time
-            tmp = np.nanmean(LpN.data()[_idx, :],axis=0)
-            tmpstd = np.nanstd(LpN.data()[_idx, :], axis=0)
+            tmp = np.nanmean(LpN.data()[_idx, :], axis=0)
             # average over distance from the separatrix
-            _rdx = np.where(((LpN.getDimensionAt(1).data() >= data.RrsepMin) &
-                             (LpN.getDimensionAt(1).data() <= data.RrsepMax)))[0]
-            Lpar = np.mean(tmp[_rdx],weights=1./tmpstd)
-            dLpar = np.std(tmp[_rdx],weights=1./tmpstd)
-            Theta = ((data.FWHM * np.sqrt(
-                data.vrExB ** 2 + data.vpol3 ** 2)) ** (5 / 2.) * np.sqrt(0.88)) / \
-                    (Lpar * data.rhos ** 2)
+            _rdx = np.where(
+                ((LpN.getDimensionAt(1).data() >= data.RrsepMin) &
+                 (LpN.getDimensionAt(1).data() <= data.RrsepMax)))[0]
+            Lpar = np.mean(tmp[_rdx])
+            dLpar = np.std(tmp[_rdx])
+            _dBlob = data.FWHM*np.sqrt(
+                np.power(data.vrExB, 2) +
+                np.power(data.vpol3, 2))
+            _numerator = _dBlob * np.power(0.88, 1./5)
+            _denominator = (np.power(Lpar, 2./5) *
+                            np.power(data.rhos, 4./5.))
+            Theta = np.power(_numerator/_denominator, 5./2.)
             dTheta = Theta * np.sqrt(
                 (data.FWHMerr / data.FWHM) ** 2 +
                 (data.vrExBerr / data.vrExB) ** 2 +
@@ -991,13 +995,8 @@ class Turbo(object):
                       _Epol[ii].min())
         Erad = np.abs(data.sel(sig='Erad')[ii].max().item() -
                       data.sel(sig='Erad')[ii].min().item())
-        EpolErr = np.abs(
-            np.max(data.sel(sig='Epol').values[ii] + data.err[1, ii]).item() -
-            np.min(data.sel(sig='Epol').values[ii] - data.err[1, ii]).item())
-        EradErr = np.abs(
-            np.max(data.sel(sig='Erad').values[ii] + data.err[2, ii]).item() -
-            np.min(data.sel(sig='Erad').values[ii] - data.err[2, ii]).item())
-
+        EpolErr = np.mean(data.err[1, ii])
+        EradErr = np.mean(data.err[2, ii])
         out = {'Er': Erad, 'ErErr': EradErr,
                'Epol': Epol, 'EpolErr': EpolErr}
         return out
