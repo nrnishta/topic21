@@ -12,6 +12,7 @@ import langmuir
 import xarray as xray
 import libes
 import logging
+from six.moves import input
 from lmfit.models import GaussianModel
 
 
@@ -117,7 +118,7 @@ class Filaments(object):
         # saturation current
         self.vfArr = {}
         self.isArr = {}
-        for n in namesC.itervalues():
+        for n in namesC.values():
             if n[:6] == 'Isat_m':
                 self.isArr[n] = dict([('data', -Mhc(n).data),
                                       ('t', Mhc(n).time),
@@ -133,7 +134,7 @@ class Filaments(object):
                                       ('x', self.RZgrid[n[-3:]]['x']),
                                       ('name', n)])
 
-        for n in namesG.itervalues():
+        for n in namesG.values():
             if n[:6] == 'Isat_m':
                 self.isArr[n] = dict([('data', -Mhg(n).data),
                                       ('t', Mhg(n).time),
@@ -151,10 +152,10 @@ class Filaments(object):
 
         # generale also the list of names for is and vf
         self.isName = []
-        for p in self.isArr.itervalues():
+        for p in self.isArr.values():
             self.isName.append(p['name'])
         self.vfName = []
-        for p in self.vfArr.itervalues():
+        for p in self.vfArr.values():
             self.vfName.append(p['name'])
 
         Mhc.close()
@@ -182,7 +183,7 @@ class Filaments(object):
 
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)
-        for probe in self.RZgrid.iterkeys():
+        for probe in self.RZgrid.keys():
             if 'Isat_' + probe in self.isArr.keys():
                 col = 'red'
             elif 'Ufl_' + probe in self.vfArr.keys():
@@ -214,7 +215,8 @@ class Filaments(object):
 
         Parameters
         ----------
-        None
+        trange
+            2d array to eventually load in a given time window
 
         Returns
         -------
@@ -271,10 +273,16 @@ class Filaments(object):
         trange : :obj: list
             List of the type [tmin, tmax]
 
-        interElm : :obj: Boolean
+        interELM : :obj: Boolean
              If true create an appropriate mask for the
              signal keeping only the interELM values (Not yet
              implemented)
+        block
+            array of the form [min,max] use to mask values of isat due to the
+            arc prevention system on Isat
+        usedda
+            Boolean, default is False. If true uses the saved values of ELM in
+            shotfile
         """
 
         # firs of all limit the isAt and vfFloat to the desired time interval
@@ -290,7 +298,7 @@ class Filaments(object):
             for p in self.vfName:
                 print(p)
 
-            Probe = str(raw_input('Provide the probe '))
+            Probe = str(input('Provide the probe '))
 
         if Probe[:4] == 'Isat':
             # for the ion saturation current
@@ -411,11 +419,11 @@ class Filaments(object):
 
         isOut = copy.deepcopy(self.isArr)
         vfOut = copy.deepcopy(self.vfArr)
-        for p in isOut.itervalues():
+        for p in isOut.values():
             _idx = ((p['t'] >= trange[0]) & (p['t'] <= trange[1]))
             p['data'] = p['data'][_idx]
             p['t'] = p['t'][_idx]
-        for p in vfOut.itervalues():
+        for p in vfOut.values():
             _idx = ((p['t'] >= trange[0]) & (p['t'] <= trange[1]))
             p['data'] = p['data'][_idx]
             p['t'] = p['t'][_idx]
@@ -548,16 +556,16 @@ class Filaments(object):
         """
 
         if x.ndim != 1:
-            raise ValueError, "smooth only accepts 1 dimension arrays."
+            raise ValueError("smooth only accepts 1 dimension arrays.")
 
         if x.size < window_len:
-            raise ValueError, "Input vector needs to be bigger than window size."
+            raise ValueError("Input vector needs to be bigger than window size.")
 
         if window_len < 3:
             return x
 
         if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-            raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+            raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
         s=np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
 
