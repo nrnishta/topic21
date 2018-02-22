@@ -1,5 +1,5 @@
 from __future__ import print_function
-import timeseries
+from ..general import timeseries
 import dd
 import eqtools
 import numpy as np
@@ -7,10 +7,12 @@ import matplotlib as mpl
 import copy
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
-from time_series_tools import identify_bursts2
+from ..general.time_series_tools import identify_bursts2
 import langmuir
 import xarray as xray
 import libes
+import logging
+from lmfit.models import GaussianModel
 
 
 class Filaments(object):
@@ -88,7 +90,7 @@ class Filaments(object):
                   'm15': {'x': -3.5, 'z': -16.5, 'r': 8},
                   'm16': {'x': -10, 'z': -16.5, 'r': 8}}
         self.RZgrid = {}
-        for probe in RZgrid.iterkeys():
+        for probe in RZgrid.keys():
             x, y = self._rotate(
                 (RZgrid[probe]['x'], RZgrid[probe]['z']), np.radians(angle))
             self.RZgrid[probe] = {
@@ -342,7 +344,11 @@ class Filaments(object):
         data.attrs['TauB'] = delta
         data.attrs['TauBErr'] = errDelta
         # compute the lags and save as attributes. 
-        data.attrs['Lags'] = self._computeLag(cs)
+        data.attrs['Lags'], data.attrs['LagsErr'] = self._computeLag(cs)
+        # given the geometry of the probe head we can now evaluate the
+        # appropriate velocity using binormal velocity estimate done
+        # accordingly to Carralero NF 2014
+
         # now we need to compute the lambda through the langmuir class
         # since we are using small intervals in the analysis
         # we 
@@ -604,25 +610,38 @@ class Filaments(object):
         """
         Given the output of conditional average compute the
         time lag corresponding to the maximum correlation
-        of each of the structure with respect to the first
+        of each of the structure with respect to the first. In order
+        increase resolution we make a gaussian fit of the cross-correlation
+        function in analogy to what done for TCV using the
+        lmfit class
 
         Parameters
         ----------
-        data : ndarray
+        data
             ndarray of shape (#sig, #tau) with the results
             of conditional average on multiple signal
 
-        Results
+        Returns
         -------
-        ndarray of lenght (#sig-1) with the values of
-        Tau Lag
-
+        tau
+            ndarray of length (#sig -1) with the values of cross-correlation time
+        tauErr
+            ndarry of length (#sig-1) with the errors of cross-correlation time
         """
+
         lag = np.arange(data.shape[1]) - data.shape[1]/2
+        lag *= self.dt
         tau = np.zeros(data.shape[0]-1)
+        tauErr = np.zeros(data.shape[0]-1)
         for i in range(data.shape[0]-1):
             xcor = np.correlate(data[i+1, :], data[0, :], mode='same')
             xcor /= np.sqrt(np.dot(data[i+1, :], data[i+1, :]) *
                             np.dot(data[0, :], data[0, :]))
-            tau[i-1] = lag[xcor.argmax()]*self.dt
-        return tau
+            mod = GaussianModel()
+            pars = mod.guess(xcor, x=lag)
+            pars['sigma'].set(value=1e-5,vary=True)
+            out = mod.fit(xcor,pars,x==lag)
+            tau[i-1] = out['center'].value
+            tauErr[i-1] = out['center'].stderr
+
+        return tau,tauErr
