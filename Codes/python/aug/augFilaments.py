@@ -1,5 +1,5 @@
 from __future__ import print_function
-from ..general import timeseries
+import timeseries
 import dd
 import eqtools
 import numpy as np
@@ -7,14 +7,15 @@ import matplotlib as mpl
 import copy
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
-from ..general.time_series_tools import identify_bursts2
+from time_series_tools import identify_bursts2
 import langmuir
 import xarray as xray
 import libes
 import logging
 from six.moves import input
 from lmfit.models import GaussianModel
-
+import time
+from collections import OrderedDict
 
 class Filaments(object):
     """
@@ -45,7 +46,9 @@ class Filaments(object):
         self.shot = shot
         # load the equilibria
         try:
+            start = time.time()
             self.Eq = eqtools.AUGDDData(self.shot)
+            print('Equilibrium loaded in %5.4f' % (time.time()-start) +' s')
         except BaseException:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
@@ -53,7 +56,9 @@ class Filaments(object):
         self.Probe = Probe
         if self.Probe == 'HFF':
             self._HHFGeometry(angle=80)
+            start = time.time()
             self._loadHHF()
+            print('Probe signal loaded in %5.4f' % (time.time() - start) + ' s')
         else:
             logging.warning('Other probe head not implemented yet')
         # load the data from Langmuir probes
@@ -61,8 +66,10 @@ class Filaments(object):
         # load the profile of the Li-Beam so that
         # we can evaluate the Efolding length
         try:
+            start = time.time()
             self.LiB = libes.Libes(self.shot)
             self._tagLiB = True
+            print('LiB loaded in %5.4f' % (time.time() - start) + ' s')
         except:
             self._tagLiB = False
             logging.warning('Li-Beam not found for shot %5i' %shot )
@@ -114,54 +121,80 @@ class Filaments(object):
         # read the names of all the signal in Mhc
         namesC = Mhc.getObjectNames()
         namesG = Mhg.getObjectNames()
-        # save a list with the names of the acquired ion
-        # saturation current
-        self.vfArr = {}
-        self.isArr = {}
+        # now save as xarray with positions
+        # as attributes
+        vfArr = []
+        vfName = []
+        isArr = []
+        isName = []
+        vpArr = []
+        vpName = []
         for n in namesC.values():
             if n[:6] == 'Isat_m':
-                self.isArr[n] = dict([('data', -Mhc(n).data),
-                                      ('t', Mhc(n).time),
-                                      ('r', self.RZgrid[n[-3:]]['r']),
-                                      ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']),
-                                      ('name', n)])
+                isArr.append(-Mhc(n).data)
+                isName.append(n)
             elif n[:5] == 'Ufl_m':
-                self.vfArr[n] = dict([('data', Mhc(n).data),
-                                      ('t', Mhc(n).time),
-                                      ('r', self.RZgrid[n[-3:]]['r']),
-                                      ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']),
-                                      ('name', n)])
+                vfArr.append(Mhc(n).data)
+                vfName.append(n)
+            elif n[:6] == 'Usat_m':
+                vpArr.append(Mhc(n).data)
+                vpName.append(n)
 
         for n in namesG.values():
             if n[:6] == 'Isat_m':
-                self.isArr[n] = dict([('data', -Mhg(n).data),
-                                      ('t', Mhg(n).time),
-                                      ('r', self.RZgrid[n[-3:]]['r']),
-                                      ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']),
-                                      ('name', n)])
+                isArr.append(-Mhg(n).data)
+                isName.append(n)
             elif n[:5] == 'Ufl_m':
-                self.vfArr[n] = dict([('data', Mhg(n).data),
-                                      ('t', Mhg(n).time),
-                                      ('r', self.RZgrid[n[-3:]]['r']),
-                                      ('z', self.RZgrid[n[-3:]]['z']),
-                                      ('x', self.RZgrid[n[-3:]]['x']),
-                                      ('name', n)])
+                vfArr.append(Mhg(n).data)
+                vfName.append(n)
+            elif n[:6] == 'Usat_m':
+                vpArr.append(Mhg(n).data)
+                vpName.append(n)
 
         # generale also the list of names for is and vf
-        self.isName = []
-        for p in self.isArr.values():
-            self.isName.append(p['name'])
-        self.vfName = []
-        for p in self.vfArr.values():
-            self.vfName.append(p['name'])
-
+        self.isName = isName
+        self.vfName = vfName
+        self.vpName = vpName
+        # read the appropriate time basis. They have the same time basis
+        t = Mhc(isName[0]).time
         Mhc.close()
         Mhg.close()
+        self.isArr = xray.DataArray(np.asarray(isArr),
+                                    coords=[isName, t],
+                                    dims=['Probe','t'])
+        # add as attributes the coordinates of the single tips
+        posDictionary ={}
+        for p in self.isArr.Probe.values:
+            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                          ('z', self.RZgrid[p[-3:]]['z']),
+                                          ('x', self.RZgrid[p[-3:]]['x'])])
+        self.isArr.attrs['Grid'] = posDictionary
+        # repeat for the floating potential
+        self.vfArr = xray.DataArray(np.asarray(vfArr),
+                                    coords=[vfName, t],
+                                    dims=['Probe','t'])
+        # add as attributes the coordinates of the single tips
+        posDictionary ={}
+        for p in self.vfArr.Probe.values:
+            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                          ('z', self.RZgrid[p[-3:]]['z']),
+                                          ('x', self.RZgrid[p[-3:]]['x'])])
+        self.vfArr.attrs['Grid'] = posDictionary
+
+        # finally for the applied potential
+        self.vpArr = xray.DataArray(np.asarray(vpArr),
+                                    coords=[vpName, t],
+                                    dims=['Probe','t'])
+        # add as attributes the coordinates of the single tips
+        posDictionary ={}
+        for p in self.vpArr.Probe.values:
+            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                          ('z', self.RZgrid[p[-3:]]['z']),
+                                          ('x', self.RZgrid[p[-3:]]['x'])])
+
+        self.vpArr.attrs['Grid'] = posDictionary
         # generate a class aware time basis
-        self._timebasis = self.vfArr[self.vfName[0]]['t']
+        self._timebasis = self.vfArr.t.values
         # generate a class aware dt
         self.dt = (self._timebasis.max()-self._timebasis.min())/(
             self._timebasis.size-1)
@@ -184,9 +217,9 @@ class Filaments(object):
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)
         for probe in self.RZgrid.keys():
-            if 'Isat_' + probe in self.isArr.keys():
+            if 'Isat_' + probe in self.isName:
                 col = 'red'
-            elif 'Ufl_' + probe in self.vfArr.keys():
+            elif 'Ufl_' + probe in self.vfName:
                 col = 'blue'
             else:
                 col = 'black'
@@ -254,7 +287,7 @@ class Filaments(object):
             self.tPos = _t
 
     def blobAnalysis(self, Probe='Isat_m01', trange=[2, 3],
-                     interELM=False, block=[0.015, 0.12],
+                     interELM=False, block=190,
                      usedda=False, threshold=3000,
                      otherProbe=['Isat_m10', 'Isat_m14', 'Isat_m07'],
                      **kwargs):
@@ -278,18 +311,23 @@ class Filaments(object):
              signal keeping only the interELM values (Not yet
              implemented)
         block
-            array of the form [min,max] use to mask values of isat due to the
-            arc prevention system on Isat
+            This is the value used to determine the threshold in the applied
+            voltage of the ion saturation current to mask the unuseful time window
+            where active arc-preventing system was in operation
         usedda
             Boolean, default is False. If true uses the saved values of ELM in
             shotfile
         """
 
         # firs of all limit the isAt and vfFloat to the desired time interval
-        isSignal, vfSignal = self._defineTime(trange=trange)
+        isSignal = self.isArr.where((self.isArr.t <= trange[0]) &
+                                    (self.isArr.t <= trange[1]),drop=True)
+        vfSignal = self.vfArr.where((self.vfArr.t <= trange[0]) &
+                                    (self.vfArr.t <= trange[1]),drop=True)
+        vpSignal = self.vpArr.where((self.vpArr.t <= trange[0]) &
+                                    (self.vpArr.t <= trange[1]),drop=True)
 
-        self.blockmin = block[0]
-        self.blockmax = block[1]
+        self.block = block
         if Probe not in self.isName + self.vfName:
             print('Available Ion saturation current signals are')
             for p in self.isName:
@@ -305,10 +343,7 @@ class Filaments(object):
             # we need to mask for the arcless system
             # and propagate the mask for
 
-            _idx = np.where((isSignal[Probe]['data'] > self.blockmin) &
-                         (isSignal[Probe]['data'] < self.blockmax))[0]
-            dt = (isSignal[Probe]['t'].max() - isSignal[Probe]['t'].min()) / (
-                isSignal[Probe]['t'].size - 1)
+            _idx = np.where((np.abs(vpSignal.self(Probe='Usat'+Probe[4:]).values) >= self.block))[0]
             if interELM:
                 self._maskElm(threshold=threshold, usedda=usedda,
                               trange=trange)            
@@ -318,33 +353,28 @@ class Filaments(object):
             else:
                 self._idx = _idx
             # we need to generate a dummy time basis
-            tDummy = np.arange(np.count_nonzero(self._idx)) * dt + trange[0]
+            tDummy = np.arange(np.count_nonzero(self._idx)) * self.dt + trange[0]
 
             self.blob = timeseries.Timeseries(
-                isSignal[Probe]['data'][self._idx], tDummy)
+                isSignal.self(Probe=Probe).values[self._idx], tDummy)
             self.refSignal = Probe
         else:
             self.blob = timeseries.Timeseries(
-                vfSignal[Probe]['data'], isSignal[Probe]['t'])
+                vfSignal.self(Probe=Probe).values, vfSignal.self(Probe=Probe).t.values)
             self.refSignal = Probe
             self._idx = None
         # to have also the values of the signals in the considered
         # interval for al the collected signal
-        self.iSChunck = isSignal
-        self.vFChunck = vfSignal
+        self.iSChunck = isSignal.values
+        self.vFChunck = vfSignal.values
 
         # this is the cas multiple
-        sigIn = []
-        for p in otherProbe:
-            if p[:4] == 'Isat':
-                sigIn.append(self.iSChunck[p]['data'][self._idx])
-            else:
-                sigIn.append(self.vFChunck[p]['data'][self._idx])
-        self._sigIn = np.asarray(sigIn)
-        cs, tau, err, amp = self.blob.casMultiple(self._sigIn, **kwargs)
+        self._sigIn = xray.concat([isSignal[:, self._idx],vfSignal[:, self._idx]],dim=Probe)
+        cs, tau, err, amp = self.blob.casMultiple(self._sigIn.values, **kwargs)
         # now build the xarray used as output
-        names = np.append(Probe, otherProbe)
-        data = xray.DataArray(cs, coords=[names, tau], dims=['sig', 't'])
+        data = xray.DataArray(cs,
+                              coords=[self._sigIn.probe.values, tau],
+                              dims=['sig', 't'])
         data.attrs['err'] = err
         data.attrs['Amp'] = err
         # start adding the interesting quantities
@@ -396,38 +426,6 @@ class Filaments(object):
             data.attrs['Efold'] = efold
 
         return data
-
-    def _defineTime(self, trange=[2, 3]):
-        """
-        Internal use to limit to a given time interval
-
-        Parameters
-        ----------
-        trange : :obj: `ndarray`
-            2D element of the form [tmin, tmax]
-
-        Returns
-        -------
-        isOut : Dictionary
-            Contains all the ion saturation
-            currents in the limited time interval
-
-        vfOut : Dictionary
-            Contains all the floating potential
-            in the limited time interval
-        """
-
-        isOut = copy.deepcopy(self.isArr)
-        vfOut = copy.deepcopy(self.vfArr)
-        for p in isOut.values():
-            _idx = ((p['t'] >= trange[0]) & (p['t'] <= trange[1]))
-            p['data'] = p['data'][_idx]
-            p['t'] = p['t'][_idx]
-        for p in vfOut.values():
-            _idx = ((p['t'] >= trange[0]) & (p['t'] <= trange[1]))
-            p['data'] = p['data'][_idx]
-            p['t'] = p['t'][_idx]
-        return isOut, vfOut
 
     def _rotate(self, point, angle):
         """
@@ -637,7 +635,7 @@ class Filaments(object):
             ndarry of length (#sig-1) with the errors of cross-correlation time
         """
 
-        lag = np.arange(data.shape[1]) - data.shape[1]/2
+        lag = np.arange(data.shape[1],dtype='float') - data.shape[1]/2
         lag *= self.dt
         tau = np.zeros(data.shape[0]-1)
         tauErr = np.zeros(data.shape[0]-1)
@@ -648,7 +646,7 @@ class Filaments(object):
             mod = GaussianModel()
             pars = mod.guess(xcor, x=lag)
             pars['sigma'].set(value=1e-5,vary=True)
-            out = mod.fit(xcor,pars,x==lag)
+            out = mod.fit(xcor,pars,x=lag)
             tau[i-1] = out['center'].value
             tauErr[i-1] = out['center'].stderr
 
