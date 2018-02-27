@@ -17,6 +17,8 @@ from lmfit.models import GaussianModel
 import time
 from collections import OrderedDict
 
+
+# noinspection PyDefaultArgument
 class Filaments(object):
     """
     Class for analysis of Filaments from the HFF probe on the
@@ -33,6 +35,7 @@ class Filaments(object):
         String indicating the probe head used. Possible values are
         - `HFF`: for High Heat Flux probe for fluctuation measurements
         - 'IPP': Innsbruck-Padua probe head
+        - '14Pin' : 14 Pin probe head
 
     Requirements
     ------------
@@ -48,7 +51,7 @@ class Filaments(object):
         try:
             start = time.time()
             self.Eq = eqtools.AUGDDData(self.shot)
-            print('Equilibrium loaded in %5.4f' % (time.time()-start) +' s')
+            print('Equilibrium loaded in %5.4f' % (time.time() - start) + ' s')
         except BaseException:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
@@ -72,7 +75,7 @@ class Filaments(object):
             print('LiB loaded in %5.4f' % (time.time() - start) + ' s')
         except:
             self._tagLiB = False
-            logging.warning('Li-Beam not found for shot %5i' %shot )
+            logging.warning('Li-Beam not found for shot %5i' % shot)
 
     def _HHFGeometry(self, angle=80.):
         """
@@ -161,43 +164,43 @@ class Filaments(object):
         Mhg.close()
         self.isArr = xray.DataArray(np.asarray(isArr),
                                     coords=[isName, t],
-                                    dims=['Probe','t'])
+                                    dims=['Probe', 't'])
         # add as attributes the coordinates of the single tips
-        posDictionary ={}
+        posDictionary = {}
         for p in self.isArr.Probe.values:
-            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
-                                          ('z', self.RZgrid[p[-3:]]['z']),
-                                          ('x', self.RZgrid[p[-3:]]['x'])])
+            posDictionary[p] = OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                            ('z', self.RZgrid[p[-3:]]['z']),
+                                            ('x', self.RZgrid[p[-3:]]['x'])])
         self.isArr.attrs['Grid'] = posDictionary
         # repeat for the floating potential
         self.vfArr = xray.DataArray(np.asarray(vfArr),
                                     coords=[vfName, t],
-                                    dims=['Probe','t'])
+                                    dims=['Probe', 't'])
         # add as attributes the coordinates of the single tips
-        posDictionary ={}
+        posDictionary = {}
         for p in self.vfArr.Probe.values:
-            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
-                                          ('z', self.RZgrid[p[-3:]]['z']),
-                                          ('x', self.RZgrid[p[-3:]]['x'])])
+            posDictionary[p] = OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                            ('z', self.RZgrid[p[-3:]]['z']),
+                                            ('x', self.RZgrid[p[-3:]]['x'])])
         self.vfArr.attrs['Grid'] = posDictionary
 
         # finally for the applied potential
         self.vpArr = xray.DataArray(np.asarray(vpArr),
                                     coords=[vpName, t],
-                                    dims=['Probe','t'])
+                                    dims=['Probe', 't'])
         # add as attributes the coordinates of the single tips
-        posDictionary ={}
+        posDictionary = {}
         for p in self.vpArr.Probe.values:
-            posDictionary[p]=OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
-                                          ('z', self.RZgrid[p[-3:]]['z']),
-                                          ('x', self.RZgrid[p[-3:]]['x'])])
+            posDictionary[p] = OrderedDict([('r', self.RZgrid[p[-3:]]['r']),
+                                            ('z', self.RZgrid[p[-3:]]['z']),
+                                            ('x', self.RZgrid[p[-3:]]['x'])])
 
         self.vpArr.attrs['Grid'] = posDictionary
         # generate a class aware time basis
         self._timebasis = self.vfArr.t.values
         # generate a class aware dt
-        self.dt = (self._timebasis.max()-self._timebasis.min())/(
-            self._timebasis.size-1)
+        self.dt = (self._timebasis.max() - self._timebasis.min()) / (
+                self._timebasis.size - 1)
 
     def plotProbeSetup(self, save=False):
         """
@@ -272,10 +275,10 @@ class Filaments(object):
         # check if trange exist or not
         if not trange:
             # convert in Rhopoloidal
-        
+
             self.rhoProbe = np.zeros(R.size)
             for r, t, i in zip(R, tPos, range(R.size)):
-                self.rhoProbe[i]=self.Eq.rz2psinorm(r, self.Zmem*1e-3, t, sqrt=True)
+                self.rhoProbe[i] = self.Eq.rz2psinorm(r, self.Zmem * 1e-3, t, sqrt=True)
             self.tPos = tPos
         else:
             _idx = np.where(((tPos >= trange[0]) & (tPos <= trange[1])))[0]
@@ -283,13 +286,13 @@ class Filaments(object):
             _t = tPos[_idx]
             self.rhoProbe = np.zeros(_R.size)
             for r, t, i in zip(_R, _t, range(_R.size)):
-                self.rhoProbe[i]=self.Eq.rz2psinorm(r, self.Zmem*1e-3, t, sqrt=True)
+                self.rhoProbe[i] = self.Eq.rz2psinorm(r, self.Zmem * 1e-3, t, sqrt=True)
             self.tPos = _t
 
     def blobAnalysis(self, Probe='Isat_m01', trange=[2, 3],
                      interELM=False, block=190,
                      usedda=False, threshold=3000,
-                     otherProbe=['Isat_m10', 'Isat_m14', 'Isat_m07'],
+                     otherProbe=None,
                      **kwargs):
         """
         Given the probe call the appropriate timeseries class
@@ -317,15 +320,20 @@ class Filaments(object):
         usedda
             Boolean, default is False. If true uses the saved values of ELM in
             shotfile
+        otherProbe: List with the names of the other probe used for the computation
+            of cross-correlation. If not given it uses all the available floating
+            potential and ion saturation current
+        threshold
+            Indicate the threshold on Ipolsola used to disentangle the ELMs
         """
 
         # firs of all limit the isAt and vfFloat to the desired time interval
-        isSignal = self.isArr.where((self.isArr.t <= trange[0]) &
-                                    (self.isArr.t <= trange[1]),drop=True)
-        vfSignal = self.vfArr.where((self.vfArr.t <= trange[0]) &
-                                    (self.vfArr.t <= trange[1]),drop=True)
-        vpSignal = self.vpArr.where((self.vpArr.t <= trange[0]) &
-                                    (self.vpArr.t <= trange[1]),drop=True)
+        isSignal = self.isArr.where((self.isArr.t >= trange[0]) &
+                                    (self.isArr.t <= trange[1]), drop=True)
+        vfSignal = self.vfArr.where((self.vfArr.t >= trange[0]) &
+                                    (self.vfArr.t <= trange[1]), drop=True)
+        vpSignal = self.vpArr.where((self.vpArr.t >= trange[0]) &
+                                    (self.vpArr.t <= trange[1]), drop=True)
 
         self.block = block
         if Probe not in self.isName + self.vfName:
@@ -337,26 +345,25 @@ class Filaments(object):
                 print(p)
 
             Probe = str(input('Provide the probe '))
-
         if Probe[:4] == 'Isat':
             # for the ion saturation current
             # we need to mask for the arcless system
             # and propagate the mask for
 
-            _idx = np.where((np.abs(vpSignal.self(Probe='Usat'+Probe[4:]).values) >= self.block))[0]
+            _idx = np.where((np.abs(vpSignal.sel(Probe='Usat' + Probe[4:]).values) >= self.block))[0]
             if interELM:
                 self._maskElm(threshold=threshold, usedda=usedda,
-                              trange=trange)            
+                              trange=trange)
                 # now we need to combine the inter ELM mask and the
                 # mask for arcless
                 self._idx = _idx[np.in1d(_idx, self._interElm, assume_unique=True)]
             else:
                 self._idx = _idx
             # we need to generate a dummy time basis
-            tDummy = np.arange(np.count_nonzero(self._idx)) * self.dt + trange[0]
+            tDummy = np.arange(self._idx.size) * self.dt + trange[0]
 
             self.blob = timeseries.Timeseries(
-                isSignal.self(Probe=Probe).values[self._idx], tDummy)
+                isSignal.sel(Probe=Probe).values[self._idx], tDummy)
             self.refSignal = Probe
         else:
             self.blob = timeseries.Timeseries(
@@ -365,15 +372,38 @@ class Filaments(object):
             self._idx = None
         # to have also the values of the signals in the considered
         # interval for al the collected signal
-        self.iSChunck = isSignal.values
-        self.vFChunck = vfSignal.values
-
-        # this is the cas multiple
-        self._sigIn = xray.concat([isSignal[:, self._idx],vfSignal[:, self._idx]],dim=Probe)
+        self.iSChunck = isSignal
+        self.vFChunck = vfSignal
+        if otherProbe is None:
+            # determine the name of isSignal which are different
+            # with respect to the probe
+            if Probe[:4] == 'Isat':
+                _Name = [n for n in self.isName if n != Probe]
+                self._sigIn = xray.concat([isSignal.sel(Probe=_Name)[:, self._idx],
+                                           vfSignal[:, self._idx]],
+                                          dim='Probe')
+            else:
+                _Name = [n for n in self.vfName if n != Probe]
+                self._sigIn = xray.concat([isSignal[:, self._idx],
+                                           vfSignal.sel(Probe=_Name)[:, self._idx]],
+                                          dim='Probe')
+        else:
+            if otherProbe[0] in self.isName:
+                a = isSignal.sel(Probe=otherProbe[0])
+            else:
+                a = vfSignal.sel(Probe=otherProbe[0])
+            for p in otherProbe[1:]:
+                if p in self.isName:
+                    a = xray.concat([a, isSignal.sel(Probe=p)], dim='Probe')
+                else:
+                    a = xray.concat([a, vfSignal.sel(Probe=p)], dim='Probe')
+            self._sigIn = a
         cs, tau, err, amp = self.blob.casMultiple(self._sigIn.values, **kwargs)
         # now build the xarray used as output
         data = xray.DataArray(cs,
-                              coords=[self._sigIn.probe.values, tau],
+                              coords=[
+                                  np.insert(self._sigIn.Probe.values, 1, Probe),
+                                  tau],
                               dims=['sig', 't'])
         data.attrs['err'] = err
         data.attrs['Amp'] = err
@@ -382,23 +412,24 @@ class Filaments(object):
         data.attrs['TauB'] = delta
         data.attrs['TauBErr'] = errDelta
         # compute the lags and save as attributes. 
-        data.attrs['Lags'], data.attrs['LagsErr'] = self._computeLag(cs)
+        data.attrs['Lags'] = self._computeLag(data)
         # given the geometry of the probe head we can now evaluate the
         # appropriate velocity using binormal velocity estimate done
-        # accordingly to Carralero NF 2014
-
+        # accordingly to Carralero NF 2014. This should be a probe head aware
+        # method since the other
+        vr, vz, vperp = self._computeVperp(data)
         # now we need to compute the lambda through the langmuir class
         # since we are using small intervals in the analysis
         # we 
         if interELM:
             rhoLambda, Lambda = self.Target.computeLambda(
                 Type='OuterTarget',
-                trange=[trange[0]-0.01, trange[1]+0.01],
+                trange=[trange[0] - 0.01, trange[1] + 0.01],
                 interelm=True, threshold=threshold)
         else:
             rhoLambda, Lambda = self.Target.computeLambda(
                 Type='OuterTarget',
-                trange=[trange[0]-0.01, trange[1]+0.01])
+                trange=[trange[0] - 0.01, trange[1] + 0.01])
         # compute the lambda corresponding to the chosen probe
         self.loadPosition(trange=trange)
         # determine the rho corresponding to the Probe
@@ -425,6 +456,8 @@ class Filaments(object):
             data.attrs['rhoLiB'] = self.LiB.rho
             data.attrs['Efold'] = efold
 
+
+
         return data
 
     def _rotate(self, point, angle):
@@ -436,6 +469,7 @@ class Filaments(object):
         qy = np.sin(angle) * px + np.cos(angle) * py
         return qx, qy
 
+    # noinspection PyDefaultArgument
     def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
                  check=False):
         """
@@ -469,7 +503,7 @@ class Filaments(object):
             ELM = dd.shotfile("ELM", self.shot, experiment='AUGD')
             elmd = ELM("t_endELM", tBegin=ti, tEnd=tf)
             # limit to the ELM included in the trange
-            _idx = np.where((elmd.time>= trange[0]) & (elmd.time <= trange[1]))[0]
+            _idx = np.where((elmd.time >= trange[0]) & (elmd.time <= trange[1]))[0]
             self.tBegElm = eldm.time[_idx]
             self.tEndElm = elmd.data[_idx]
             ELM.close()
@@ -488,38 +522,36 @@ class Filaments(object):
             _idx, _idy = zip(*window)
             self.tBegElm = IpolT[np.asarray(_idx)]
             self.tEndElm = IpolT[np.asarray(_idy)]
+            if check:
+                fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
+                fig.subplots_adjust(bottom=0.15, left=0.15)
+                ax.plot(IpolT, IpolS, color='#1f77b4')
+                ax.set_xlabel(r't[s]')
+                ax.set_ylabel(r'Ipol SOL I')
+                ax.axhline(threshold, ls='--', color='#d62728')
+                for _ti, _te in zip(self.tBegElm, self.tEndElm):
+                    ax.axvline(_ti, ls='--', color='#ff7f0e')
+                    ax.axvline(_te, ls='--', color='#ff7f0e')
 
         # and now set the mask
         _dummyTime = self._timebasis[np.where((self._timebasis >= trange[0]) &
                                               (self._timebasis <= trange[1]))[0]]
 
         self._interElm = []
-        self._Elm=[]
+        self._Elm = []
         for i in range(self.tBegElm.size):
             _a = np.where((_dummyTime >= self.tBegElm[i]) &
                           (_dummyTime <= self.tEndElm[i]))[0]
             self._Elm.append(_a[:])
             try:
                 _a = np.where((_dummyTime >= self.tEndElm[i]) &
-                              (_dummyTime <= self.tBegElm[i+1]))[0]
+                              (_dummyTime <= self.tBegElm[i + 1]))[0]
                 self._interElm.append(_a[:])
             except:
                 pass
-                
+
         self._interElm = np.concatenate(np.asarray(self._interElm))
         self._Elm = np.concatenate(np.asarray(self._Elm))
-
-        if check:
-            fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
-            fig.subplots_adjust(bottom=0.15, left=0.15)
-            ax.plot(IpolT, IpolS, color='#1f77b4')
-            ax.set_xlabel(r't[s]')
-            ax.set_ylabel(r'Ipol SOL I')
-            ax.axhline(threshold, ls='--', color='#d62728')
-            for _ti, _te in zip(self.tBegElm, self.tEndElm):
-                ax.axvline(_ti, ls='--', color='#ff7f0e')
-                ax.axvline(_te, ls='--', color='#ff7f0e')
-
 
     def smooth(self, x, window_len=10, window='hanning'):
         """smooth the data using a window with requested size.
@@ -565,14 +597,14 @@ class Filaments(object):
         if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
             raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
-        s=np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
+        s = np.r_[2 * x[0] - x[window_len:1:-1], x, 2 * x[-1] - x[-1:-window_len:-1]]
 
-        if window == 'flat': #moving average
-            w = np.ones(window_len,'d')
+        if window == 'flat':  # moving average
+            w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
-        y = np.convolve(w/w.sum(), s, mode='same')
-        return y[window_len-1:-window_len+1]
+        y = np.convolve(w / w.sum(), s, mode='same')
+        return y[window_len - 1:-window_len + 1]
 
     def _computeDeltaT(self, x, y, e):
         """
@@ -619,35 +651,67 @@ class Filaments(object):
         of each of the structure with respect to the first. In order
         increase resolution we make a gaussian fit of the cross-correlation
         function in analogy to what done for TCV using the
-        lmfit class
+        lmfit class and determine the center of the gaussian
 
         Parameters
         ----------
         data
-            ndarray of shape (#sig, #tau) with the results
-            of conditional average on multiple signal
-
+            xarray DataArray containing the saved Conditional Average structure
         Returns
         -------
-        tau
-            ndarray of length (#sig -1) with the values of cross-correlation time
-        tauErr
-            ndarry of length (#sig-1) with the errors of cross-correlation time
+        Dictionary with keys indicating the names of the signals for which cross-correlation
+        are saved and reporting correlation and error
         """
 
-        lag = np.arange(data.shape[1],dtype='float') - data.shape[1]/2
+        lag = np.arange(data.shape[1], dtype='float') - data.shape[1] / 2
         lag *= self.dt
-        tau = np.zeros(data.shape[0]-1)
-        tauErr = np.zeros(data.shape[0]-1)
-        for i in range(data.shape[0]-1):
-            xcor = np.correlate(data[i+1, :], data[0, :], mode='same')
-            xcor /= np.sqrt(np.dot(data[i+1, :], data[i+1, :]) *
-                            np.dot(data[0, :], data[0, :]))
+        outDictionary = {}
+        _Name = [n for n in data.sig.values if n != self.refSignal]
+        for n in _Name:
+            a = data.sel(sig=n).values
+            b = data.sel(sig=self.refSignal).values
+            xcor = np.correlate(a,
+                                b,
+                                mode='same')
+            xcor /= np.sqrt(np.dot(a, a) *
+                            np.dot(b, b))
             mod = GaussianModel()
             pars = mod.guess(xcor, x=lag)
-            pars['sigma'].set(value=1e-5,vary=True)
-            out = mod.fit(xcor,pars,x=lag)
-            tau[i-1] = out['center'].value
-            tauErr[i-1] = out['center'].stderr
+            pars['sigma'].set(value=1e-5, vary=True)
+            out = mod.fit(xcor, pars, x=lag)
+            outDictionary[n + '-' + self.refSignal] = {'tau': out.params['center'].value,
+                                                       'err': out.params['center'].stderr}
 
-        return tau,tauErr
+        return outDictionary
+
+    def _computeVperp(self, data, probeTheta = 'Isat_m07', probeR = 'Isat_m02'):
+        """
+
+        Parameters
+        ----------
+        data
+            xarray DataArray containing all the information
+            needed for the computation as results from conditional average
+            samples and cross-correlation analysis
+        probeTheta
+            Name of the probe used for the poloidal cross-correlation
+        probeR
+            Name of the probe used for the radial cross-correlation
+        Returns
+        -------
+        Dictionary with values and error for vr, vz, vperp
+
+        """
+        Ltheta = np.abs(self.RZgrid[self.refSignal[-3:]]['z'] -
+                        self.RZgrid[self.refSignal[-3:]]['z'])
+        Lr = np.abs(self.RZgrid[self.refSignal[-3:]]['r'] -
+                    self.RZgrid[self.refSignal[-3:]]['r'])
+        # now identify the correct time delay
+        tTheta = data['Lags'][probeTheta +'-' self.refSignal]['tau']
+        tR = data['Lags'][probeR +'-' self.refSignal]['tau']
+        vperp = np.power(np.sqrt(np.power(tTheta/lTheta,2) +
+                                 np.power((2*tR-tTheta)/(2*Lr),2)),-1)
+        alpha = np.arcsin(vperp*tTheta/Ltheta)
+        vr = vperp*np.cos(alpha)
+        vz = vper*np.sin(alpha)
+        return vr,vz,vperp
