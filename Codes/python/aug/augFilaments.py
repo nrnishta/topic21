@@ -417,7 +417,10 @@ class Filaments(object):
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
         # method since the other
-#        vr, vz, vperp = self._computeVperp(data)
+        if self.Probe == 'HHF':
+            data.attrs['VperpD'] = self._computeVperp(data,
+                                                      probeTheta='Isat_m07',
+                                                      probeR='Isat_m02')
         # now we need to compute the lambda through the langmuir class
         # since we are using small intervals in the analysis
         # we 
