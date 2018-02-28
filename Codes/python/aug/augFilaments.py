@@ -417,7 +417,7 @@ class Filaments(object):
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
         # method since the other
-        vr, vz, vperp = self._computeVperp(data)
+#        vr, vz, vperp = self._computeVperp(data)
         # now we need to compute the lambda through the langmuir class
         # since we are using small intervals in the analysis
         # we 
@@ -702,16 +702,48 @@ class Filaments(object):
         Dictionary with values and error for vr, vz, vperp
 
         """
-        Ltheta = np.abs(self.RZgrid[self.refSignal[-3:]]['z'] -
+        Lz = 1e-3*np.abs(self.RZgrid[probeTheta[-3:]]['z'] -
                         self.RZgrid[self.refSignal[-3:]]['z'])
-        Lr = np.abs(self.RZgrid[self.refSignal[-3:]]['r'] -
+        Lr = 1e-3*np.abs(self.RZgrid[probeR[-3:]]['r'] -
                     self.RZgrid[self.refSignal[-3:]]['r'])
+        Lzr = 1e-3*np.abs(self.RZgrid[probeR[-3:]]['z'] -
+                    self.RZgrid[self.refSignal[-3:]]['z'])
         # now identify the correct time delay
-        tTheta = data['Lags'][probeTheta +'-' self.refSignal]['tau']
-        tR = data['Lags'][probeR +'-' self.refSignal]['tau']
-        vperp = np.power(np.sqrt(np.power(tTheta/lTheta,2) +
-                                 np.power((2*tR-tTheta)/(2*Lr),2)),-1)
-        alpha = np.arcsin(vperp*tTheta/Ltheta)
+        tZ = data.Lags[probeTheta +'-'+ self.refSignal]['tau']
+        tR = data.Lags[probeR +'-' + self.refSignal]['tau']
+        # and the corresponding errors
+        dtZ = data.Lags[probeTheta +'-'+ self.refSignal]['err']
+        dtR = data.Lags[probeR +'-' + self.refSignal]['err']
+
+        alpha = np.arctan(-Lr*tZ/(Lzr*tZ-Lz*tR))
+        vperp = Lz/tZ * np.sin(alpha)
         vr = vperp*np.cos(alpha)
-        vz = vper*np.sin(alpha)
-        return vr,vz,vperp
+        vz = vperp*np.sin(alpha)
+        # error propagation
+        # Error on alpha
+        _xdummy = (-Lr*tZ/(Lzr*tZ-tR*Lz))
+        dxdummy_dtz = (
+            -Lr/(Lzr*tZ-tR*Lz) + Lr*Lzr*tZ/np.power(Lzr*tZ-tR*Lz,2)
+            )
+        dxdummy_dtr = (
+            Lr*Lz*tZ/np.power(Lzr*tZ-tR*Lz,2)
+            )
+        dxdummy = np.sqrt(np.power(dxdummy_dtz,2) * np.power(dtZ,2) +
+                          np.power(dxdummy_dtr,2) * np.power(dtR,2))
+        dAlpha = dxdummy/(1+np.power(_xdummy,2))
+        # Error on vPerp
+        dvperp = np.sqrt(np.power(vperp/tZ,2) * np.power(dtZ,2) +
+                         np.power(Lz * np.cos(alpha)/tZ,2) * np.power(dAlpha, 2)
+                        )
+        # error in the evaluation of vr
+        dvr = np.sqrt(np.power(np.cos(alpha),2)*np.power(dvperp,2) +
+                      np.power(vperp*np.sin(alpha),2)*np.power(dAlpha,2))
+        # error in the evaluation of vz
+        dvz = np.sqrt(np.power(np.sin(alpha),2)*np.power(dvperp,2) +
+                      np.power(vperp*np.cos(alpha),2)*np.power(dAlpha,2))
+
+        out = OrderedDict([('vperp',{'value':vperp,'err':dvperp}),
+                           ('vz',{'value':vz,'err':dvz}),
+                           ('vr',{'value':vr,'err':dvr}),
+                           ('alpha',{'value':alpha,'err':dAlpha})])
+        return out
