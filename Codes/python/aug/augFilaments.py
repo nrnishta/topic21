@@ -1,4 +1,12 @@
 from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import zip
+from builtins import input
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import timeseries
 import dd
 import eqtools
@@ -18,7 +26,7 @@ import time
 from collections import OrderedDict
 
 
-# noinspection PyDefaultArgument
+# noinspection PyDefaultArgument,PyAttributeOutsideInit
 class Filaments(object):
     """
     Class for analysis of Filaments from the HFF probe on the
@@ -101,7 +109,7 @@ class Filaments(object):
                   'm15': {'x': -3.5, 'z': -16.5, 'r': 8},
                   'm16': {'x': -10, 'z': -16.5, 'r': 8}}
         self.RZgrid = {}
-        for probe in RZgrid.keys():
+        for probe in list(RZgrid.keys()):
             x, y = self._rotate(
                 (RZgrid[probe]['x'], RZgrid[probe]['z']), np.radians(angle))
             self.RZgrid[probe] = {
@@ -132,7 +140,7 @@ class Filaments(object):
         isName = []
         vpArr = []
         vpName = []
-        for n in namesC.values():
+        for n in list(namesC.values()):
             if n[:6] == 'Isat_m':
                 isArr.append(-Mhc(n).data)
                 isName.append(n)
@@ -143,7 +151,7 @@ class Filaments(object):
                 vpArr.append(Mhc(n).data)
                 vpName.append(n)
 
-        for n in namesG.values():
+        for n in list(namesG.values()):
             if n[:6] == 'Isat_m':
                 isArr.append(-Mhg(n).data)
                 isName.append(n)
@@ -199,19 +207,13 @@ class Filaments(object):
         # generate a class aware time basis
         self._timebasis = self.vfArr.t.values
         # generate a class aware dt
-        self.dt = (self._timebasis.max() - self._timebasis.min()) / (
-                self._timebasis.size - 1)
+        self.dt = old_div((self._timebasis.max() - self._timebasis.min()), (
+                self._timebasis.size - 1))
 
-    def plotProbeSetup(self, save=False):
+    def plotProbeSetup(self):
         """
         Method to plot probe head with color code according to
         the type of measurement existing
-
-        Parameters
-        ----------
-        save : Boolean
-            If True save a pdf file with the probe configuration in the
-            working directory. Default is False
 
         """
 
@@ -219,7 +221,7 @@ class Filaments(object):
 
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)
-        for probe in self.RZgrid.keys():
+        for probe in list(self.RZgrid.keys()):
             if 'Isat_' + probe in self.isName:
                 col = 'red'
             elif 'Ufl_' + probe in self.vfName:
@@ -269,7 +271,7 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = (2188 - (self.Xprobe - self.Xlim) - sPos + 100) / 1e3
+        R = old_div((2188 - (self.Xprobe - self.Xlim) - sPos + 100), 1e3)
         # smooth it
         R = self.smooth(R, window_len=100)
         # check if trange exist or not
@@ -277,7 +279,7 @@ class Filaments(object):
             # convert in Rhopoloidal
 
             self.rhoProbe = np.zeros(R.size)
-            for r, t, i in zip(R, tPos, range(R.size)):
+            for r, t, i in zip(R, tPos, list(range(R.size))):
                 self.rhoProbe[i] = self.Eq.rz2psinorm(r, self.Zmem * 1e-3, t, sqrt=True)
             self.tPos = tPos
         else:
@@ -285,7 +287,7 @@ class Filaments(object):
             _R = R[_idx]
             _t = tPos[_idx]
             self.rhoProbe = np.zeros(_R.size)
-            for r, t, i in zip(_R, _t, range(_R.size)):
+            for r, t, i in zip(_R, _t, list(range(_R.size))):
                 self.rhoProbe[i] = self.Eq.rz2psinorm(r, self.Zmem * 1e-3, t, sqrt=True)
             self.tPos = _t
 
@@ -344,9 +346,9 @@ class Filaments(object):
             for p in self.vfName:
                 print(p)
             try:
-                Probe = str(raw_input('Provide the probe '))
+                Probe = str(input('Provide the probe '))
             except:
-                Probe = str(input('Provide the probe'))
+                Probe = str(eval(input('Provide the probe')))
         if Probe[:4] == 'Isat':
             # for the ion saturation current
             # we need to mask for the arcless system
@@ -419,7 +421,7 @@ class Filaments(object):
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
         # method since the other
-        if self.Probe == 'HHF':
+        if 'HFF' == self.Probe:
             data.attrs['VperpD'] = self._computeVperp(data,
                                                       probeTheta='Isat_m07',
                                                       probeR='Isat_m02')
@@ -460,8 +462,6 @@ class Filaments(object):
             data.attrs['LiBNerr'] = eN
             data.attrs['rhoLiB'] = self.LiB.rho
             data.attrs['Efold'] = efold
-
-
 
         return data
 
@@ -524,7 +524,7 @@ class Filaments(object):
             # which can be set as also set as keyword
             window, _a, _b, _c = identify_bursts2(IpolS, threshold)
             # now determine the tmin-tmax of all the identified ELMS
-            _idx, _idy = zip(*window)
+            _idx, _idy = list(zip(*window))
             self.tBegElm = IpolT[np.asarray(_idx)]
             self.tEndElm = IpolT[np.asarray(_idy)]
             if check:
@@ -608,7 +608,7 @@ class Filaments(object):
             w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
-        y = np.convolve(w / w.sum(), s, mode='same')
+        y = np.convolve(old_div(w, w.sum()), s, mode='same')
         return y[window_len - 1:-window_len + 1]
 
     def _computeDeltaT(self, x, y, e):
@@ -617,7 +617,7 @@ class Filaments(object):
         conditional average sample
         """
         _dummy = (y - y.min())
-        spline = UnivariateSpline(x, _dummy - _dummy.max() / 2, s=0)
+        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -627,7 +627,7 @@ class Filaments(object):
         delta = (r2 - r1)
         # now compute an estimate of the error
         _dummy = (y + e) - (y + e).min()
-        spline = UnivariateSpline(x, _dummy - _dummy.max() / 2, s=0)
+        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -636,7 +636,7 @@ class Filaments(object):
             r1, r2 = spline.roots()
         deltaUp = (r2 - r1)
         _dummy = (y - e) - (y - e).min()
-        spline = UnivariateSpline(x, _dummy - _dummy.max() / 2, s=0)
+        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -668,7 +668,7 @@ class Filaments(object):
         are saved and reporting correlation and error
         """
 
-        lag = np.arange(data.shape[1], dtype='float') - data.shape[1] / 2
+        lag = np.arange(data.shape[1], dtype='float') - old_div(data.shape[1], 2)
         lag *= self.dt
         outDictionary = {}
         _Name = [n for n in data.sig.values if n != self.refSignal]
@@ -689,7 +689,7 @@ class Filaments(object):
 
         return outDictionary
 
-    def _computeVperp(self, data, probeTheta = 'Isat_m07', probeR = 'Isat_m02'):
+    def _computeVperp(self, data, probeTheta='Isat_m07', probeR='Isat_m02'):
         """
 
         Parameters
@@ -707,48 +707,48 @@ class Filaments(object):
         Dictionary with values and error for vr, vz, vperp
 
         """
-        Lz = 1e-3*np.abs(self.RZgrid[probeTheta[-3:]]['z'] -
-                        self.RZgrid[self.refSignal[-3:]]['z'])
-        Lr = 1e-3*np.abs(self.RZgrid[probeR[-3:]]['r'] -
-                    self.RZgrid[self.refSignal[-3:]]['r'])
-        Lzr = 1e-3*np.abs(self.RZgrid[probeR[-3:]]['z'] -
-                    self.RZgrid[self.refSignal[-3:]]['z'])
+        Lz = 1e-3 * np.abs(self.RZgrid[probeTheta[-3:]]['z'] -
+                           self.RZgrid[self.refSignal[-3:]]['z'])
+        Lr = 1e-3 * np.abs(self.RZgrid[probeR[-3:]]['r'] -
+                           self.RZgrid[self.refSignal[-3:]]['r'])
+        Lzr = 1e-3 * np.abs(self.RZgrid[probeR[-3:]]['z'] -
+                            self.RZgrid[self.refSignal[-3:]]['z'])
         # now identify the correct time delay
-        tZ = data.Lags[probeTheta +'-'+ self.refSignal]['tau']
-        tR = data.Lags[probeR +'-' + self.refSignal]['tau']
+        tZ = data.Lags[probeTheta + '-' + self.refSignal]['tau']
+        tR = data.Lags[probeR + '-' + self.refSignal]['tau']
         # and the corresponding errors
-        dtZ = data.Lags[probeTheta +'-'+ self.refSignal]['err']
-        dtR = data.Lags[probeR +'-' + self.refSignal]['err']
+        dtZ = data.Lags[probeTheta + '-' + self.refSignal]['err']
+        dtR = data.Lags[probeR + '-' + self.refSignal]['err']
 
-        alpha = np.arctan(-Lr*tZ/(Lzr*tZ-Lz*tR))
-        vperp = Lz/tZ * np.sin(alpha)
-        vr = vperp*np.cos(alpha)
-        vz = vperp*np.sin(alpha)
+        alpha = np.arctan(-Lr * tZ / (Lzr * tZ - Lz * tR))
+        vperp = Lz / tZ * np.sin(alpha)
+        vr = vperp * np.cos(alpha)
+        vz = vperp * np.sin(alpha)
         # error propagation
         # Error on alpha
-        _xdummy = (-Lr*tZ/(Lzr*tZ-tR*Lz))
+        _xdummy = (-Lr * tZ / (Lzr * tZ - tR * Lz))
         dxdummy_dtz = (
-            -Lr/(Lzr*tZ-tR*Lz) + Lr*Lzr*tZ/np.power(Lzr*tZ-tR*Lz,2)
-            )
+                old_div(-Lr, (Lzr * tZ - tR * Lz)) + Lr * Lzr * tZ / np.power(Lzr * tZ - tR * Lz, 2)
+        )
         dxdummy_dtr = (
-            Lr*Lz*tZ/np.power(Lzr*tZ-tR*Lz,2)
-            )
-        dxdummy = np.sqrt(np.power(dxdummy_dtz,2) * np.power(dtZ,2) +
-                          np.power(dxdummy_dtr,2) * np.power(dtR,2))
-        dAlpha = dxdummy/(1+np.power(_xdummy,2))
+                Lr * Lz * tZ / np.power(Lzr * tZ - tR * Lz, 2)
+        )
+        dxdummy = np.sqrt(np.power(dxdummy_dtz, 2) * np.power(dtZ, 2) +
+                          np.power(dxdummy_dtr, 2) * np.power(dtR, 2))
+        dAlpha = old_div(dxdummy, (1 + np.power(_xdummy, 2)))
         # Error on vPerp
-        dvperp = np.sqrt(np.power(vperp/tZ,2) * np.power(dtZ,2) +
-                         np.power(Lz * np.cos(alpha)/tZ,2) * np.power(dAlpha, 2)
-                        )
+        dvperp = np.sqrt(np.power(old_div(vperp, tZ), 2) * np.power(dtZ, 2) +
+                         np.power(Lz * np.cos(alpha) / tZ, 2) * np.power(dAlpha, 2)
+                         )
         # error in the evaluation of vr
-        dvr = np.sqrt(np.power(np.cos(alpha),2)*np.power(dvperp,2) +
-                      np.power(vperp*np.sin(alpha),2)*np.power(dAlpha,2))
+        dvr = np.sqrt(np.power(np.cos(alpha), 2) * np.power(dvperp, 2) +
+                      np.power(vperp * np.sin(alpha), 2) * np.power(dAlpha, 2))
         # error in the evaluation of vz
-        dvz = np.sqrt(np.power(np.sin(alpha),2)*np.power(dvperp,2) +
-                      np.power(vperp*np.cos(alpha),2)*np.power(dAlpha,2))
+        dvz = np.sqrt(np.power(np.sin(alpha), 2) * np.power(dvperp, 2) +
+                      np.power(vperp * np.cos(alpha), 2) * np.power(dAlpha, 2))
 
-        out = OrderedDict([('vperp',{'value':vperp,'err':dvperp}),
-                           ('vz',{'value':vz,'err':dvz}),
-                           ('vr',{'value':vr,'err':dvr}),
-                           ('alpha',{'value':alpha,'err':dAlpha})])
+        out = OrderedDict([('vperp', {'value': vperp, 'err': dvperp}),
+                           ('vz', {'value': vz, 'err': dvz}),
+                           ('vr', {'value': vr, 'err': dvr}),
+                           ('alpha', {'value': alpha, 'err': dAlpha})])
         return out
