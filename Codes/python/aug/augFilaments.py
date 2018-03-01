@@ -343,8 +343,10 @@ class Filaments(object):
             print('Available Floating potential signal are')
             for p in self.vfName:
                 print(p)
-
-            Probe = str(input('Provide the probe '))
+            try:
+                Probe = str(raw_input('Provide the probe '))
+            except:
+                Probe = str(input('Provide the probe'))
         if Probe[:4] == 'Isat':
             # for the ion saturation current
             # we need to mask for the arcless system
