@@ -416,15 +416,36 @@ class Filaments(object):
         data.attrs['TauB'] = delta
         data.attrs['TauBErr'] = errDelta
         # compute the lags and save as attributes. 
-        data.attrs['Lags'] = self._computeLag(data)
+        LagsD = self._computeLag(data)
+        # since we want to have the possibility to save in netcdf
+        # we can't use OrderedDictionary and we need to save them explicitely
+        LagsN = np.array([])
+        LagsV = np.array([])
+        LagsE = np.array([])
+        for n in LagsD.keys():
+            LagsN = np.append(LagsN,n)
+            LagsV = np.append(LagsV,LagsD[n]['tau'])
+            LagsE = np.append(LagsE,LagsD[n]['err'])
+        data.attrs['LagTimeNames'] = LagsN
+        data.attrs['LagTimeValues'] = LagsV
+        data.attrs['LagTimeErr'] = LagsE
         # given the geometry of the probe head we can now evaluate the
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
         # method since the other
         if 'HFF' == self.Probe:
-            data.attrs['VperpD'] = self._computeVperp(data,
-                                                      probeTheta='Isat_m07',
-                                                      probeR='Isat_m02')
+            VperpD = self._computeVperp(
+                LagsD,
+                probeTheta='Isat_m07',
+                probeR='Isat_m10')
+            # now save the appropriate values in the DataArray. We can't save
+            # as OrderedDictionary since otherwise we can't save as NETcdf
+            data.attrs['Vperp'] = VperpD['vperp']['value']
+            data.attrs['VperpErr'] = VperpD['vperp']['err']
+            data.attrs['Vr'] = VperpD['vr']['value']
+            data.attrs['VrErr'] = VperpD['vr']['err']
+            data.attrs['Vz'] = VperpD['vz']['value']
+            data.attrs['VzErr'] = VperpD['vz']['err']
         # now we need to compute the lambda through the langmuir class
         # since we are using small intervals in the analysis
         # we 
@@ -689,15 +710,13 @@ class Filaments(object):
 
         return outDictionary
 
-    def _computeVperp(self, data, probeTheta='Isat_m07', probeR='Isat_m02'):
+    def _computeVperp(self, Lags, probeTheta='Isat_m07', probeR='Isat_m02'):
         """
 
         Parameters
         ----------
-        data
-            xarray DataArray containing all the information
-            needed for the computation as results from conditional average
-            samples and cross-correlation analysis
+        Lags
+            This is the OrderedDictionary obtained from _computeLags
         probeTheta
             Name of the probe used for the poloidal cross-correlation
         probeR
@@ -714,11 +733,11 @@ class Filaments(object):
         Lzr = 1e-3 * np.abs(self.RZgrid[probeR[-3:]]['z'] -
                             self.RZgrid[self.refSignal[-3:]]['z'])
         # now identify the correct time delay
-        tZ = data.Lags[probeTheta + '-' + self.refSignal]['tau']
-        tR = data.Lags[probeR + '-' + self.refSignal]['tau']
+        tZ = Lags[probeTheta + '-' + self.refSignal]['tau']
+        tR = Lags[probeR + '-' + self.refSignal]['tau']
         # and the corresponding errors
-        dtZ = data.Lags[probeTheta + '-' + self.refSignal]['err']
-        dtR = data.Lags[probeR + '-' + self.refSignal]['err']
+        dtZ = Lags[probeTheta + '-' + self.refSignal]['err']
+        dtR = Lags[probeR + '-' + self.refSignal]['err']
 
         alpha = np.arctan(-Lr * tZ / (Lzr * tZ - Lz * tR))
         vperp = Lz / tZ * np.sin(alpha)

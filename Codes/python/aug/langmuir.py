@@ -1,20 +1,20 @@
 import os
+from collections import namedtuple
+
 import dd
 import map_equ
-from scipy.interpolate import UnivariateSpline
-import numpy as np
-import scipy
 import matplotlib as mpl
 import matplotlib._cntr as cntr
-from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+import scipy
 from cyfieldlineTracer import get_fieldline_tracer
-from scipy.interpolate import interp1d
-from scipy.interpolate import RectBivariateSpline 
-from scipy.signal import savgol_filter
-from scipy.interpolate import UnivariateSpline
-from time_series_tools import identify_bursts2
 from scipy import constants
-from collections import namedtuple
+from scipy.interpolate import RectBivariateSpline
+from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import interp1d
+from scipy.signal import savgol_filter
+from time_series_tools import identify_bursts2
+
 fluxSurface = namedtuple('fluxSurface','R Z')
 Point = namedtuple('Point', 'r z')
 def interp2d(R,Z,field):
@@ -402,8 +402,7 @@ class Target(object):
         reverse engineer
         
         """
-        from scipy.interpolate import interp1d
-                
+
         fpolRZ = np.zeros((self.nz,self.nr))
         
         if plasma_response and self.fpol is not None:

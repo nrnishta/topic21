@@ -3,7 +3,7 @@ import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
 shotList = df['shot'].values
-shotList = shotList[shotList> 34276]
+shotList = shotList[shotList <= 34107]
 for shot in shotList:
     D = df[df['shot'] == shot]
     # first load the augFilaments data
@@ -20,8 +20,8 @@ for shot in shotList:
                 # no interelm
                 print('Evaluating without ELM for shot %5i' %shot +
                       ' strokes number %1i' % int(strokes))
-                out = Data.blobAnalysis(Probe='Isat_m06', otherProbe=['Isat_m10', 'Isat_m07'],
-                                        block=[0.015, 1.5], normalize=True, detrend=True,
+                out = Data.blobAnalysis(Probe='Isat_m06',
+                                        block=190, normalize=True, detrend=True,
                                         trange=[tmin, tmax])
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
             else:
