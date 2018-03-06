@@ -22,7 +22,8 @@ for shot in shotList:
                       ' strokes number %1i' % int(strokes))
                 out = Data.blobAnalysis(Probe='Isat_m06',
                                         block=190, normalize=True, detrend=True,
-                                        trange=[tmin, tmax])
+                                        trange=[tmin, tmax], 
+                                        otherProbe=['Isat_m10', 'Isat_m07'])
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
             else:
                 print('Evaluating with ELM for shot %5i' %shot +

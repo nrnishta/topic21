@@ -70,6 +70,9 @@ class Filaments(object):
             start = time.time()
             self._loadHHF()
             print('Probe signal loaded in %5.4f' % (time.time() - start) + ' s')
+        elif self.Probe == '14Pin':
+            self._14PGeometry(angle=80)
+            self._loadHHF()
         else:
             logging.warning('Other probe head not implemented yet')
         # load the data from Langmuir probes
@@ -108,6 +111,35 @@ class Filaments(object):
                   'm14': {'x': 3.5, 'z': -16.5, 'r': 8},
                   'm15': {'x': -3.5, 'z': -16.5, 'r': 8},
                   'm16': {'x': -10, 'z': -16.5, 'r': 8}}
+        self.RZgrid = {}
+        for probe in list(RZgrid.keys()):
+            x, y = self._rotate(
+                (RZgrid[probe]['x'], RZgrid[probe]['z']), np.radians(angle))
+            self.RZgrid[probe] = {
+                'r': RZgrid[probe]['r'],
+                'z': self.Zmem + y,
+                'x': x}
+    def _14PGeometry(self, angle=80.):
+        """
+        Define the dictionary containing the geometrical information concerning
+        each of the probe tip of the HHF probe
+        """
+        self.Zmem = 312
+        self.Xlim = 1732
+        RZgrid = {'m01': {'x': -8.6, 'z': 2.75, 'r': 3},
+                  'm02': {'x': -8.6, 'z': -2.75, 'r': 3},
+                  'm03': {'x': -4.3, 'z': 8.25, 'r': 0},
+                  'm04': {'x': -4.3, 'z': 2.75, 'r': 0},
+                  'm05': {'x': -4.3, 'z': -2.75, 'r': 0},
+                  'm06': {'x': -4.3, 'z': -8.25, 'r': 0},
+                  'm07': {'x':  0, 'z': 11, 'r': 0},
+                  'm08': {'x': 0, 'z': 5.5, 'r': 0},
+                  'm09': {'x': 0, 'z': 0, 'r': 0},
+                  'm10': {'x': 0, 'z': -5.5, 'r': 0},
+                  'm11': {'x': 0, 'z': -11, 'r': 0},
+                  'm12': {'x': 4.3, 'z': 2.75, 'r': 3},
+                  'm13': {'x': 4.3, 'z': -2.75, 'r': 3},
+                  'm14': {'x': 8.6, 'z': 0, 'r': 6}}
         self.RZgrid = {}
         for probe in list(RZgrid.keys()):
             x, y = self._rotate(
