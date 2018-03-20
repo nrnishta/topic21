@@ -1,9 +1,11 @@
 import lmfit
 
+
 class fitPdf(object):
 
-    def __init__(self)
-    
+    def __init__(self):
+        pass
+
     def _twoGamma(self, x, c1, n1, b1, c2, n2, b2):
         """
         
@@ -67,7 +69,7 @@ class fitPdf(object):
         F = self._oneGamma(x, C, N, beta)
         """
         return c1 * (n1 * b1) ** (n1) / scipy.special.gamma(n1) * \
-            x ** (n1 - 1) * np.exp(- b1 * n1 * x)
+               x ** (n1 - 1) * np.exp(- b1 * n1 * x)
 
     def twoGammaFit(self, normed=False, **kwargs):
         """
@@ -115,7 +117,7 @@ class fitPdf(object):
         fit, x, pdf, fit1 = self.twoGammaFit(normed=True, density=True,
            bins='freedman', C1=C1, N1=N1, beta1=beta1)
         """
-                            
+
         # first of all compute the pdf with the keyword used
         if normed:
             dummy = self.signorm
@@ -136,12 +138,12 @@ class fitPdf(object):
         print('Number of NaN on pdf', np.count_nonzero(np.isnan(pdfT)))
         print('Number of NaN on x', np.count_nonzero(np.isnan(xpdfT)))
         print('Number of NaN on err', np.count_nonzero(np.isnan(err)))
-#        from scipy import stats
+        #        from scipy import stats
         area = pdfT.sum() * (xpdfT[1] - xpdfT[0])
         m1 = dummy.mean()
         m2 = scipy.var(dummy)
-#        m3 = stats.skew(dummy)
-#        m4 = stats.kurtosis(dummy, fisher=True)
+        #        m3 = stats.skew(dummy)
+        #        m4 = stats.kurtosis(dummy, fisher=True)
         b1 = 1. / m1
         n1 = 1. / (b1 ** 2 * m2)
         c1 = area * b1 * (n1 ** n1) / scipy.special.gamma(n1)
@@ -160,7 +162,7 @@ class fitPdf(object):
         print('c2', c2)
         print('n2', n2)
         print('b2', b2)
-        
+
         # first of all we build the model for the one gamma function and fi
         oneGMod = lmfit.models.Model(
             self._oneGamma,
@@ -182,4 +184,3 @@ class fitPdf(object):
                                    c2=c2, n2=n2, b2=b2)
         fit = twoGMod.fit(pdfT, pars, x=xpdfT, weights=1 / err ** 2)
         return fit, xpdfT, pdfT, fitO
-
