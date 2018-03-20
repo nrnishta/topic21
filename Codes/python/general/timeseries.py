@@ -59,16 +59,13 @@ class Timeseries(object):
     def moments(self):
         """
         Compute moments of the signal
-        Parameters
-        ----------
-        None
 
         Returns
         -------
         bool
             True if successful, False otherwise.
 
-        Attribute
+        Attributea
         ---------
         Define the following attributes
         mean : mean
@@ -791,9 +788,9 @@ class Timeseries(object):
         imin = 0
         for i in range(maxima.size - 1):
             i += 1
-            if signal[i] >= threshold and signal[i - 1] < threshold:
+            if signal[i] >= threshold > signal[i - 1]:
                 imin = i
-            if signal[i] < threshold and signal[i - 1] >= threshold:
+            if signal[i] < threshold <= signal[i - 1]:
                 imax = i - 1
                 if imax == imin:
                     d = 0
