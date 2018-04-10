@@ -12,7 +12,6 @@ import dd
 import eqtools
 import numpy as np
 import matplotlib as mpl
-import copy
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
 from time_series_tools import identify_bursts2
@@ -34,7 +33,7 @@ class Filaments(object):
 
     Parameters
     ----------
-    Shot : :obj: `int`
+    shot : :obj: `int`
         Shot number
     Xprobe : :obj: `float`
         Probe starting point decided on a shot to shot basis during
@@ -60,7 +59,7 @@ class Filaments(object):
             start = time.time()
             self.Eq = eqtools.AUGDDData(self.shot)
             print('Equilibrium loaded in %5.4f' % (time.time() - start) + ' s')
-        except BaseException:
+        except ImportError:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
         # open the shot file
@@ -84,7 +83,7 @@ class Filaments(object):
             self.LiB = libes.Libes(self.shot)
             self._tagLiB = True
             print('LiB loaded in %5.4f' % (time.time() - start) + ' s')
-        except:
+        except ImportWarning:
             self._tagLiB = False
             logging.warning('Li-Beam not found for shot %5i' % shot)
 
@@ -119,6 +118,7 @@ class Filaments(object):
                 'r': RZgrid[probe]['r'],
                 'z': self.Zmem + y,
                 'x': x}
+
     def _14PGeometry(self, angle=80.):
         """
         Define the dictionary containing the geometrical information concerning
@@ -132,7 +132,7 @@ class Filaments(object):
                   'm04': {'x': -4.3, 'z': 2.75, 'r': 0},
                   'm05': {'x': -4.3, 'z': -2.75, 'r': 0},
                   'm06': {'x': -4.3, 'z': -8.25, 'r': 0},
-                  'm07': {'x':  0, 'z': 11, 'r': 0},
+                  'm07': {'x': 0, 'z': 11, 'r': 0},
                   'm08': {'x': 0, 'z': 5.5, 'r': 0},
                   'm09': {'x': 0, 'z': 0, 'r': 0},
                   'm10': {'x': 0, 'z': -5.5, 'r': 0},
@@ -455,9 +455,9 @@ class Filaments(object):
         LagsV = np.array([])
         LagsE = np.array([])
         for n in LagsD.keys():
-            LagsN = np.append(LagsN,n)
-            LagsV = np.append(LagsV,LagsD[n]['tau'])
-            LagsE = np.append(LagsE,LagsD[n]['err'])
+            LagsN = np.append(LagsN, n)
+            LagsV = np.append(LagsV, LagsD[n]['tau'])
+            LagsE = np.append(LagsE, LagsD[n]['err'])
         data.attrs['LagTimeNames'] = LagsN
         data.attrs['LagTimeValues'] = LagsV
         data.attrs['LagTimeErr'] = LagsE
@@ -666,8 +666,20 @@ class Filaments(object):
 
     def _computeDeltaT(self, x, y, e):
         """
-        useful to compute the timing and error on the Isat
-        conditional average sample
+        Computation of FWHM of the Ion saturation current Conditionally
+        averaged sampled signal. It actually provide the computation
+        directly as the FWHM
+        Parameters
+        ----------
+        x: time basis
+        y: results of the CAS for ion saturation current
+        e: error
+
+        Returns
+        -------
+        delta : the FWHM
+        err : the Error on the FWHM
+
         """
         _dummy = (y - y.min())
         spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
