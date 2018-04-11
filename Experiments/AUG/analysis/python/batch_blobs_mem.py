@@ -30,7 +30,7 @@ for shot in shotList:
                       ' strokes number %1i' % int(strokes))
                 thr = D['Threshold_'+strokes].values[0]
                 out = Data.blobAnalysis(Probe='Isat_m06', otherProbe=['Isat_m10', 'Isat_m07'],
-                                        block=[0.015, 1.5], normalize=True, detrend=True,
+                                        block=190, normalize=True, detrend=True,
                                         trange=[tmin, tmax], interelm=True, threshold=thr)
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
         else:

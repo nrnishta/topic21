@@ -710,16 +710,28 @@ class Target(object):
 
         self._interElm = []
         self._Elm=[]
-        for i in range(self.tBegElm.size):
-            _a = np.where((_dummyTime >= self.tBegElm[i]) &
-                          (_dummyTime <= self.tEndElm[i]))[0]
-            self._Elm.append(_a[:])
-            try:
+        if IpolS[0] < threshold:
+            for i in range(self.tBegElm.size):
+                _a = np.where((_dummyTime >= self.tBegElm[i]) &
+                              (_dummyTime <= self.tEndElm[i]))[0]
+                self._Elm.append(_a[:])
+                try:
+                    _a = np.where((_dummyTime >= self.tEndElm[i]) &
+                                  (_dummyTime <= self.tBegElm[i + 1]))[0]
+                    self._interElm.append(_a[:])
+                except:
+                    pass
+        else:
+            for i in range(self.tBegElm.size):
                 _a = np.where((_dummyTime >= self.tEndElm[i]) &
                               (_dummyTime <= self.tBegElm[i+1]))[0]
-                self._interElm.append(_a[:])
-            except:
-                pass
+                self._Elm.append(_a[:])
+                try:
+                    _a = np.where((_dummyTime >= self.tBegElm[i]) &
+                                  (_dummyTime <= self.tEndElm[i]))[0]
+                    self._interElm.append(_a[:])
+                except:
+                    pass
                 
         self._interElm = np.concatenate(np.asarray(self._interElm))
         self._Elm = np.concatenate(np.asarray(self._Elm))
