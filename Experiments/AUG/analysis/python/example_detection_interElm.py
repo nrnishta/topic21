@@ -25,7 +25,7 @@ for shot in shotList:
         _idx = np.where((Ipol.time >= _tmn) & (Ipol.time <= _tmx))[0]
         t = Ipol.time[_idx]
         y = Ipol.data[_idx]
-        yS = savgol_filter(y, 501, 3)
+        yS = savgol_filter(y, 301, 3)
 
         ax[_iax].plot(t, y, 'gray', alpha=0.5)
         ax[_iax].plot(t, yS)
@@ -37,13 +37,16 @@ for shot in shotList:
             _idx, _idy = list(zip(*window))
             tBegElm = t[np.asarray(_idx)]
             tEndElm = t[np.asarray(_idy)]
-            for i in range(tBegElm.size-1):
-                if yS[0] < _thr:
-                    _aa = np.where((t >= tEndElm[i]) & (t <= tBegElm[i+1]))[0]
-                else:
-                    _aa = np.where((t >= tBegElm[i]) & (t <= tEndElm[i]))[0]
-
-                ax[_iax].plot(t[_aa], y[_aa], 'orange', alpha=0.7)
+            # composite the ELM
+            Elm = []
+            for i in range(tBegElm.size):
+                _aa = np.where((t >= tBegElm[i]) & (t <= tEndElm[i]))[0]
+                Elm.append(_aa)
+            Elm = np.concatenate(np.asarray(Elm))
+            ElmMask = np.zeros(t.size, dtype='bool')
+            ElmMask[Elm] = True
+            interElm = np.where(ElmMask == False)[0]
+            ax[_iax].plot(t[interElm], y[interElm], 'orange', alpha=0.7)
 
     ax[0].set_title(r'# %5i' % shot)
     fig.savefig('../pdfbox/ExampleInteELMShot%5i' % shot +'.pdf', bbox_to_inches='tight')
