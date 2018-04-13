@@ -26,7 +26,8 @@ for shot in shotList:
         t = Ipol.time[_idx]
         y = Ipol.data[_idx]
         yS = savgol_filter(y, 301, 3)
-
+        # create an index of the size of t
+        index = np.arange(t.size, dtype='int')
         ax[_iax].plot(t, y, 'gray', alpha=0.5)
         ax[_iax].plot(t, yS)
         ax[_iax].axhline(_thr, ls='--', color='b', lw=2)
@@ -34,14 +35,7 @@ for shot in shotList:
         ax[_iax].set_ylabel(r'Ipolsoli')
         if np.isfinite(_thr):
             window, _a, _b, _c = identify_bursts2(yS, _thr)
-            _idx, _idy = list(zip(*window))
-            tBegElm = t[np.asarray(_idx)]
-            tEndElm = t[np.asarray(_idy)]
-            # composite the ELM
-            Elm = []
-            for i in range(tBegElm.size):
-                _aa = np.where((t >= tBegElm[i]) & (t <= tEndElm[i]))[0]
-                Elm.append(_aa)
+            Elm = [index[w[0]:w[1]] for w in window]
             Elm = np.concatenate(np.asarray(Elm))
             ElmMask = np.zeros(t.size, dtype='bool')
             ElmMask[Elm] = True
