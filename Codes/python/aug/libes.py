@@ -216,61 +216,9 @@ class Libes(object):
             if check:
                 fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
                 fig.subplots_adjust(bottom=0.15, left=0.15)
-                ax.plot(IpolT[self._Elm], IpolD[self._Elm], color='gray')
-                ax.plot(IpolT,IpolS, 'k',lw=1.5, alpha=0.5)
+                ax.plot(IpolT, IpolO, color='gray',alpha=0.5)
+                ax.plot(IpolT, IpolS, 'k',lw=1.2, alpha=0.5)
+                ax.plot(_dummyTime[self._Elm],IpolSp[self._Elm],'g',lw=1.5)
                 ax.set_xlabel(r't[s]')
                 ax.set_ylabel(r'Ipol SOL I')
                 ax.axhline(threshold, ls='--', color='#d62728')
-            IpolS = savgol_filter(Ipol.data[_idxT], 501, 3)
-            IpolT = Ipol.time[_idxT]
-            # on these we choose a threshold
-            # which can be set as also set as keyword
-            window, _a, _b, _c = identify_bursts2(IpolS, threshold)
-            # now determine the tmin-tmax of all the identified ELMS
-            _idx, _idy = zip(*window)
-            self.tBegElm = IpolT[np.asarray(_idx)]
-            self.tEndElm = IpolT[np.asarray(_idy)]
-
-        # and now set the mask
-        _dummyTime = self.time[np.where((self.time >= trange[0]) &
-                                              (self.time <= trange[1]))[0]]
-
-        self._interElm = []
-        self._Elm=[]
-        if IpolS[0] < threshold:
-            for i in range(self.tBegElm.size):
-                _a = np.where((_dummyTime >= self.tBegElm[i]) &
-                              (_dummyTime <= self.tEndElm[i]))[0]
-                self._Elm.append(_a[:])
-                try:
-                    _a = np.where((_dummyTime >= self.tEndElm[i]) &
-                                  (_dummyTime <= self.tBegElm[i + 1]))[0]
-                    self._interElm.append(_a[:])
-                except:
-                    pass
-        else:
-            for i in range(self.tBegElm.size):
-                _a = np.where((_dummyTime >= self.tEndElm[i]) &
-                              (_dummyTime <= self.tBegElm[i+1]))[0]
-                self._Elm.append(_a[:])
-                try:
-                    _a = np.where((_dummyTime >= self.tBegElm[i]) &
-                                  (_dummyTime <= self.tEndElm[i]))[0]
-                    self._interElm.append(_a[:])
-                except:
-                    pass
-                
-        self._interElm = np.concatenate(np.asarray(self._interElm))
-        self._Elm = np.concatenate(np.asarray(self._Elm))
-
-        if check:
-            fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
-            fig.subplots_adjust(bottom=0.15, left=0.15)
-            ax.plot(IpolT, IpolS, color='#1f77b4')
-            ax.plot(Ipol.time[_idxT], Ipol.data[_idxT], color='gray', alpha=0.3)
-            ax.set_xlabel(r't[s]')
-            ax.set_ylabel(r'Ipol SOL I')
-            ax.axhline(threshold, ls='--', color='#d62728')
-            for _ti, _te in zip(self.tBegElm, self.tEndElm):
-                ax.axvline(_ti, ls='--', color='#ff7f0e')
-                ax.axvline(_te, ls='--', color='#ff7f0e')

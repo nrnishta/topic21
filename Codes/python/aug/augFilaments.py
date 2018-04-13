@@ -589,8 +589,9 @@ class Filaments(object):
             if check:
                 fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
                 fig.subplots_adjust(bottom=0.15, left=0.15)
-                ax.plot(IpolT[self._Elm], IpolD[self._Elm], color='gray')
-                ax.plot(IpolT,IpolS, 'k',lw=1.5, alpha=0.5)
+                ax.plot(IpolT, IpolO, color='gray',alpha=0.5)
+                ax.plot(IpolT, IpolS, 'k',lw=1.2, alpha=0.5)
+                ax.plot(_dummyTime[self._Elm],IpolSp[self._Elm],'g',lw=1.5)
                 ax.set_xlabel(r't[s]')
                 ax.set_ylabel(r'Ipol SOL I')
                 ax.axhline(threshold, ls='--', color='#d62728')
