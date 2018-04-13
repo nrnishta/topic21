@@ -198,6 +198,29 @@ class Libes(object):
             Ipol = Mac('Ipolsoli')
             _idxT = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
             # now create an appropriate savgolfile
+            IpolS = savgol_filter(Ipol.data[_idxT], 301, 3)
+            IpolT = Ipol.time[_idxT]
+            IpolO = Ipol.data[_idxT]
+            # we generate an UnivariateSpline object
+            _dummyTime = self.time[np.where(
+                (self.time >= trange[0]) &
+                (self.time <= trange[1]))[0]]
+            IpolSp = UnivariateSpline(IpolT, IpolS, s=0)(_dummyTime)
+            # on these we choose a threshold
+            # which can be set as also set as keyword
+            self._Elm = np.where(IpolSp > threshold)
+            # generate a fake interval
+            ElmMask = np.zeros(IpolSp.size,dtype='bool')
+            ElmMask[self._Elm] = True
+            self._interElm = np.where(ElmMask == False)[0]
+            if check:
+                fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
+                fig.subplots_adjust(bottom=0.15, left=0.15)
+                ax.plot(IpolT[self._Elm], IpolD[self._Elm], color='gray')
+                ax.plot(IpolT,IpolS, 'k',lw=1.5, alpha=0.5)
+                ax.set_xlabel(r't[s]')
+                ax.set_ylabel(r'Ipol SOL I')
+                ax.axhline(threshold, ls='--', color='#d62728')
             IpolS = savgol_filter(Ipol.data[_idxT], 501, 3)
             IpolT = Ipol.time[_idxT]
             # on these we choose a threshold
