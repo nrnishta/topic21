@@ -34,9 +34,7 @@ for shot in shotList:
         ax[_iax].set_xlabel(r't [s]')
         ax[_iax].set_ylabel(r'Ipolsoli')
         if np.isfinite(_thr):
-            window, _a, _b, _c = identify_bursts2(yS, _thr)
-            Elm = [index[w[0]:w[1]] for w in window]
-            Elm = np.concatenate(np.asarray(Elm))
+            Elm = np.where(yS > _thr)[0]
             ElmMask = np.zeros(t.size, dtype='bool')
             ElmMask[Elm] = True
             interElm = np.where(ElmMask == False)[0]
