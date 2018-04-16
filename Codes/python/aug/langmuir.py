@@ -409,7 +409,7 @@ class Target(object):
             psigrid = np.linspace(self.psi_axis,self.psi_bnd,len(self.fpol))
             for i in np.arange(self.nr):
                 for j in np.arange(self.nz):
-                    if self.psi[i,j] < psigrid[-1] and self.psi[i,j] > psigrid[0]:
+                    if psigrid[-1] > self.psi[i, j] > psigrid[0]:
                         fpolRZ[i,j] = self.fpol(self.psi[i,j])
                     else:
                         fpolRZ[i,j] = self.Btcent*self.Rcent
