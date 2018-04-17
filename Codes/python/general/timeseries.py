@@ -511,19 +511,14 @@ class Timeseries(object):
             csTot = np.ones((int(nw), np.sum(maxima, dtype='int')))
             d_ev = np.asarray(np.where(maxima >= 1))
             for i in range(d_ev.size):
+                _dummy = self.sig[
+                         d_ev[0][i] -
+                         iwin: d_ev[0][i] +
+                               iwin +
+                               1]
                 if detrend:
                     _dummy = scipy.signal.detrend(
-                        self.sig[
-                        d_ev[0][i] -
-                        iwin: d_ev[0][i] +
-                              iwin +
-                              1], type='linear')
-                else:
-                    _dummy = self.sig[
-                             d_ev[0][i] -
-                             iwin: d_ev[0][i] +
-                                   iwin +
-                                   1]
+                        _dummy, type='linear')
                 _dummy -= _dummy.mean()
                 if normalize is True:
                     _dummy /= _dummy.std()
@@ -558,8 +553,9 @@ class Timeseries(object):
                     np.max(self.sig[window[0]:window[1]]))[0][0]
                 if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
                                 (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
-                    _dummy = self.sig[window[0] + ind_max - (nw - 1) / 2:
-                    window[0] + ind_max + (nw - 1) / 2 + 1]
+                    _dummy = self.sig[
+                             window[0] + ind_max - (nw - 1) / 2 :
+                             window[0] + ind_max + (nw - 1) / 2 + 1]
                     if detrend:
                         _dummy = scipy.signal.detrend(
                             _dummy, type='linear')
