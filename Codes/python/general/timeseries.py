@@ -553,9 +553,9 @@ class Timeseries(object):
                     np.max(self.sig[window[0]:window[1]]))[0][0]
                 if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
                                 (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
-                    _dummy = self.sig[
+                    _dummy = copy.deepcopy(self.sig[
                              window[0] + ind_max - (nw - 1) / 2 :
-                             window[0] + ind_max + (nw - 1) / 2 + 1]
+                             window[0] + ind_max + (nw - 1) / 2 + 1])
                     if detrend:
                         _dummy = scipy.signal.detrend(
                             _dummy, type='linear')
