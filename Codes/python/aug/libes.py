@@ -218,7 +218,7 @@ class Libes(object):
                 fig.subplots_adjust(bottom=0.15, left=0.15)
                 ax.plot(IpolT, IpolO, color='gray',alpha=0.5)
                 ax.plot(IpolT, IpolS, 'k',lw=1.2, alpha=0.5)
-                ax.plot(_dummyTime[self._Elm],IpolSp[self._Elm],'g',lw=1.5)
+                ax.plot(_dummyTime[self._interElm],IpolSp[self._interElm],'g',lw=1.5)
                 ax.set_xlabel(r't[s]')
                 ax.set_ylabel(r'Ipol SOL I')
                 ax.axhline(threshold, ls='--', color='#d62728')

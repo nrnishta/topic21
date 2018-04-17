@@ -425,14 +425,14 @@ class Filaments(object):
                                           dim='Probe')
         else:
             if otherProbe[0] in self.isName:
-                a = isSignal.sel(Probe=otherProbe[0])
+                a = isSignal.sel(Probe=otherProbe[0])[self._idx]
             else:
-                a = vfSignal.sel(Probe=otherProbe[0])
+                a = vfSignal.sel(Probe=otherProbe[0])[self._idx]
             for p in otherProbe[1:]:
                 if p in self.isName:
-                    a = xray.concat([a, isSignal.sel(Probe=p)], dim='Probe')
+                    a = xray.concat([a, isSignal.sel(Probe=p)[self._idx]], dim='Probe')
                 else:
-                    a = xray.concat([a, vfSignal.sel(Probe=p)], dim='Probe')
+                    a = xray.concat([a, vfSignal.sel(Probe=p)[self._idx]], dim='Probe')
             self._sigIn = a
         cs, tau, err, amp = self.blob.casMultiple(self._sigIn.values, **kwargs)
         # now build the xarray used as output
@@ -576,8 +576,8 @@ class Filaments(object):
             IpolO = Ipol.data[_idx]
             # we generate an UnivariateSpline object
             _dummyTime = self._timebasis[np.where(
-                (self.time >= trange[0]) &
-                (self.time <= trange[1]))[0]]
+                (self._timebasis >= trange[0]) &
+                (self._timebasis <= trange[1]))[0]]
             IpolSp = UnivariateSpline(IpolT, IpolS, s=0)(_dummyTime)
             # on these we choose a threshold
             # which can be set as also set as keyword

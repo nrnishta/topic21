@@ -2,10 +2,10 @@ import pandas as pd
 import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
-shotList = df['shot'].values
-shotList = shotList[shotList <= 34107]
+shotList = df['Shot'].values
+shotList = shotList[shotList >= 34107]
 for shot in shotList:
-    D = df[df['shot'] == shot]
+    D = df[df['Shot'] == shot]
     # first load the augFilaments data
     Data = augFilaments.Filaments(shot, Xprobe=D['X'].values)
     # then iterate with check on the number of strokes
