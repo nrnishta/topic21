@@ -438,7 +438,7 @@ class Filaments(object):
         # now build the xarray used as output
         data = xray.DataArray(cs,
                               coords=[
-                                  np.insert(self._sigIn.Probe.values, 1, Probe),
+                                  np.insert(self._sigIn.Probe.values, 0, Probe),
                                   tau],
                               dims=['sig', 't'])
         data.attrs['err'] = err
