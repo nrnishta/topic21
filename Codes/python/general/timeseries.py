@@ -559,7 +559,8 @@ class Timeseries(object):
                     if detrend:
                         _dummy = scipy.signal.detrend(
                             _dummy, type='linear')
-                    _dummy -= _dummy.mean()
+                    else:
+                        _dummy -= _dummy.mean()
                     if normalize:
                         _dummy /= _dummy.std()
                     csTot[:, i] = _dummy
