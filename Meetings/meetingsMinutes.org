@@ -71,6 +71,23 @@
 	loads
      2. Current scan at constant q95/constant Bt
     
+*** <2018-04-19 Thu>
+**** Agenda
+     - Analysis tasks [0/6]
+       - [ ] Compute the points of TCV and AUG in the Lambda-Theta plane for L-mode
+       - [ ] Compute the v_r vs size scaling combining TCV and AUG (**remember different methods!**)
+       - [ ] For AUG properly compute the blob-size in L-mode and inter-ELM regimes
+       - [ ] Distinguish the role of neutral compression in L-mode. Need to collect data from past experiment
+       - [ ] Distinguish the role of neutral compression in H-Mode. Comparison of H-Mode blob-size vs Neutral Pressure
+       - [ ] Determine the adimensional parameter to compare for divertor: **neutral opacity**,  **Lambda**, **neutral mfp**
+     - Modelling tasks [0/4]
+       - [ ] SOLPS modelling of low/high fueling in regimes with clear/unclear shoulder for TCV
+       - [ ] Compare midplane neutral/ionization profiles AUG/TCV in L-Mode single-null discharge from simulations
+       - [ ] Compute parallel Lambda profiles AUG/TCV
+       - [ ] HESEL/Neutrals/Feltor ??
+     - Experimental program for TCV [0/2]
+       - [ ] Talk w/ Benoit an Christian to check best available scenario for high density NBH H-Mode achieved so far
+       - [ ] According to the program we should also investigate SF scenario. Can we think about repeting an succesfull density ramp in SF. Talk w/ Holger
 ** Other Meetings
 *** Neutral measurement meetings
     <2016-12-01 Thu>
