@@ -581,7 +581,7 @@ class Filaments(object):
             IpolSp = UnivariateSpline(IpolT, IpolS, s=0)(_dummyTime)
             # on these we choose a threshold
             # which can be set as also set as keyword
-            self._Elm = np.where(IpolSp > threshold)
+            self._Elm = np.where(IpolSp > threshold)[0]
             # generate a fake interval
             ElmMask = np.zeros(IpolSp.size,dtype='bool')
             ElmMask[self._Elm] = True
