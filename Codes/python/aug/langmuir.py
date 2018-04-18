@@ -409,7 +409,7 @@ class Target(object):
             psigrid = np.linspace(self.psi_axis,self.psi_bnd,len(self.fpol))
             for i in np.arange(self.nr):
                 for j in np.arange(self.nz):
-                    if self.psi[i,j] < psigrid[-1] and self.psi[i,j] > psigrid[0]:
+                    if psigrid[-1] > self.psi[i, j] > psigrid[0]:
                         fpolRZ[i,j] = self.fpol(self.psi[i,j])
                     else:
                         fpolRZ[i,j] = self.Btcent*self.Rcent
@@ -693,47 +693,31 @@ class Target(object):
             Mac = dd.shotfile("MAC", self.shot, experiment='AUGD')
             Ipol = Mac('Ipolsoli')
             _idx = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
-            # now create an appropriate savgolfile
-            IpolS = savgol_filter(Ipol.data[_idx], 501, 3)
+            IpolS = savgol_filter(Ipol.data[_idx], 301, 3)
             IpolT = Ipol.time[_idx]
+            IpolO = Ipol.data[_idx]
             # on these we choose a threshold
             # which can be set as also set as keyword
-            window, _a, _b, _c = identify_bursts2(IpolS, threshold)
-            # now determine the tmin-tmax of all the identified ELMS
-            _idx, _idy = zip(*window)
-            self.tBegElm = IpolT[np.asarray(_idx)]
-            self.tEndElm = IpolT[np.asarray(_idy)]
+            # we generate an UnivariateSpline object
+            _dummyTime = self.time[np.where(
+                (self.time >= trange[0]) &
+                (self.time <= trange[1]))[0]]
+            IpolSp = UnivariateSpline(IpolT, IpolS, s=0)(_dummyTime)
+            self._Elm = np.where(IpolSp > threshold)
+            # generate a fake interval
+            ElmMask = np.zeros(IpolSp.size,dtype='bool')
+            ElmMask[self._Elm] = True
+            self._interElm = np.where(ElmMask == False)[0]
+            if check:
+                fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
+                fig.subplots_adjust(bottom=0.15, left=0.15)
+                ax.plot(IpolT, IpolO, color='gray',alpha=0.5)
+                ax.plot(IpolT, IpolS, 'k',lw=1.2, alpha=0.5)
+                ax.plot(_dummyTime[self._Elm],IpolSp[self._Elm],'g',lw=1.5)
+                ax.set_xlabel(r't[s]')
+                ax.set_ylabel(r'Ipol SOL I')
+                ax.axhline(threshold, ls='--', color='#d62728')
 
-        # and now set the mask
-        _dummyTime = self.time[np.where((self.time >= trange[0]) &
-                                        (self.time <= trange[1]))[0]]
-
-        self._interElm = []
-        self._Elm=[]
-        for i in range(self.tBegElm.size):
-            _a = np.where((_dummyTime >= self.tBegElm[i]) &
-                          (_dummyTime <= self.tEndElm[i]))[0]
-            self._Elm.append(_a[:])
-            try:
-                _a = np.where((_dummyTime >= self.tEndElm[i]) &
-                              (_dummyTime <= self.tBegElm[i+1]))[0]
-                self._interElm.append(_a[:])
-            except:
-                pass
-                
-        self._interElm = np.concatenate(np.asarray(self._interElm))
-        self._Elm = np.concatenate(np.asarray(self._Elm))
-
-        if check:
-            fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
-            fig.subplots_adjust(bottom=0.15, left=0.15)
-            ax.plot(IpolT, IpolS, color='#1f77b4')
-            ax.set_xlabel(r't[s]')
-            ax.set_ylabel(r'Ipol SOL I')
-            ax.axhline(threshold, ls='--', color='#d62728')
-            for _ti, _te in zip(self.tBegElm, self.tEndElm):
-                ax.axvline(_ti, ls='--', color='#ff7f0e')
-                ax.axvline(_te, ls='--', color='#ff7f0e')
 
     def computeLambda(self, Type='OuterTarget', trange=[3, 3.1],
                       Plot=False, **kwargs):

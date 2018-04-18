@@ -2,10 +2,10 @@ import pandas as pd
 import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
-shotList = df['shot'].values
-shotList = shotList[shotList <= 34107]
+shotList = df['Shot'].values
+shotList = shotList[shotList >= 34107]
 for shot in shotList:
-    D = df[df['shot'] == shot]
+    D = df[df['Shot'] == shot]
     # first load the augFilaments data
     Data = augFilaments.Filaments(shot, Xprobe=D['X'].values)
     # then iterate with check on the number of strokes
@@ -30,7 +30,7 @@ for shot in shotList:
                       ' strokes number %1i' % int(strokes))
                 thr = D['Threshold_'+strokes].values[0]
                 out = Data.blobAnalysis(Probe='Isat_m06', otherProbe=['Isat_m10', 'Isat_m07'],
-                                        block=[0.015, 1.5], normalize=True, detrend=True,
+                                        block=190, normalize=True, detrend=True,
                                         trange=[tmin, tmax], interelm=True, threshold=thr)
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
         else:

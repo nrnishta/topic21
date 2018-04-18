@@ -12,7 +12,6 @@ import dd
 import eqtools
 import numpy as np
 import matplotlib as mpl
-import copy
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
 from time_series_tools import identify_bursts2
@@ -34,7 +33,7 @@ class Filaments(object):
 
     Parameters
     ----------
-    Shot : :obj: `int`
+    shot : :obj: `int`
         Shot number
     Xprobe : :obj: `float`
         Probe starting point decided on a shot to shot basis during
@@ -60,7 +59,7 @@ class Filaments(object):
             start = time.time()
             self.Eq = eqtools.AUGDDData(self.shot)
             print('Equilibrium loaded in %5.4f' % (time.time() - start) + ' s')
-        except BaseException:
+        except ImportError:
             print('Equilibrium not loaded')
         self.Xprobe = Xprobe
         # open the shot file
@@ -84,7 +83,7 @@ class Filaments(object):
             self.LiB = libes.Libes(self.shot)
             self._tagLiB = True
             print('LiB loaded in %5.4f' % (time.time() - start) + ' s')
-        except:
+        except ImportWarning:
             self._tagLiB = False
             logging.warning('Li-Beam not found for shot %5i' % shot)
 
@@ -119,6 +118,7 @@ class Filaments(object):
                 'r': RZgrid[probe]['r'],
                 'z': self.Zmem + y,
                 'x': x}
+
     def _14PGeometry(self, angle=80.):
         """
         Define the dictionary containing the geometrical information concerning
@@ -132,7 +132,7 @@ class Filaments(object):
                   'm04': {'x': -4.3, 'z': 2.75, 'r': 0},
                   'm05': {'x': -4.3, 'z': -2.75, 'r': 0},
                   'm06': {'x': -4.3, 'z': -8.25, 'r': 0},
-                  'm07': {'x':  0, 'z': 11, 'r': 0},
+                  'm07': {'x': 0, 'z': 11, 'r': 0},
                   'm08': {'x': 0, 'z': 5.5, 'r': 0},
                   'm09': {'x': 0, 'z': 0, 'r': 0},
                   'm10': {'x': 0, 'z': -5.5, 'r': 0},
@@ -425,20 +425,20 @@ class Filaments(object):
                                           dim='Probe')
         else:
             if otherProbe[0] in self.isName:
-                a = isSignal.sel(Probe=otherProbe[0])
+                a = isSignal.sel(Probe=otherProbe[0])[self._idx]
             else:
-                a = vfSignal.sel(Probe=otherProbe[0])
+                a = vfSignal.sel(Probe=otherProbe[0])[self._idx]
             for p in otherProbe[1:]:
                 if p in self.isName:
-                    a = xray.concat([a, isSignal.sel(Probe=p)], dim='Probe')
+                    a = xray.concat([a, isSignal.sel(Probe=p)[self._idx]], dim='Probe')
                 else:
-                    a = xray.concat([a, vfSignal.sel(Probe=p)], dim='Probe')
+                    a = xray.concat([a, vfSignal.sel(Probe=p)[self._idx]], dim='Probe')
             self._sigIn = a
         cs, tau, err, amp = self.blob.casMultiple(self._sigIn.values, **kwargs)
         # now build the xarray used as output
         data = xray.DataArray(cs,
                               coords=[
-                                  np.insert(self._sigIn.Probe.values, 1, Probe),
+                                  np.insert(self._sigIn.Probe.values, 0, Probe),
                                   tau],
                               dims=['sig', 't'])
         data.attrs['err'] = err
@@ -455,9 +455,9 @@ class Filaments(object):
         LagsV = np.array([])
         LagsE = np.array([])
         for n in LagsD.keys():
-            LagsN = np.append(LagsN,n)
-            LagsV = np.append(LagsV,LagsD[n]['tau'])
-            LagsE = np.append(LagsE,LagsD[n]['err'])
+            LagsN = np.append(LagsN, n)
+            LagsV = np.append(LagsV, LagsD[n]['tau'])
+            LagsE = np.append(LagsE, LagsD[n]['err'])
         data.attrs['LagTimeNames'] = LagsN
         data.attrs['LagTimeValues'] = LagsV
         data.attrs['LagTimeErr'] = LagsE
@@ -571,45 +571,30 @@ class Filaments(object):
             Ipol = Mac('Ipolsoli')
             _idx = np.where(((Ipol.time >= trange[0]) & (Ipol.time <= trange[1])))[0]
             # now create an appropriate savgolfile
-            IpolS = savgol_filter(Ipol.data[_idx], 501, 3)
+            IpolS = savgol_filter(Ipol.data[_idx], 301, 3)
             IpolT = Ipol.time[_idx]
+            IpolO = Ipol.data[_idx]
+            # we generate an UnivariateSpline object
+            _dummyTime = self._timebasis[np.where(
+                (self._timebasis >= trange[0]) &
+                (self._timebasis <= trange[1]))[0]]
+            IpolSp = UnivariateSpline(IpolT, IpolS, s=0)(_dummyTime)
             # on these we choose a threshold
             # which can be set as also set as keyword
-            window, _a, _b, _c = identify_bursts2(IpolS, threshold)
-            # now determine the tmin-tmax of all the identified ELMS
-            _idx, _idy = list(zip(*window))
-            self.tBegElm = IpolT[np.asarray(_idx)]
-            self.tEndElm = IpolT[np.asarray(_idy)]
+            self._Elm = np.where(IpolSp > threshold)
+            # generate a fake interval
+            ElmMask = np.zeros(IpolSp.size,dtype='bool')
+            ElmMask[self._Elm] = True
+            self._interElm = np.where(ElmMask == False)[0]
             if check:
                 fig, ax = mpl.pylab.subplots(nrows=1, ncols=1, figsize=(6, 4))
                 fig.subplots_adjust(bottom=0.15, left=0.15)
-                ax.plot(IpolT, IpolS, color='#1f77b4')
+                ax.plot(IpolT, IpolO, color='gray',alpha=0.5)
+                ax.plot(IpolT, IpolS, 'k',lw=1.2, alpha=0.5)
+                ax.plot(_dummyTime[self._Elm],IpolSp[self._Elm],'g',lw=1.5)
                 ax.set_xlabel(r't[s]')
                 ax.set_ylabel(r'Ipol SOL I')
                 ax.axhline(threshold, ls='--', color='#d62728')
-                for _ti, _te in zip(self.tBegElm, self.tEndElm):
-                    ax.axvline(_ti, ls='--', color='#ff7f0e')
-                    ax.axvline(_te, ls='--', color='#ff7f0e')
-
-        # and now set the mask
-        _dummyTime = self._timebasis[np.where((self._timebasis >= trange[0]) &
-                                              (self._timebasis <= trange[1]))[0]]
-
-        self._interElm = []
-        self._Elm = []
-        for i in range(self.tBegElm.size):
-            _a = np.where((_dummyTime >= self.tBegElm[i]) &
-                          (_dummyTime <= self.tEndElm[i]))[0]
-            self._Elm.append(_a[:])
-            try:
-                _a = np.where((_dummyTime >= self.tEndElm[i]) &
-                              (_dummyTime <= self.tBegElm[i + 1]))[0]
-                self._interElm.append(_a[:])
-            except:
-                pass
-
-        self._interElm = np.concatenate(np.asarray(self._interElm))
-        self._Elm = np.concatenate(np.asarray(self._Elm))
 
     def smooth(self, x, window_len=10, window='hanning'):
         """smooth the data using a window with requested size.
@@ -666,8 +651,20 @@ class Filaments(object):
 
     def _computeDeltaT(self, x, y, e):
         """
-        useful to compute the timing and error on the Isat
-        conditional average sample
+        Computation of FWHM of the Ion saturation current Conditionally
+        averaged sampled signal. It actually provide the computation
+        directly as the FWHM
+        Parameters
+        ----------
+        x: time basis
+        y: results of the CAS for ion saturation current
+        e: error
+
+        Returns
+        -------
+        delta : the FWHM
+        err : the Error on the FWHM
+
         """
         _dummy = (y - y.min())
         spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
