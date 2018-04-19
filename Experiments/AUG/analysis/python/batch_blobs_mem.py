@@ -3,7 +3,7 @@ import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
 shotList = df['Shot'].values
-shotList = shotList[shotList >= 34107]
+shotList = shotList[shotList >= 34279]
 for shot in shotList:
     D = df[df['Shot'] == shot]
     # first load the augFilaments data
@@ -20,8 +20,12 @@ for shot in shotList:
                 # no interelm
                 print('Evaluating without ELM for shot %5i' %shot +
                       ' strokes number %1i' % int(strokes))
+                if shot >= 34277:
+                    block = 180
+                else:
+                    block = 190
                 out = Data.blobAnalysis(Probe='Isat_m06',
-                                        block=190, normalize=True, detrend=True,
+                                        block=block, normalize=True, detrend=True,
                                         trange=[tmin, tmax], 
                                         otherProbe=['Isat_m10', 'Isat_m07'])
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
@@ -30,8 +34,8 @@ for shot in shotList:
                       ' strokes number %1i' % int(strokes))
                 thr = D['Threshold_'+strokes].values[0]
                 out = Data.blobAnalysis(Probe='Isat_m06', otherProbe=['Isat_m10', 'Isat_m07'],
-                                        block=190, normalize=True, detrend=True,
-                                        trange=[tmin, tmax], interelm=True, threshold=thr)
+                                        block=180, normalize=True, detrend=True,
+                                        trange=[tmin, tmax], interELM=True, threshold=thr)
                 out.to_netcdf('../data/Shot%5i' % shot + '_'+strokes+'Stroke.nc')
         else:
             print('No strokes %1i ' % int(strokes) + 'for shot %5i' % shot)
