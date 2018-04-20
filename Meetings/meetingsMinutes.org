@@ -85,9 +85,28 @@
        - [ ] Compare midplane neutral/ionization profiles AUG/TCV in L-Mode single-null discharge from simulations
        - [ ] Compute parallel Lambda profiles AUG/TCV
        - [ ] HESEL/Neutrals/Feltor ??
-     - Experimental program for TCV [0/2]
-       - [ ] Talk w/ Benoit an Christian to check best available scenario for high density NBH H-Mode achieved so far
+     - Experimental program for TCV [1/2]
+       - [X] Talk w/ Benoit an Christian to check best available scenario for high density NBH H-Mode achieved so far
        - [ ] According to the program we should also investigate SF scenario. Can we think about repeting an succesfull density ramp in SF. Talk w/ Holger
+**** Minutes
+     + Analysis
+       - Revise computation of blob-size in AUG and compare Lambda-Theta TCV-AUG. **Assigned to N.Vianello**
+	 1. Use FWHM of Isat shape rather then autocorrelation-time (the last one used by D. Carralero)
+	 2. revise 2D cross-correlation
+	 3. Neglect trailing wake (different from Tsui, Boedo)
+       - Neutral behavior. Update on neutral estimate from D_alpha/D_gamma ratio, with constraints imposed by Stark broadening
+	 density estimate **Assigned to M. Agostini**
+       - Adimensional parameter for divertor: **No assignement**
+     + Modelling activity
+       - Ask M. Wischmeir (as modelling coordinator) people availalbe to SOLPS modelling for AUG/TCV. For TCV Alexandre Fil from York
+	 already run SOLPS for TCV. **Assigned to V.Naulin**
+       - With code available compute Lambda profile along flux-tube, neutral density and ionization OMP and divertor
+       - Run Neutral/turbulence codes with different neutral densities at the OMP. Can parallel dynamics be parametrized to take into
+	 account different neutral behavior at the target?
+     + Experimental program
+       - June experiment on TCV: if **reliable** and **robust** H-Mode scenario availabe also at high density then complete the H-Mode part
+	 from 2017 Program. **Question asked to relevant TCV people**
+       - In alternative investigate Snow-Flake experiment in high density **Eventually talk with Holger**
 ** Other Meetings
 *** Neutral measurement meetings
     <2016-12-01 Thu>
