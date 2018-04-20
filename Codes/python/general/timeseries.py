@@ -51,8 +51,8 @@ class Timeseries(object):
         self.moments()
         _nPoint = int(dtS / self.dt)
         self.rmsnorm = (
-                           self.sig -
-                           bottleneck.move_mean(self.sig, window=_nPoint)) / \
+                               self.sig -
+                               bottleneck.move_mean(self.sig, window=_nPoint)) / \
                        bottleneck.move_std(self.sig, window=_nPoint)
 
     def moments(self):
@@ -277,10 +277,8 @@ class Timeseries(object):
         else:
             if rmsNorm:
                 threshold = 3
- #               print('Threshold is 3 in rmsNormalized')
             else:
                 threshold = 3 * np.sqrt(self.variance) + self.mean
- #               print('Threshold is 3 sigma in signal not normalized')
         if 'nw' in kwargs:
             nw = kwargs['nw']
         else:
@@ -288,7 +286,7 @@ class Timeseries(object):
         if 'Type' in kwargs:
             Type = kwargs['Type']
         else:
-            Type='THRESHOLD'
+            Type = 'THRESHOLD'
 
         nSig = inputS.shape[0]
         if Type == 'LIM':
@@ -311,19 +309,19 @@ class Timeseries(object):
             csO, tau, errO = self.cas(
                 Type='LIM',
                 frequency=frequency,
-                wavelet= wavelet,
-                peaks=peaks,valleys=valleys,
+                wavelet=wavelet,
+                peaks=peaks, valleys=valleys,
                 detrend=detrend)
         else:
             csO, tau, errO = self.cas(
                 Type='THRESHOLD',
                 normalize=normalize, detrend=detrend,
-                rmsNorm=rmsNorm, threshold=threshold,nw=nw)
+                rmsNorm=rmsNorm, threshold=threshold, nw=nw)
         maxima = np.zeros(self.nsamp, dtype='intp')
         maxima[self._locationindex] = 1
         # we need to ensure that we have 0 up to iwin
-        maxima[-self.iwin-1:] = 0
-        maxima[:self.iwin]=0
+        maxima[-self.iwin - 1:] = 0
+        maxima[:self.iwin] = 0
         csTot = np.zeros((nSig + 1, self.nw,
                           maxima.sum()))
         print('Number of structure mediated %4i' % maxima.sum())
@@ -340,7 +338,7 @@ class Timeseries(object):
                 ampTot[n + 1, i] = dummy[
                                    int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
                                    dummy[int(self.iwin / 2):
-                                   int(3 * self.iwin / 2)].min()
+                                         int(3 * self.iwin / 2)].min()
                 if normalize:
                     dummy /= dummy.std()
                 csTot[n + 1, :, i] = dummy
@@ -354,9 +352,9 @@ class Timeseries(object):
             else:
                 dummy -= dummy.mean()
             ampTot[0, i] = dummy[
-                            int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
-                            dummy[int(self.iwin / 2):
-                            int(3 * self.iwin / 2)].min()
+                           int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
+                           dummy[int(self.iwin / 2):
+                                 int(3 * self.iwin / 2)].min()
         # now compute the cas
         cs = np.mean(csTot, axis=2)
         cs[0, :] = csO
@@ -409,7 +407,7 @@ class Timeseries(object):
             ti = ti[0: mn]
             te = te[0: mn]
 
-        if ((ti.size > 1) & (te.size > 1)):
+        if (ti.size > 1) & (te.size > 1):
             if (ti[0] < te[0]):
                 waiting_times = ti[1:] - te[0:- 1]
             else:
@@ -426,7 +424,7 @@ class Timeseries(object):
             ti = ti[0: mn]
             te = te[0: mn]
 
-        if ((ti.size > 1) & (te.size > 1)):
+        if (ti.size > 1) & (te.size > 1):
             if (ti[0] < te[0]):
                 quiescent_times = ti[1:] - te[0:- 1]
             else:
@@ -488,12 +486,12 @@ class Timeseries(object):
         if Type == 'LIM':
             peaks = kwargs.get('peaks', False)
             valleys = kwargs.get('valleys', False)
-            frequency = kwargs.get('frequency',100e3)
+            frequency = kwargs.get('frequency', 100e3)
             maxima, allmax = self.limStructure(
                 frequency=frequency,
                 peaks=peaks,
                 valleys=valleys,
-                wavelet=kwargs.get('wavelet','Mexican'))
+                wavelet=kwargs.get('wavelet', 'Mexican'))
             self.location = self.time[maxima == 1]
             self._locationindex = np.where(maxima == 1)[0]
             self._allmaxima = allmax
@@ -552,10 +550,10 @@ class Timeseries(object):
                     self.sig[window[0]:window[1]] ==
                     np.max(self.sig[window[0]:window[1]]))[0][0]
                 if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
-                                (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
+                        (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
                     _dummy = copy.deepcopy(self.sig[
-                             window[0] + ind_max - (nw - 1) / 2 :
-                             window[0] + ind_max + (nw - 1) / 2 + 1])
+                                           window[0] + ind_max - (nw - 1) / 2:
+                                           window[0] + ind_max + (nw - 1) / 2 + 1])
                     if detrend:
                         _dummy = scipy.signal.detrend(
                             _dummy, type='linear')
@@ -679,10 +677,8 @@ class Timeseries(object):
         for i in np.arange(1, window):
             negs = self.signorm - np.roll(self.signorm, i)
             poss = self.signorm - np.roll(self.signorm, -i)
-            prevnegs[np.where(negs > prevnegs)
-            ] = negs[np.where(negs > prevnegs)]
-            prevposs[np.where(poss > prevposs)
-            ] = poss[np.where(poss > prevposs)]
+            prevnegs[np.where(negs > prevnegs)[0]] = negs[np.where(negs > prevnegs)[0]]
+            prevposs[np.where(poss > prevposs)[0]] = poss[np.where(poss > prevposs)[0]]
         snf = 0.5 * (prevnegs + prevposs)
         return snf
 
