@@ -14,13 +14,14 @@ import numpy as np
 import matplotlib as mpl
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
+from scipy import stats
 from time_series_tools import identify_bursts2
 import langmuir
 import xarray as xray
 import libes
 import logging
 from six.moves import input
-from lmfit.models import GaussianModel
+from lmfit.models import GaussianModel, SkewedGaussianModel
 import time
 from collections import OrderedDict
 
@@ -52,8 +53,9 @@ class Filaments(object):
     libes : Class for dealing with Li-Be data available https://github.com/nicolavianello/topic21
     """
 
-    def __init__(self, shot, Probe='HFF', Xprobe=None):
+    def __init__(self, shot, Probe='HFF', Xprobe=None, angle=80):
         self.shot = shot
+        self.angle = angle
         # load the equilibria
         try:
             start = time.time()
@@ -65,12 +67,12 @@ class Filaments(object):
         # open the shot file
         self.Probe = Probe
         if self.Probe == 'HFF':
-            self._HHFGeometry(angle=80)
+            self._HHFGeometry(angle=self.angle)
             start = time.time()
             self._loadHHF()
             print('Probe signal loaded in %5.4f' % (time.time() - start) + ' s')
         elif self.Probe == '14Pin':
-            self._14PGeometry(angle=80)
+            self._14PGeometry(angle=self.angle)
             self._loadHHF()
         else:
             logging.warning('Other probe head not implemented yet')
@@ -249,7 +251,10 @@ class Filaments(object):
 
         """
 
-        ProbeHead = mpl.pyplot.Circle((0, 0), 32.5, ec='k', fill=False, lw=3)
+        if self.Probe == 'HFF':
+            ProbeHead = mpl.pyplot.Circle((0, 0), 32.5, ec='k', fill=False, lw=3)
+        elif self.Probe == '14Pin':
+            ProbeHead = mpl.pyplot.Circle((0, 0), 13.0, ec='k', fill=False, lw=3)
 
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)
@@ -451,16 +456,9 @@ class Filaments(object):
         LagsD = self._computeLag(data)
         # since we want to have the possibility to save in netcdf
         # we can't use OrderedDictionary and we need to save them explicitely
-        LagsN = np.array([])
-        LagsV = np.array([])
-        LagsE = np.array([])
-        for n in LagsD.keys():
-            LagsN = np.append(LagsN, n)
-            LagsV = np.append(LagsV, LagsD[n]['tau'])
-            LagsE = np.append(LagsE, LagsD[n]['err'])
-        data.attrs['LagTimeNames'] = LagsN
-        data.attrs['LagTimeValues'] = LagsV
-        data.attrs['LagTimeErr'] = LagsE
+        data.attrs['LagTimeNames'] = LagsD.keys()
+        data.attrs['LagTimeValues'] = np.array([LagsD[n]['tau'] for n in LagsD.keys()])
+        data.attrs['LagTimeErr'] = np.array([LagsD[n]['err'] for n in LagsD.keys()])
         # given the geometry of the probe head we can now evaluate the
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
@@ -730,11 +728,17 @@ class Filaments(object):
                                 mode='same')
             xcor /= np.sqrt(np.dot(a, a) *
                             np.dot(b, b))
-            mod = GaussianModel()
+            # the gaussian fit is not approriate for AUG
+            # since the cross-correlation function is strongly asymmetric
+            # we used for fit a Skewed Gaussian Distribution
+            # This is used to estimate the error
+            mod = SkewedGaussianModel()
             pars = mod.guess(xcor, x=lag)
             pars['sigma'].set(value=1e-5, vary=True)
+            pars['gamma'].set(value=stats.skew(xcor),vary=True)
             out = mod.fit(xcor, pars, x=lag)
-            outDictionary[n + '-' + self.refSignal] = {'tau': out.params['center'].value,
+
+            outDictionary[n + '-' + self.refSignal] = {'tau': lag[np.argmax(xcor)],
                                                        'err': out.params['center'].stderr}
 
         return outDictionary
