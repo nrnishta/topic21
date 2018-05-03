@@ -250,7 +250,10 @@ class Filaments(object):
 
         """
 
-        ProbeHead = mpl.pyplot.Circle((0, 0), 32.5, ec='k', fill=False, lw=3)
+        if self.Probe == 'HFF':
+            ProbeHead = mpl.pyplot.Circle((0, 0), 32.5, ec='k', fill=False, lw=3)
+        elif self.Probe == '14Pin':
+            ProbeHead = mpl.pyplot.Circle((0, 0), 13.0, ec='k', fill=False, lw=3)
 
         fig, ax = mpl.pylab.subplots(figsize=(6, 6), nrows=1, ncols=1)
         ax.add_artist(ProbeHead)

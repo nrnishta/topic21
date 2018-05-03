@@ -3,7 +3,7 @@ import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
 shotList = df['Shot'].values
-shotList = shotList[shotList >= 34279]
+shotList = shotList[shotList > 34115]
 for shot in shotList:
     D = df[df['Shot'] == shot]
     # first load the augFilaments data
