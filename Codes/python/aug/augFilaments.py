@@ -53,8 +53,9 @@ class Filaments(object):
     libes : Class for dealing with Li-Be data available https://github.com/nicolavianello/topic21
     """
 
-    def __init__(self, shot, Probe='HFF', Xprobe=None):
+    def __init__(self, shot, Probe='HFF', Xprobe=None, angle=80):
         self.shot = shot
+        self.angle = angle
         # load the equilibria
         try:
             start = time.time()
@@ -66,12 +67,12 @@ class Filaments(object):
         # open the shot file
         self.Probe = Probe
         if self.Probe == 'HFF':
-            self._HHFGeometry(angle=80)
+            self._HHFGeometry(angle=self.angle)
             start = time.time()
             self._loadHHF()
             print('Probe signal loaded in %5.4f' % (time.time() - start) + ' s')
         elif self.Probe == '14Pin':
-            self._14PGeometry(angle=80)
+            self._14PGeometry(angle=self.angle)
             self._loadHHF()
         else:
             logging.warning('Other probe head not implemented yet')
