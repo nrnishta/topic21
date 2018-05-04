@@ -241,7 +241,7 @@ class Filaments(object):
         # generate a class aware time basis
         self._timebasis = self.vfArr.t.values
         # generate a class aware dt
-        self.dt = old_div((self._timebasis.max() - self._timebasis.min()), (
+        self.dt = float((self._timebasis.max() - self._timebasis.min()), (
                 self._timebasis.size - 1))
 
     def plotProbeSetup(self):
@@ -265,18 +265,32 @@ class Filaments(object):
                 col = 'blue'
             else:
                 col = 'black'
-
-            tip = mpl.pyplot.Circle(
-                (self.RZgrid[probe]['x'], self.RZgrid[probe]['z'] - self.Zmem), 2, fc=col)
-            ax.add_artist(tip)
-            ax.text(
-                self.RZgrid[probe]['x'] -
-                10,
-                self.RZgrid[probe]['z'] -
-                2 -
-                self.Zmem,
-                probe,
-                fontsize=8)
+            if self.Probe == 'HFF':
+                tip = mpl.pyplot.Circle(
+                    (self.RZgrid[probe]['x'],
+                     self.RZgrid[probe]['z'] - self.Zmem), 2, fc=col)
+                ax.add_artist(tip)
+                ax.text(
+                    self.RZgrid[probe]['x'] -
+                    10,
+                    self.RZgrid[probe]['z'] -
+                    2 -
+                    self.Zmem,
+                    probe,
+                    fontsize=8)
+            elif self.Probe == '14Pin':
+                tip = mpl.pyplot.Circle(
+                    (self.RZgrid[probe]['x'],
+                     self.RZgrid[probe]['z'] - self.Zmem), 0.5, fc=col)
+                ax.add_artist(tip)
+                ax.text(
+                    self.RZgrid[probe]['x'] -
+                    10,
+                    self.RZgrid[probe]['z'] -
+                    2 -
+                    self.Zmem,
+                    probe,
+                    fontsize=8)
         ax.set_xlim([-70, 70])
         ax.set_ylim([-70, 70])
         ax.text(-40, 60, r'I$_s$', fontsize=18, color='red')
@@ -308,7 +322,7 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = old_div((2188 - (self.Xprobe - self.Xlim) - sPos + 100), 1e3)
+        R = float((2188. - (self.Xprobe - self.Xlim) - sPos + 100), 1e3)
         # smooth it
         R = self.smooth(R, window_len=100)
         # check if trange exist or not
@@ -644,7 +658,7 @@ class Filaments(object):
             w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
-        y = np.convolve(old_div(w, w.sum()), s, mode='same')
+        y = np.convolve(float(w/w.sum()), s, mode='same')
         return y[window_len - 1:-window_len + 1]
 
     def _computeDeltaT(self, x, y, e):
@@ -665,7 +679,7 @@ class Filaments(object):
 
         """
         _dummy = (y - y.min())
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -675,7 +689,7 @@ class Filaments(object):
         delta = (r2 - r1)
         # now compute an estimate of the error
         _dummy = (y + e) - (y + e).min()
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -684,7 +698,7 @@ class Filaments(object):
             r1, r2 = spline.roots()
         deltaUp = (r2 - r1)
         _dummy = (y - e) - (y - e).min()
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max(), 2), s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -716,7 +730,7 @@ class Filaments(object):
         are saved and reporting correlation and error
         """
 
-        lag = np.arange(data.shape[1], dtype='float') - old_div(data.shape[1], 2)
+        lag = np.arange(data.shape[1], dtype='float') - data.shape[1]/2.
         lag *= self.dt
         outDictionary = {}
         _Name = [n for n in data.sig.values if n != self.refSignal]
