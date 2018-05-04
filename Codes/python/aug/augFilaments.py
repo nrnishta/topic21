@@ -6,7 +6,6 @@ from builtins import zip
 from builtins import input
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import timeseries
 import dd
 import eqtools
