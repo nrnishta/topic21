@@ -241,8 +241,8 @@ class Filaments(object):
         # generate a class aware time basis
         self._timebasis = self.vfArr.t.values
         # generate a class aware dt
-        self.dt = float((self._timebasis.max() - self._timebasis.min()), (
-                self._timebasis.size - 1))
+        self.dt = float((self._timebasis.max() - self._timebasis.min())/(
+                    self._timebasis.size - 1))
 
     def plotProbeSetup(self):
         """
@@ -322,7 +322,7 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = float((2188. - (self.Xprobe - self.Xlim) - sPos + 100), 1e3)
+        R = float((2188. - (self.Xprobe - self.Xlim) - sPos + 100)/1e3)
         # smooth it
         R = self.smooth(R, window_len=100)
         # check if trange exist or not
@@ -794,16 +794,16 @@ class Filaments(object):
         # Error on alpha
         _xdummy = (-Lr * tZ / (Lzr * tZ - tR * Lz))
         dxdummy_dtz = (
-                old_div(-Lr, (Lzr * tZ - tR * Lz)) + Lr * Lzr * tZ / np.power(Lzr * tZ - tR * Lz, 2)
+                -Lr/(Lzr * tZ - tR * Lz) + Lr * Lzr * tZ / np.power(Lzr * tZ - tR * Lz, 2)
         )
         dxdummy_dtr = (
                 Lr * Lz * tZ / np.power(Lzr * tZ - tR * Lz, 2)
         )
         dxdummy = np.sqrt(np.power(dxdummy_dtz, 2) * np.power(dtZ, 2) +
                           np.power(dxdummy_dtr, 2) * np.power(dtR, 2))
-        dAlpha = old_div(dxdummy, (1 + np.power(_xdummy, 2)))
+        dAlpha = dxdummy/(1 + np.power(_xdummy, 2))
         # Error on vPerp
-        dvperp = np.sqrt(np.power(old_div(vperp, tZ), 2) * np.power(dtZ, 2) +
+        dvperp = np.sqrt(np.power(vperp/tZ, 2) * np.power(dtZ, 2) +
                          np.power(Lz * np.cos(alpha) / tZ, 2) * np.power(dAlpha, 2)
                          )
         # error in the evaluation of vr
