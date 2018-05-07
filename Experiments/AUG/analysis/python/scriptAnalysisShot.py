@@ -95,6 +95,7 @@ def print_menu():
     print "56. Compare shots 34276-34278-34281 general"
     print "57. Compare shots 34276-34278-34281 profiles"
     print "58. Elm behavior 34276-34278-34281 "
+    print "59. Radiation and peak density vs Greenwald fraction (data saved)"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -4868,6 +4869,26 @@ while loop:
         ax[2].set_xlabel(r't[s]')
         mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
                           '_%5i' %shotList[1]+'_%5i' % shotList[2] + '.pdf', bbox_to_inches='tight')
+
+    elif selection == 58:
+        # we save in netcdf format the decimated evolution of peak density
+        # and XUV diods with corresponding names
+        shotList = (34102, 34103, 34104, 34105, 34106)
+        Diods = {'D10': {'Name': 'S2L0A09',
+                       'xchord': [1.519, 1.606],
+                       'ychord': [-1.131, -1.11]},
+                 'D17': {'Name': 'S2L1A00',
+                       'xchord': [1.437, 2.173],
+                       'ychord': [-1.063, -0.282]}}
+        for shot in shotList:
+            # load the greenwald fraction
+
+            # load the target density
+            Target = langmuir.Target(shot)
+            peakTarget = decimate(bottleneck.move_mean(
+                np.nanmax(Target.OuterTargetNe, axis=0)/1e20, window=30),
+                                  10, ftype='fir', zero_phase=True)
+            tPeak = decimate(Target.time, 10, ftype='fir', zero_phase=True)
 
 
     elif selection == 99:

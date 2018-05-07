@@ -62,7 +62,7 @@ class Filaments(object):
             print('Equilibrium loaded in %5.4f' % (time.time() - start) + ' s')
         except ImportError:
             print('Equilibrium not loaded')
-        self.Xprobe = Xprobe
+        self.Xprobe = float(Xprobe)
         # open the shot file
         self.Probe = Probe
         if self.Probe == 'HFF':
@@ -93,8 +93,8 @@ class Filaments(object):
         Define the dictionary containing the geometrical information concerning
         each of the probe tip of the HHF probe
         """
-        self.Zmem = 312
-        self.Xlim = 1738
+        self.Zmem = 312.
+        self.Xlim = 1738.
         RZgrid = {'m01': {'x': 10, 'z': 16.5, 'r': 4},
                   'm02': {'x': 3.5, 'z': 16.5, 'r': 4},
                   'm03': {'x': -3.5, 'z': 16.5, 'r': 4},
@@ -125,8 +125,8 @@ class Filaments(object):
         Define the dictionary containing the geometrical information concerning
         each of the probe tip of the HHF probe
         """
-        self.Zmem = 312
-        self.Xlim = 1732
+        self.Zmem = 312.
+        self.Xlim = 1732.
         RZgrid = {'m01': {'x': -8.6, 'z': 2.75, 'r': 3},
                   'm02': {'x': -8.6, 'z': -2.75, 'r': 3},
                   'm03': {'x': -4.3, 'z': 8.25, 'r': 0},
@@ -321,7 +321,7 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = float((2188. - (self.Xprobe - self.Xlim) - sPos + 100)/1e3)
+        R = ((2188. - (self.Xprobe - self.Xlim) - sPos + 100.)/1.e3)
         # smooth it
         R = self.smooth(R, window_len=100)
         # check if trange exist or not
@@ -657,7 +657,7 @@ class Filaments(object):
             w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
-        y = np.convolve(float(w/w.sum()), s, mode='same')
+        y = np.convolve(w/w.sum(), s, mode='same')
         return y[window_len - 1:-window_len + 1]
 
     def _computeDeltaT(self, x, y, e):
@@ -697,7 +697,7 @@ class Filaments(object):
             r1, r2 = spline.roots()
         deltaUp = (r2 - r1)
         _dummy = (y - e) - (y - e).min()
-        spline = UnivariateSpline(x, _dummy - _dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
