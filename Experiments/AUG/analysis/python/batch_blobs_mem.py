@@ -3,11 +3,11 @@ import augFilaments
 import numpy as np
 df = pd.read_csv('../data/MEM_Topic21.csv')
 shotList = df['Shot'].values
-shotList = shotList[shotList > 34115]
+shotList = shotList[shotList != 34115]
 for shot in shotList:
     D = df[df['Shot'] == shot]
     # first load the augFilaments data
-    Data = augFilaments.Filaments(shot, Xprobe=D['X'].values)
+    Data = augFilaments.Filaments(shot, Xprobe=float(D['X'].values[0]))
     # then iterate with check on the number of strokes
     for strokes in ('1', '2', '3', '4', '5', '6'):
         # this is the check in case the timing is defined

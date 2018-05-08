@@ -95,6 +95,7 @@ def print_menu():
     print "56. Compare shots 34276-34278-34281 general"
     print "57. Compare shots 34276-34278-34281 profiles"
     print "58. Elm behavior 34276-34278-34281 "
+    print "59. Radiation and peak density vs Greenwald fraction (data saved)"
     print "99: End"
     print 67 * "-"
 loop = True
@@ -4869,7 +4870,55 @@ while loop:
         mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
                           '_%5i' %shotList[1]+'_%5i' % shotList[2] + '.pdf', bbox_to_inches='tight')
 
+    elif selection == 58:
+        # we save in netcdf format the decimated evolution of peak density
+        # and XUV diods with corresponding names
+        shotList = (34102, 34103, 34104, 34105, 34106)
+        Diods = {'D10': {'Name': 'S2L0A09',
+                       'xchord': [1.519, 1.606],
+                       'ychord': [-1.131, -1.11]},
+                 'D17': {'Name': 'S2L1A00',
+                       'xchord': [1.437, 2.173],
+                       'ychord': [-1.063, -0.282]}}
+        for shot in shotList:
+            
 
+            # load the target density
+            Target = langmuir.Target(shot)
+            peakTarget = decimate(bottleneck.move_mean(
+                np.nanmax(Target.OuterTargetNe, axis=0)/1e20, window=300),
+                                  10, ftype='fir', zero_phase=True)
+            tPeak = decimate(Target.time, 10, ftype='fir', zero_phase=True)
+            peakTarget = peakTarget[np.where(tPeak >= 1)[0]]
+            tPeak = tPeak[np.where(tPeak >= 1)[0]]
+            # load the greenwald fraction, limit to time greater than 1
+            # smooth and decimate
+            Tot = dd.shotfile('TOT', shot)
+            nGWA = Tot('n/nGW')
+            nGW = decimate(bottleneck.move_mean(nGWA.data, window=30), 10, ftype='fir',
+                           zero_phase=True)
+            tGW = decimate(nGWA.time, 10, ftype='fir', zero_phase=True) 
+            nGW = nGW[np.where(tGW >= 1)[0]]
+            tGW = tGW[np.where(tGW >= 1)[0]]
+            # now spline the peak target 
+            S = UnivariateSpline(tPeak[~np.isnan(peakTarget)], peakTarget[~np.isnan(peakTarget)], s=0)
+            Peak = S(tGW)
+            # and now cycle through the two diods
+            XVS = dd.shotfile('XVS', shot)
+            
+            for key in Diods.keys():
+                dummy=XVS(Diods[key]['Name'])
+                Fs = 500e3
+                sig = bw_filter(dummy.data, 200e3, Fs, 'lowpass', order=6)
+                # now downsampling the data two times
+                sig = decimate(decimate(sig, 10, ftype='fir', zero_phase=True),
+                               10, ftype='fir', zero_phase=True)
+                t = decimate(decimate(dummy.time, 10, ftype='fir', zero_phase=True),
+                             10, ftype='fir', zero_phase=True)
+                sig = sig[np.where(t>= 1)[0]]
+                t = t[np.where(t >= 1)[0]]
+                S = UnivariateSpline(t[~np.isnan(sig)], sig[~np.isnan(sig)], s=0)
+                
     elif selection == 99:
         loop = False
     else:

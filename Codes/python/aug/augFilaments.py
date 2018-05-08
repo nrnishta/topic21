@@ -6,7 +6,6 @@ from builtins import zip
 from builtins import input
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import timeseries
 import dd
 import eqtools
@@ -63,7 +62,7 @@ class Filaments(object):
             print('Equilibrium loaded in %5.4f' % (time.time() - start) + ' s')
         except ImportError:
             print('Equilibrium not loaded')
-        self.Xprobe = Xprobe
+        self.Xprobe = float(Xprobe)
         # open the shot file
         self.Probe = Probe
         if self.Probe == 'HFF':
@@ -94,8 +93,8 @@ class Filaments(object):
         Define the dictionary containing the geometrical information concerning
         each of the probe tip of the HHF probe
         """
-        self.Zmem = 312
-        self.Xlim = 1738
+        self.Zmem = 312.
+        self.Xlim = 1738.
         RZgrid = {'m01': {'x': 10, 'z': 16.5, 'r': 4},
                   'm02': {'x': 3.5, 'z': 16.5, 'r': 4},
                   'm03': {'x': -3.5, 'z': 16.5, 'r': 4},
@@ -126,8 +125,8 @@ class Filaments(object):
         Define the dictionary containing the geometrical information concerning
         each of the probe tip of the HHF probe
         """
-        self.Zmem = 312
-        self.Xlim = 1732
+        self.Zmem = 312.
+        self.Xlim = 1732.
         RZgrid = {'m01': {'x': -8.6, 'z': 2.75, 'r': 3},
                   'm02': {'x': -8.6, 'z': -2.75, 'r': 3},
                   'm03': {'x': -4.3, 'z': 8.25, 'r': 0},
@@ -241,8 +240,8 @@ class Filaments(object):
         # generate a class aware time basis
         self._timebasis = self.vfArr.t.values
         # generate a class aware dt
-        self.dt = old_div((self._timebasis.max() - self._timebasis.min()), (
-                self._timebasis.size - 1))
+        self.dt = float((self._timebasis.max() - self._timebasis.min())/(
+                    self._timebasis.size - 1))
 
     def plotProbeSetup(self):
         """
@@ -265,18 +264,32 @@ class Filaments(object):
                 col = 'blue'
             else:
                 col = 'black'
-
-            tip = mpl.pyplot.Circle(
-                (self.RZgrid[probe]['x'], self.RZgrid[probe]['z'] - self.Zmem), 2, fc=col)
-            ax.add_artist(tip)
-            ax.text(
-                self.RZgrid[probe]['x'] -
-                10,
-                self.RZgrid[probe]['z'] -
-                2 -
-                self.Zmem,
-                probe,
-                fontsize=8)
+            if self.Probe == 'HFF':
+                tip = mpl.pyplot.Circle(
+                    (self.RZgrid[probe]['x'],
+                     self.RZgrid[probe]['z'] - self.Zmem), 2, fc=col)
+                ax.add_artist(tip)
+                ax.text(
+                    self.RZgrid[probe]['x'] -
+                    10,
+                    self.RZgrid[probe]['z'] -
+                    2 -
+                    self.Zmem,
+                    probe,
+                    fontsize=8)
+            elif self.Probe == '14Pin':
+                tip = mpl.pyplot.Circle(
+                    (self.RZgrid[probe]['x'],
+                     self.RZgrid[probe]['z'] - self.Zmem), 0.5, fc=col)
+                ax.add_artist(tip)
+                ax.text(
+                    self.RZgrid[probe]['x'] -
+                    10,
+                    self.RZgrid[probe]['z'] -
+                    2 -
+                    self.Zmem,
+                    probe,
+                    fontsize=8)
         ax.set_xlim([-70, 70])
         ax.set_ylim([-70, 70])
         ax.text(-40, 60, r'I$_s$', fontsize=18, color='red')
@@ -308,7 +321,7 @@ class Filaments(object):
         sPos = np.abs(Lsm('S-posi').data - Lsm('S-posi').data.min())
         tPos = Lsm('S-posi').time
         # convert into absolute value according to transformation
-        R = old_div((2188 - (self.Xprobe - self.Xlim) - sPos + 100), 1e3)
+        R = ((2188. - (self.Xprobe - self.Xlim) - sPos + 100.)/1.e3)
         # smooth it
         R = self.smooth(R, window_len=100)
         # check if trange exist or not
@@ -644,7 +657,7 @@ class Filaments(object):
             w = np.ones(window_len, 'd')
         else:
             w = getattr(np, window)(window_len)
-        y = np.convolve(old_div(w, w.sum()), s, mode='same')
+        y = np.convolve(w/w.sum(), s, mode='same')
         return y[window_len - 1:-window_len + 1]
 
     def _computeDeltaT(self, x, y, e):
@@ -665,7 +678,7 @@ class Filaments(object):
 
         """
         _dummy = (y - y.min())
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -675,7 +688,7 @@ class Filaments(object):
         delta = (r2 - r1)
         # now compute an estimate of the error
         _dummy = (y + e) - (y + e).min()
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -684,7 +697,7 @@ class Filaments(object):
             r1, r2 = spline.roots()
         deltaUp = (r2 - r1)
         _dummy = (y - e) - (y - e).min()
-        spline = UnivariateSpline(x, _dummy - old_div(_dummy.max(), 2), s=0)
+        spline = UnivariateSpline(x, _dummy - _dummy.max()/2., s=0)
         if spline.roots().size > 2:
             a = np.sort(spline.roots())
             r1 = a[a < 0][-1]
@@ -716,7 +729,7 @@ class Filaments(object):
         are saved and reporting correlation and error
         """
 
-        lag = np.arange(data.shape[1], dtype='float') - old_div(data.shape[1], 2)
+        lag = np.arange(data.shape[1], dtype='float') - data.shape[1]/2.
         lag *= self.dt
         outDictionary = {}
         _Name = [n for n in data.sig.values if n != self.refSignal]
@@ -780,16 +793,16 @@ class Filaments(object):
         # Error on alpha
         _xdummy = (-Lr * tZ / (Lzr * tZ - tR * Lz))
         dxdummy_dtz = (
-                old_div(-Lr, (Lzr * tZ - tR * Lz)) + Lr * Lzr * tZ / np.power(Lzr * tZ - tR * Lz, 2)
+                -Lr/(Lzr * tZ - tR * Lz) + Lr * Lzr * tZ / np.power(Lzr * tZ - tR * Lz, 2)
         )
         dxdummy_dtr = (
                 Lr * Lz * tZ / np.power(Lzr * tZ - tR * Lz, 2)
         )
         dxdummy = np.sqrt(np.power(dxdummy_dtz, 2) * np.power(dtZ, 2) +
                           np.power(dxdummy_dtr, 2) * np.power(dtR, 2))
-        dAlpha = old_div(dxdummy, (1 + np.power(_xdummy, 2)))
+        dAlpha = dxdummy/(1 + np.power(_xdummy, 2))
         # Error on vPerp
-        dvperp = np.sqrt(np.power(old_div(vperp, tZ), 2) * np.power(dtZ, 2) +
+        dvperp = np.sqrt(np.power(vperp/tZ, 2) * np.power(dtZ, 2) +
                          np.power(Lz * np.cos(alpha) / tZ, 2) * np.power(dAlpha, 2)
                          )
         # error in the evaluation of vr
