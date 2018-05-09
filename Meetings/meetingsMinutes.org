@@ -345,3 +345,10 @@
       tail of the positive skewness
     - The autocorrelation time an be less the digitazion as he compute
       a gaussfit on the autocorrelation
+*** TFM <2018-05-09 Wed>
+    *H-Mode on TCV from B. Labit*
+    - Shot interesting to be considered 59063 <n_e> up to 1e20
+    - Steady state density 58182
+    - *60780*
+    - *60813*, *60814* these are the shots we need to move from.
+    - 40 Hz is the lower ELM frequency achievable
