@@ -917,7 +917,7 @@ class Turbo(object):
             tmp = np.nanmean(_LambdaN.data()[_idx,:],axis=0)
             tmpstd = np.nanstd(_LambdaN.data()[_idx,:],axis=0)
             _rdx = np.where(((xCl >= rrsep[0]) & (xCl <= rrsep[1])))[0]
-            Lambda = np.mean(tmp[_rdx], weights=1./tmpstd[_rdx])
+            Lambda = np.mean( tmp[ _rdx ],weights=1. / tmpstd[ _rdx ] )
             LambdaErr = np.std(tmp[_rdx],weights=1./tmpstd[_rdx])
         except:
             _Lambda, xCl = self.Target.Lambda(gas=self.gas, trange=trange)

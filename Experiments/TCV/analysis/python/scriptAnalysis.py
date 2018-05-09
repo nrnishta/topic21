@@ -8,6 +8,7 @@ from boloradiation import Radiation
 from tcv.diag.bolo import Bolo
 import eqtools
 import MDSplus as mds
+import xarray as xray
 import langmuir
 import gauges
 import tcvFilaments
@@ -59,6 +60,7 @@ def print_menu():
     print "31. Better comparison profiles at constant q95"
     print "32. Blob size vs Lambda with classes in Current Constant Bt"
     print "33. Blob size vs Lambda with classes in Current Constant Q95"
+    print "34. Save Target Density, Radiation vs greenwald fraction"
     print "99: End"
     print 67 * "-"
 
@@ -2892,7 +2894,58 @@ while loop:
         ax.legend(loc='upper left', numpoints=1, frameon=False)
         fig.savefig('../pdfbox/BlobSizeVsLambdaDivIpScalingConstantQ95.pdf',
                     bbox_to_inches='tight')
-            
+    elif selection == 34:
+        shotList = (57425, 57437, 57454, 57461, 57497)
+        for shot in shotList:
+            Tree = mds.Tree('tcv_shot', shot)
+            # n average
+            neNode = Tree.getNode(r'\results::fir:n_average')
+            # current
+            iPNode = mds.Data.compile(r'tcv_ip()').evaluate()
+            iP = iPNode.data()
+            tIp = iPNode.getDimensionAt().data()
+            # target
+            Target = langmuir.LP(shot, Type='floor')
+            # read the bolometry
+            bolo = Bolo.fromshot(shot, Los=44, filter='gottardi')
+            # we now compute the values of all the quantities
+            # on the same time-basis
+            # which will be limited to the minimum and maximum of neNode
+            tmin = max(neNode.getDimensionAt().data().min(),
+                       Target.t.min())
+            tmax = min(neNode.getDimensionAt().data().max(),
+                       Target.t.max())
+            # UnivariateSpline interpolation for density
+            _idx = np.where((neNode.getDimensionAt().data() >= tmin) &
+                            (neNode.getDimensionAt().data() <= tmax))[0]
+            sNe = UnivariateSpline(neNode.getDimensionAt().data()[_idx],
+                                   neNode.data()[_idx]/1e20, s=0)
+            # UnivariateSpline interpolation of iP in MA
+            _idx = np.where((tIp >= tmin) & (tIp <= tmax))[0]
+            sIp = UnivariateSpline(tIp[_idx], np.abs(iP)[_idx]/1e6, s=0)
+            # UnivariateSpline of the peak density
+            sNePeak = interp1d(Target.t,
+                               np.nanmax(Target.en, axis=1)/1e19,
+                               fill_value='extrapolate')
+            # UnivariateSpline of the total ion flux_gaz
+            sIonFlux = UnivariateSpline(Target.t2,
+                                        Target.TotalSpIonFlux()/1e27, s=0)
+            # limit the bolometry between minimum and maximum
+            _idx = np.where((bolo.time.values >= tmin) &
+                            (bolo.time.values <= tmax))[0]
+            # now save
+            t = bolo.time.values[_idx]
+            nGW = np.pi*np.power(0.25, 2)*sNe(
+                bolo.time.values[_idx])/sIp(bolo.time.values[_idx])
+            savedArray = np.stack([nGW, sNe(t),
+                                   sIonFlux(t), sNePeak(t),
+                                   bolo.values[_idx]], axis=0)
+            coords = ['n/nG', 'en', 'Ion Flux', 'neMaxTarget', 'Bolo']
+            df = xray.DataArray(savedArray,
+                                coords=[coords, t],
+                                dims=['sig', 't'])
+            df.to_netcdf('../../data/Shot%5i' % shot +
+                         '_DensityRadiation.nc')
     elif selection == 99:
         loop = False
     else:
