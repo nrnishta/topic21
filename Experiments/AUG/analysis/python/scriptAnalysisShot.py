@@ -4870,7 +4870,7 @@ while loop:
         mpl.pylab.savefig('../pdfbox/PuffingIpolsola%5i' % shotList[0] +
                           '_%5i' %shotList[1]+'_%5i' % shotList[2] + '.pdf', bbox_to_inches='tight')
 
-    elif selection == 58:
+    elif selection == 59:
         # we save in netcdf format the decimated evolution of peak density
         # and XUV diods with corresponding names
         shotList = (34102, 34103, 34104, 34105, 34106)
@@ -4881,28 +4881,40 @@ while loop:
                        'xchord': [1.437, 2.173],
                        'ychord': [-1.063, -0.282]}}
         for shot in shotList:
-            
-
+            # load the greenwald fraction, limit to time greater than 1
+            # smooth and decimate
+            Tot = dd.shotfile('TOT', shot)
+            nGWA = Tot('n/nGW')
+            nGW = decimate(bottleneck.move_mean(nGWA.data, window=30), 5, ftype='fir',
+                           zero_phase=True)
+            tGW = decimate(nGWA.time, 10, ftype='fir', zero_phase=True) 
+            nGW = nGW[np.where(tGW >= 1)[0]]
+            tGW = tGW[np.where(tGW >= 1)[0]]
             # load the target density
             Target = langmuir.Target(shot)
             peakTarget = decimate(bottleneck.move_mean(
                 np.nanmax(Target.OuterTargetNe, axis=0)/1e20, window=300),
                                   10, ftype='fir', zero_phase=True)
             tPeak = decimate(Target.time, 10, ftype='fir', zero_phase=True)
-            peakTarget = peakTarget[np.where(tPeak >= 1)[0]]
-            tPeak = tPeak[np.where(tPeak >= 1)[0]]
-            # load the greenwald fraction, limit to time greater than 1
-            # smooth and decimate
-            Tot = dd.shotfile('TOT', shot)
-            nGWA = Tot('n/nGW')
-            nGW = decimate(bottleneck.move_mean(nGWA.data, window=30), 10, ftype='fir',
-                           zero_phase=True)
-            tGW = decimate(nGWA.time, 10, ftype='fir', zero_phase=True) 
-            nGW = nGW[np.where(tGW >= 1)[0]]
-            tGW = tGW[np.where(tGW >= 1)[0]]
+            peakTarget = peakTarget[np.where((tPeak >= tGW.min()) &
+                                             (tPeak <= tGW.max()))[0]]
+            tPeak = tPeak[np.where((tPeak >= tGW.min()) &
+                                             (tPeak <= tGW.max()))[0]]
             # now spline the peak target 
             S = UnivariateSpline(tPeak[~np.isnan(peakTarget)], peakTarget[~np.isnan(peakTarget)], s=0)
-            Peak = S(tGW)
+
+            savedArray = np.vstack((nGW, S(tGW)))
+            coords = ['nGw', 'neTarget']
+            Dcn = dd.shotfile('DCN', shot)
+            dummy = Dcn('H-5')
+            H5 = dummy.data[np.where((dummy.time >= tGW.min()) &
+                                     (dummy.time <= tGW.max()))[0]]
+            tH5 = dummy.time[np.where((dummy.time >= tGW.min()) &
+                                      (dummy.time <= tGW.max()))[0]]
+            Dcn.close()
+            S = UnivariateSpline(tH5, H5/1e19, s=0)
+            savedArray = np.vstack((savedArray, S(tGW)))
+            coords.append('H-5')
             # and now cycle through the two diods
             XVS = dd.shotfile('XVS', shot)
             
@@ -4915,10 +4927,14 @@ while loop:
                                10, ftype='fir', zero_phase=True)
                 t = decimate(decimate(dummy.time, 10, ftype='fir', zero_phase=True),
                              10, ftype='fir', zero_phase=True)
-                sig = sig[np.where(t>= 1)[0]]
-                t = t[np.where(t >= 1)[0]]
+                sig = sig[np.where((t >= tGW.min()) & (t <= tGW.max()))[0]]
+                t = t[np.where((t >= tGW.min()) & (t <= tGW.max()))[0]]
                 S = UnivariateSpline(t[~np.isnan(sig)], sig[~np.isnan(sig)], s=0)
-                
+                savedArray = np.vstack((savedArray, S(tGW)))
+                coords.append(key)
+            df = xray.DataArray(savedArray, coords=[coords, tGW], dims=['sig', 't'])
+            df.to_netcdf('../data/Shot%5i' % shot + '_DensityRadiation.nc')
+
     elif selection == 99:
         loop = False
     else:
