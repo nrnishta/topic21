@@ -4887,7 +4887,7 @@ while loop:
             nGWA = Tot('n/nGW')
             nGW = decimate(bottleneck.move_mean(nGWA.data, window=30), 5, ftype='fir',
                            zero_phase=True)
-            tGW = decimate(nGWA.time, 10, ftype='fir', zero_phase=True) 
+            tGW = decimate(nGWA.time, 5, ftype='fir', zero_phase=True) 
             nGW = nGW[np.where(tGW >= 1)[0]]
             tGW = tGW[np.where(tGW >= 1)[0]]
             # load the target density
