@@ -2924,9 +2924,15 @@ while loop:
             _idx = np.where((tIp >= tmin) & (tIp <= tmax))[0]
             sIp = UnivariateSpline(tIp[_idx], np.abs(iP)[_idx]/1e6, s=0)
             # UnivariateSpline of the peak density
-            sNePeak = interp1d(Target.t,
-                               np.nanmax(Target.en, axis=1)/1e19,
-                               fill_value='extrapolate')
+            if shot != 57454:
+                sNePeak = interp1d(Target.t,
+                                   np.nanmax(Target.en, axis=1)/1e19,
+                                   fill_value='extrapolate')
+            else:
+                _dummy = np.nanmax(Target.en, axis=1)/1e19
+                sNePeak = interp1d(Target.t[np.where(_dummy<= 3)[0]],
+                                   _dummy[np.where(_dummy<=3)[0]],
+                                   fill_value='extrapolate')
             # UnivariateSpline of the total ion flux_gaz
             sIonFlux = UnivariateSpline(Target.t2,
                                         Target.TotalSpIonFlux()/1e27, s=0)
