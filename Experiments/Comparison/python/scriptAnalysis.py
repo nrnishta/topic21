@@ -18,6 +18,7 @@ def print_menu():
     print("4. Target density and radiation vs Greenwald constant q95")
     print('5. Upstream and target profiles Constant Bt')
     print('6. Upstream and target profiles Constant q95')
+    print('7. Example of shoulder amplitude')
     print("99: End")
     print(67 * "-")
 
@@ -601,6 +602,55 @@ while loop:
             handle.set_visible(False)
 
         fig.savefig('../pdfbox/UpstreamTargetProfilesConstantQ95.pdf',
+                    bbox_to_inches='tight')
+    elif selection == 7:
+        DirectoryAug = '/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/data/aug/'
+        File = h5py.File(DirectoryAug + 'Shot34102.h5', 'r')
+        LiBN = File['LiBNorm'].value
+        rho = File['rhoLiB'].value
+        time = File['timeLiB'].value
+        _idx = np.where((time >= 1.2) & (time <= 1.3))[0]
+        pNA = np.nanmean(LiBN[_idx, :], axis=0)
+        eNA = np.nanstd(LiBN[_idx, :], axis=0)
+        _idx = np.where((time >= 3.1) & (time <= 3.2))[0]
+        pNB = np.nanmean(LiBN[_idx, :], axis=0)
+        eNB = np.nanstd(LiBN[_idx, :], axis=0)
+        fig, ax = mpl.pylab.subplots(figsize=(7, 7),
+                                     nrows=2, ncols=1, sharex=True)
+        fig.subplots_adjust(bottom=0.18, left=0.18, top=0.98, hspace=0.06)
+        _idx = np.where(rho >= 0.995)[0]
+        Amplitude = pNB-pNA
+        errAmplitude = np.sqrt(np.power(eNB, 2) + np.power(eNA, 2))
+        ax[0].plot(rho[_idx], pNA[_idx], '-', lw=4, color='#F0CA4D')
+        ax[0].fill_between(rho[_idx], pNA[_idx]-eNA[_idx],
+                           pNA[_idx]+eNA[_idx], color='#F0CA4D',
+                           edgecolor='none',
+                           alpha=0.2)
+        ax[0].plot(rho[_idx], pNB[_idx], '-', lw=4, color='#F53855')
+        ax[0].fill_between(rho[_idx], pNB[_idx]-eNB[_idx],
+                           pNB[_idx]+eNB[_idx],
+                           color='#F53855', edgecolor='none',
+                           alpha=0.2)
+        ax[0].fill_between(rho[_idx], pNA[_idx], pNB[_idx],
+                           color='gray', edgecolor='gray', alpha=0.4)
+        ax[0].set_xlim([1, 1.05])
+        ax[0].set_ylim([1e-1, 2])
+        ax[0].axes.get_xaxis().set_visible(False)
+
+        ax[0].set_ylabel(r'n$_e$/n$_e(\rho=1)$')
+        ax[0].set_yscale('log')
+
+        ax[1].plot(rho[_idx], pNB[_idx]-pNA[_idx], 'k', lw=2)
+        ax[1].fill_between(rho[_idx], Amplitude[_idx]-errAmplitude[_idx],
+                           Amplitude[_idx]+errAmplitude[_idx], color='gray',
+                           edgecolor='none', alpha=0.2)
+        ax[1].set_xlabel(r'$\rho$')
+        ax[1].set_ylabel(r'Amplitude')
+        ax[1].set_ylim([0, 0.5])
+        ax[1].axvline(1.03, ls='--', color='green', lw=2)
+        ax[0].axvline(1.03, ls='--', color='green', lw=2)
+
+        fig.savefig('../pdfbox/ExampleShoulderAmplitude.pdf',
                     bbox_to_inches='tight')
 
     elif selection == 99:

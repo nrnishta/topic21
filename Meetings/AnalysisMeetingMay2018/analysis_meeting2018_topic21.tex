@@ -21,7 +21,7 @@
 
 \usepackage[style=nature,citestyle=authoryear-comp,defernumbers=true,maxnames=2,firstinits=true,
 uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
-\bibliography{biblio}
+\bibliography{../biblio}
 \renewcommand*{\bibfont}{\footnotesize}
 \renewcommand*{\citesetup}{\footnotesize}
 \usepackage[export]{adjustbox}
@@ -103,10 +103,10 @@ j\end{frame}
         \end{tikzonimage}
       }
       \includegraphics<7>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantBt}
-      % \includegraphics<7>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
-      % \includegraphics<8>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
-      % \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
-      % \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
+      \includegraphics<8>[width=\textwidth]{../../Experiments/Comparison/pdfbox/ExampleShoulderAmplitude}
+      \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
+      \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
+      \includegraphics<11>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
       % \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
     \end{column}
     \begin{column}{0.4\textwidth}
@@ -130,22 +130,26 @@ j\end{frame}
         \item<5|only@5> Whenever considered as a a function of
           Greenwald fraction the behaviors at different currents
           almost reconciled for AUG \alert{but not for TCV}
-        \item<6|only@6> We now consider the Target and upstream
-          profiles at the same level of densities
-        \item<7|only@7> For both AUG and TCV flattening of normalized
+        \item<only@6-7> We now consider the Target and upstream
+          profiles at the same level of densities  
+        \item<only@7> For both AUG and TCV flattening of normalized
           upstream profile reached \alert{earlier in density at lower
             current.} For both the machine the increase of $\lambda_n$
           reached for larger values of $\Lambda_{div}$
-        % \item<7|only@7> Quantifying profile evolution using the
-        %   \alert{shoulder amplitude metric} introduce by Wynn and
-        %   Lipschultz for JET. \alert{Amplitude is the difference
-        %     between normalized upstream density profiles}
-        % \only<8-9>{\item Amplitude evolve faster in density at lower
-        %   current in the far SOL \onslide<9>{\alert{but once evolution \textit{vs} greenwald
-        %     fraction is considered the evolution is equivalent between
-        %     different current}}}
-        % \item<10|only@10> Amplitude evolution still reconciled in AUG if
-        %   considered as a function of local evolution of $\Lambda_{div}$
+        \item<only@8> Quantifying profile evolution using the
+          \alert{shoulder amplitude metric} introduce by Wynn and
+          Lipschultz for JET \parencite{Wynn:2018gp}.
+        \item<only@8>  \alert{Amplitude is the difference
+            between normalized upstream density profiles}
+        \item<only@8> Distinguishing behavior on the near and far SOL  
+        \only<9-10>{\item Amplitude evolve faster in density at lower
+          current in the far SOL \onslide<10>{\alert{but once evolution \textit{vs} greenwald
+            fraction is considered the evolution is equivalent between
+            different current.}
+          \item \textcolor{ta3chameleon}{Still some inconsistency at lower
+            current in agreement with different detachment evolution}}}
+        \item<only@11> Amplitude evolution still reconciled in AUG if
+          considered as a function of local evolution of $\Lambda_{div}$
         % \item<11|only@11> For both AUG and TCV $\lambda_n$ increases
         %   with blob size without significant difference within the
         %   current explored
