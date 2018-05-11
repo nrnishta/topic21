@@ -3766,7 +3766,7 @@ while loop:
                                         range(len(shotList)), colorL):
             N = neutrals.Neutrals(shot)
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt,
                                   reference=[1.2, 1.4], start=N.n0Time.min())
             # now integrate in the near and far SOL defining respectively for
@@ -3885,7 +3885,7 @@ while loop:
                 range(len(shotList)), colorL):
             N = neutrals.Neutrals(shot)
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4],
                                   start=N.n0Time.min())
             # now integrate in the near and far SOL defining respectively for
@@ -3997,7 +3997,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
@@ -4125,7 +4125,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
@@ -4264,7 +4264,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
@@ -4374,7 +4374,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
@@ -4493,7 +4493,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
@@ -4603,7 +4603,7 @@ while loop:
         for shot, _ip, col in zip(shotList, currentL, colorL):
             # compute the amplitude of the LiB
             LiB = libes.Libes(shot)
-            dt = 0.05
+            dt = 0.1
             LiB.amplitudeShoulder(dt=dt, reference=[1.2, 1.4], start=1.2)
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.02 and 1.02<rho<1.04)
