@@ -94,14 +94,20 @@ j\end{frame}
       \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
-      \includegraphics<4>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsNe5IpConstantBt}
-      \includegraphics<5>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/NeutralsVsGreenwaldConstantBt}
-      \includegraphics<6>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/UpstreamTargetProfilesConstantBt}
-      \includegraphics<7>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
-      \includegraphics<8>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
-      \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
-      \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
-      \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
+      \includegraphics<4>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantBt}
+      \includegraphics<5>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsGreenwaldConstantBt}
+      \only<6>{
+        \begin{tikzonimage}[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantBt}
+          \draw [thick, ta3orange, ->] (0.27, 0.9) -- (0.27, 0.8);
+          \draw [thick, ta3orange, ->] (0.77, 0.45) -- (0.77, 0.55);
+        \end{tikzonimage}
+      }
+      \includegraphics<7>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantBt}
+      % \includegraphics<7>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/ExampleShoulderAmplitude}
+      % \includegraphics<8>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsNe5IpConstantBt}
+      % \includegraphics<9>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsGreenwaldIpConstantBt}      
+      % \includegraphics<10>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/AmplitudeVsLambdaIpConstantBt}
+      % \includegraphics<11>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EfoldBlobAllColor}         
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{itemize}
@@ -118,29 +124,31 @@ j\end{frame}
           D$_{\alpha}$ radiation from the floor. Ion flux rollover
           reached in all the three current,  although marginally at
           330 kA
-        \item<4|only@4> Divertor neutral density estimated starting
-          from D$_{\alpha}$ calibrated camera and using electron
-          density and temperature from LP data. Neutral density
-          increases earlier in edge density at lower current
-        \item<5|only@5> Neutrals behavior reconciled whenever
-          comparison considered as a function of Greenwald fraction  
-        \item<6|only@6> For both AUG and TCV flattening of normalized
+        \item<4|only@4> In both the machines both the peak target
+          density and the radiation close to divertor target exhibit
+          rollover at increasing density with increasing current
+        \item<5|only@5> Whenever considered as a a function of
+          Greenwald fraction the behaviors at different currents
+          almost reconciled for AUG \alert{but not for TCV}
+        \item<6|only@6> We now consider the Target and upstream
+          profiles at the same level of densities
+        \item<7|only@7> For both AUG and TCV flattening of normalized
           upstream profile reached \alert{earlier in density at lower
             current.} For both the machine the increase of $\lambda_n$
           reached for larger values of $\Lambda_{div}$
-        \item<7|only@7> Quantifying profile evolution using the
-          \alert{shoulder amplitude metric} introduce by Wynn and
-          Lipschultz for JET. \alert{Amplitude is the difference
-            between normalized upstream density profiles}
-        \only<8-9>{\item Amplitude evolve faster in density at lower
-          current in the far SOL \onslide<9>{\alert{but once evolution \textit{vs} greenwald
-            fraction is considered the evolution is equivalent between
-            different current}}}
-        \item<10|only@10> Amplitude evolution still reconciled in AUG if
-          considered as a function of local evolution of $\Lambda_{div}$
-        \item<11|only@11> For both AUG and TCV $\lambda_n$ increases
-          with blob size without significant difference within the
-          current explored
+        % \item<7|only@7> Quantifying profile evolution using the
+        %   \alert{shoulder amplitude metric} introduce by Wynn and
+        %   Lipschultz for JET. \alert{Amplitude is the difference
+        %     between normalized upstream density profiles}
+        % \only<8-9>{\item Amplitude evolve faster in density at lower
+        %   current in the far SOL \onslide<9>{\alert{but once evolution \textit{vs} greenwald
+        %     fraction is considered the evolution is equivalent between
+        %     different current}}}
+        % \item<10|only@10> Amplitude evolution still reconciled in AUG if
+        %   considered as a function of local evolution of $\Lambda_{div}$
+        % \item<11|only@11> For both AUG and TCV $\lambda_n$ increases
+        %   with blob size without significant difference within the
+        %   current explored
       \end{itemize}
     \end{column}
   \end{columns}

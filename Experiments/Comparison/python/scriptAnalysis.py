@@ -282,7 +282,8 @@ while loop:
         ipListT = ('0.185', '0.24', '0.34')
         for shot, t, c, _ip in zip(shotListA, tListA, colorList, ipListA):
             # open the HDF file
-            File = h5py.File('../data/aug/Shot%5i' % shot + '.h5', 'r')
+            DirectoryAug = '/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/data/aug/'
+            File = h5py.File(DirectoryAug + 'Shot%5i' % shot + '.h5', 'r')
             neLBtime = File['timeLiB'].value
             # limit to the interval
             _idx = np.where((neLBtime >= t-0.02) & (neLBtime <= t+0.02))[0]
@@ -358,7 +359,9 @@ while loop:
             text.set_color(c)
             handle.set_visible(False)
         # Now TCV
-        File = h5py.File('../data/tcv/ProfilesConstantBt.h5', 'r')
+        DirectoryTcv = "/Users/vianello/Documents/Fisica/Conferences/" \
+                       "IAEA/iaea2018/data/tcv/"
+        File = h5py.File(DirectoryTcv + 'ProfilesConstantBt.h5', 'r')
         for shot, col, _ip in zip(
                 shotListT, colorList, ipListT):
             Up = File['%5i/Upstream' % shot]
@@ -448,7 +451,8 @@ while loop:
         ipListT = ('0.24', '0.34')
         for shot, t, c, _ip in zip(shotListA, tListA, colorList, ipListA):
             # open the HDF file
-            File = h5py.File('../data/aug/Shot%5i' % shot + '.h5', 'r')
+            DirectoryAug = '/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/data/aug/'
+            File = h5py.File(DirectoryAug + 'Shot%5i' % shot + '.h5', 'r')
             neLBtime = File['timeLiB'].value
             # limit to the interval
             _idx = np.where((neLBtime >= t-0.02) & (neLBtime <= t+0.02))[0]
@@ -525,7 +529,9 @@ while loop:
             text.set_color(c)
             handle.set_visible(False)
         # Now TCV
-        File = h5py.File('../data/tcv/ProfilesConstantQ95.h5', 'r')
+        DirectoryTcv = "/Users/vianello/Documents/Fisica/Conferences/" \
+                       "IAEA/iaea2018/data/tcv/"
+        File = h5py.File(DirectoryTcv + 'ProfilesConstantQ95.h5', 'r')
         for shot, col, _ip, en, nng in zip(
                 shotListT, colorList, ipListT,
                 (9.81, 9.27), (0.8, 0.54)):
