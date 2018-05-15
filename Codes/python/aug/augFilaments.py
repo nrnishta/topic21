@@ -11,7 +11,7 @@ import dd
 import eqtools
 import numpy as np
 import matplotlib as mpl
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter, hilbert
 from scipy.interpolate import UnivariateSpline
 from scipy import stats
 from time_series_tools import identify_bursts2
@@ -453,12 +453,20 @@ class Filaments(object):
                     a = xray.concat([a, vfSignal.sel(Probe=p)[self._idx]], dim='Probe')
             self._sigIn = a
         cs, tau, err, amp = self.blob.casMultiple(self._sigIn.values, **kwargs)
+        # compute the number of structures and save in the netcdf file
+        maxima = np.zeros(self.blob.nsamp)
+        maxima[self.blob._locationindex] = 1
+        maxima[-self.blob.iwin-1:]=0
+        maxima[:self.blob.iwin] = 0
+        print('Number of structures recomputed %4i' % maxima.sum())
         # now build the xarray used as output
         data = xray.DataArray(cs,
                               coords=[
                                   np.insert(self._sigIn.Probe.values, 0, Probe),
                                   tau],
                               dims=['sig', 't'])
+        data.attrs['ACT'] = self.blob.act
+        data.attrs['Nevents'] = maxima.sum()
         data.attrs['err'] = err
         data.attrs['Amp'] = err
         # start adding the interesting quantities
@@ -472,15 +480,28 @@ class Filaments(object):
         data.attrs['LagTimeNames'] = LagsD.keys()
         data.attrs['LagTimeValues'] = np.array([LagsD[n]['tau'] for n in LagsD.keys()])
         data.attrs['LagTimeErr'] = np.array([LagsD[n]['err'] for n in LagsD.keys()])
+        data.attrs['MaxLagTime'] = np.array([LagsD[n]['maxlag'] for n in LagsD.keys()])
         # given the geometry of the probe head we can now evaluate the
         # appropriate velocity using binormal velocity estimate done
         # accordingly to Carralero NF 2014. This should be a probe head aware
         # method since the other
         if 'HFF' == self.Probe:
-            VperpD = self._computeVperp(
-                LagsD,
-                probeTheta='Isat_m07',
-                probeR='Isat_m10')
+            if self.refSignal == 'Isat_m06':
+                VperpD = self._computeVperp(
+                    LagsD,
+                    probeTheta='Isat_m07',
+                    probeR='Isat_m10')
+            elif self.refSignal == 'Isat_m07':
+                VperpD = self._computeVperp(
+                    LagsD,
+                    probeTheta='Isat_m06',
+                    probeR='Isat_m10')
+            else:
+                print('Presently only M06 or M07 are considered as reference')
+                VperpD = self._computeVperp(
+                    LagsD,
+                    probeTheta='Isat_m07',
+                    probeR='Isat_m10')                
             # now save the appropriate values in the DataArray. We can't save
             # as OrderedDictionary since otherwise we can't save as NETcdf
             data.attrs['Vperp'] = VperpD['vperp']['value']
@@ -750,9 +771,16 @@ class Filaments(object):
             pars['sigma'].set(value=1e-5, vary=True)
             pars['gamma'].set(value=stats.skew(xcor),vary=True)
             out = mod.fit(xcor, pars, x=lag)
+            # for a better estimate of the lag we use the computation of the
+            # roots of the hilbert transform of the cross-correlation
+            # function
+            h = hilbert(xcor)
+            S = UnivariateSpline(lag, np.imag(h), s=0)
+            tau = S.roots()[np.argmin(np.abs(S.roots()))]
 
-            outDictionary[n + '-' + self.refSignal] = {'tau': lag[np.argmax(xcor)],
-                                                       'err': out.params['center'].stderr}
+            outDictionary[n + '-' + self.refSignal] = {'tau': tau,
+                                                       'err': out.params['center'].stderr, 
+                                                       'maxlag':lag[np.argmax(xcor)]}
 
         return outDictionary
 
