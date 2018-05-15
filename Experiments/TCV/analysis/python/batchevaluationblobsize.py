@@ -81,11 +81,11 @@ for shot in shotList:
     bTTime = bTN.getDimensionAt().data()
     Data = tcvFilaments.Turbo(shot)
     for plunge in (1, 2):
-        for r in np.arange(0, 0.025, 0.005):
+        for r in np.arange(0, 0.028, 0.007):
             try:
                 Blob = Data.blob(
                     plunge=plunge,
-                    rrsep=[r, r+0.005],
+                    rrsep=[r, r+0.007],
                     iwin=75, rmsNorm=True,
                     detrend=True)
                 Found = True

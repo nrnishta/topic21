@@ -688,6 +688,10 @@ class Turbo(object):
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
             data.sel(sig='VFR1_' + str(int(self.plunge))), window=3)
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
         xcorD = np.correlate(a, b, mode='same')
         xcorD /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagD = np.arange(xcorD.size, dtype='float') - xcorD.size / 2
@@ -708,6 +712,10 @@ class Turbo(object):
             data.sel(sig='VFM_' + str(int(self.plunge))), window=3)
         b = bottleneck.move_mean(
             data.sel(sig='VFR2_' + str(int(self.plunge))), window=3)
+        _dummy = np.vstack((a, b)).transpose()
+        _dummy = _dummy[~np.isnan(_dummy).any(1)]
+        a = _dummy[:, 0]
+        b = _dummy[:, 1]
         xcorE = np.correlate(a, b, mode='same')
         xcorE /= np.sqrt(np.dot(a, a) * np.dot(b, b))
         lagE = np.arange(xcorE.size, dtype='float') - xcorE.size / 2
