@@ -23,7 +23,7 @@ for shot in shotList:
                 if shot >= 34277:
                     block = 180
                 else:
-                    block = 190
+                    block = 193
                 out = Data.blobAnalysis(Probe='Isat_m06',
                                         block=block, normalize=True, detrend=True,
                                         trange=[tmin, tmax], 
