@@ -68,6 +68,8 @@ RhosErr = np.asarray([])
 SizeErr = np.asarray([])
 Efold = np.asarray([])
 EfoldErr = np.asarray([])
+EfoldGpr = np.asarray([])
+EfoldGprErr = np.asarray([])
 Size2Err = np.asarray([])
 Size3Err = np.asarray([])
 for shot in shotList:
@@ -156,6 +158,7 @@ for shot in shotList:
                 Size = np.append(Size, _size)
                 Cs = np.append(Cs, Blob.Cs)
                 Efold = np.append(Efold, Blob.Efold)
+                EfoldGpr = np.append(EfoldGpr, Blob.EfoldGpr)
                 Size2 = np.append(Size2, _size2)
                 vR2 = np.append(vR2, Blob.vrad2)
                 vP2 = np.append(vP2, Blob.vpol2)
@@ -175,6 +178,7 @@ for shot in shotList:
                 SizeErr = np.append(SizeErr, _dSize)
                 Size3Err = np.append(Size3Err, _dSize3)                
                 EfoldErr = np.append(EfoldErr, Blob.EfoldErr)
+                EfoldGprErr = np.append(EfoldGprErr, Blob.EfoldGprErr)
                 print('Computed for Shot %5i' % shot +' Plunge %1i' % plunge)
     Tree.quit()
 
@@ -206,7 +210,8 @@ outdict = {'Shots': Shots,
            'Efold':Efold,
            'EfoldErr':EfoldErr,
            'Bt': Bt,
-           'vBin3':vBin}
+           'vBin3':vBin,
+           'Efold GPR':EfoldGpr, 'Efold GPR Err':EfoldGprErr}
 
 df = pd.DataFrame.from_dict(outdict)
 df['Z'] = np.repeat(1, df.index.size)
