@@ -1123,7 +1123,7 @@ while loop:
         ax2[0].set_ylim([0, 1])
         ax2[1].set_ylim([0, 1])
         ax2[2].set_ylim([0, 1])
-        ax2[2].set_xlim([0.25, 1])
+        ax2[2].set_xlim([0.25, 0.7])
         ax2[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax2[0].set_ylabel(r'Amp [a.u]')
         ax2[0].text(0.5, 0.8, r'$1\leq \rho < 1.03$',
