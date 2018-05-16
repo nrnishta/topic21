@@ -3,11 +3,21 @@ import numpy as np
 import matplotlib as mpl
 import xarray as xray
 import h5py
-from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import UnivariateSpline, interp1d
+import pandas as pd
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 mpl.rc("lines", linewidth=2)
+Data = pd.read_csv(
+    '~/Desktop/Topic-21/Experiments/TCV/data/BlobDatabase.csv')
+DataTCV = Data[((Data['Rho'] > 1.025) &
+                (Data['Rho'] <= 1.05) &
+                (Data['Conf'] == 'LSN') &
+                (Data['Lambda Div'] < 40) &
+                (Data['Blob Size [rhos]'] > 1))]
+# limit the otlier of the poloidal velocity
+DataTCV = DataTCV[DataTCV['vP'].abs() <= DataTCV['vP'].std()]
 
 
 def print_menu():
@@ -19,6 +29,10 @@ def print_menu():
     print('5. Upstream and target profiles Constant Bt')
     print('6. Upstream and target profiles Constant q95')
     print('7. Example of shoulder amplitude')
+    print('8. Statistics at constant Bt')
+    print('9. Statistics at constant q95')
+    print('10. Shoulder and Target density evolution Constant Bt')
+    print('11. Shoulder and Target density evolution Constant q95')
     print("99: End")
     print(67 * "-")
 
@@ -652,6 +666,502 @@ while loop:
 
         fig.savefig('../pdfbox/ExampleShoulderAmplitude.pdf',
                     bbox_to_inches='tight')
+
+    elif selection == 8:
+        shotListA = (34105, 34102, 34106)
+        btAsdex = (0.6, 0.8, 1)
+        colorList = ('#01406C', '#F03C07', '#28B799')
+        Directory = "/Users/vianello/Desktop/Topic-21/" \
+                    "Experiments/AUG/analysis/data/"
+        # this is the figure of Blob-size vs Lambda
+        fig, ax = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                     sharex=True, sharey=True)
+        fig.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the figure of Efold vs Lambda
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the figure of Efold vs Blob-size
+        fig3, ax3 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                       sharex=True)
+        fig3.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the cycle throug AUG shots
+        # first the plot for AUG
+        for shot, col in zip(shotListA, colorList):
+            for s in ('1', '2', '3', '4', '5'):
+                try:
+                    Data = xray.open_dataarray(Directory +
+                                               'Shot%5i' % shot +
+                                               '_'+s+'Stroke.nc')
+                    Vperp = Data.Vperp
+                    Size = 0.5*Data.TauB*np.abs(Vperp)/1e-4
+                    SizeErr = np.sqrt(
+                        np.power(Data.Vperp*Data.TauBErr, 2) +
+                        np.power(Data.TauB*Data.VperpErr, 2))/2/1e-4
+                    if SizeErr > 0.5*Size:
+                        SizeErr = 0.5*Size
+                    _idx = np.where((Data.rhoLambda >= Data.Rho-0.03) &
+                                    (Data.rhoLambda <= Data.Rho+0.03))[0]
+                    _idx2 = np.where((Data.rhoLiB >= Data.Rho-0.03) &
+                                     (Data.rhoLiB <= Data.Rho+0.03))[0]
+                    print(('Size for shot {} plunge {} is {} +/- {}').format(
+                        shot, s, Size, SizeErr))
+                    print(('Lambda for shot {} plunge {} is {} +/- {}').format(
+                        shot, s,
+                        np.nanmean(Data.LambdaProfile[_idx]),
+                        np.nanstd(Data.LambdaProfile[_idx])))
+                    print(('Efold for shot {} plunge {} is {} +/- {}').format(
+                        shot, s,
+                        np.nanmean(Data.Efold[_idx2])*1e2,
+                        np.nanstd(Data.Efold[_idx2])*1e2))
+                    # Blob vs Lambda
+                    ax[0].errorbar(
+                        np.nanmean(Data.LambdaProfile[_idx]), Size,
+                        fmt='o', yerr=SizeErr,
+                        xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                        ms=15, color=col, alpha=0.7, label='AUG')
+                    # Efold Vs Lambda
+                    ax2[0].errorbar(
+                        np.nanmean(Data.LambdaProfile[_idx]),
+                        np.nanmean(Data.Efold[_idx2])*1e2,
+                        fmt='o', yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                        xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                        ms=15, color=col, alpha=0.7, label='AUG')
+                    # Efold vs Blob
+                    ax3[0].errorbar(
+                        Size, np.nanmean(Data.Efold[_idx2])*1e2,
+                        xerr=SizeErr, yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                        fmt='o', ms=15, color=col, alpha=0.7, label='AUG')
+                except:
+                    print(('not done for shot {} stroke {}').format(shot, s))
+                    pass
+        ax[0].set_xscale('log')
+        ax[0].set_yscale('log')
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylabel(r'$\delta_b [\rho_s]$')
+        ax[0].text(0.9, 0.87, 'AUG', transform=ax[0].transAxes)
+        # Efold vs Lambda
+        ax2[0].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax2[0].text(0.9, 0.87, 'AUG', transform=ax2[0].transAxes)
+        ax2[0].set_ylim([1, 50])
+        # Efold vs Blob-size
+        ax3[0].set_xscale('log')
+        ax3[0].set_yscale('log')
+        ax3[0].axes.get_xaxis().set_visible(False)
+        ax3[0].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax3[0].text(0.9, 0.87, 'AUG', transform=ax3[0].transAxes)
+        ax3[0].set_ylim([1, 50])
+        for ip, c, _idx in zip(btAsdex, colorList, range(len(btAsdex))):
+            ax[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                       color=c, transform=ax[0].transAxes)
+            ax2[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                        color=c, transform=ax2[0].transAxes)
+            ax3[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                        color=c, transform=ax3[0].transAxes)
+
+        # now we group according to Ip also the data for TCV
+        ranges = ((100, 200), (200, 300), (300, 400))
+        DataUsed = DataTCV[DataTCV['Bt'].abs() > 1.41]
+        for r, c in zip(ranges, colorList):
+            _dummy = DataUsed[((DataUsed['Ip'].abs() >= r[0]) &
+                               (DataUsed['Ip'].abs() < r[1]))]
+            ax[1].errorbar(_dummy['Lambda Div'],
+                           _dummy['Blob Size [rhos]']/2,
+                           xerr=_dummy['Lambda Div Err'],
+                           yerr=_dummy['Blob size Err [rhos]']/2, fmt='o',
+                           ms=15, color=c, alpha=0.3)
+            # Efold vs Lambda
+            ax2[1].errorbar(_dummy['Lambda Div'],
+                            _dummy['Efold']*1e2,
+                            xerr=_dummy['Lambda Div Err'],
+                            yerr=_dummy['EfoldErr']*1e2, fmt='o',
+                            ms=15, color=c, alpha=0.3)
+            # Efold vs Blob size
+            ax3[1].errorbar(_dummy['Blob Size [rhos]']/2,
+                            _dummy['Efold']*1e2,
+                            xerr=_dummy['Blob size Err [rhos]']/2,
+                            yerr=_dummy['EfoldErr']*1e2, fmt='o',
+                            ms=15, color=c, alpha=0.3)
+
+        ax[1].set_xscale('log')
+        ax[1].set_xlim([0.01, 200])
+        ax[1].set_ylabel(r'$\delta_b [\rho_s]$')
+        ax[1].text(0.9, 0.87, 'TCV', transform=ax[1].transAxes)
+        ax[1].set_xlabel(r'$\Lambda_{div}$')
+        ax[1].set_ylim([1, 250])
+        ax[1].set_yscale('log')
+        # Efold vs Lambda
+        ax2[1].set_xscale('log')
+        ax2[1].set_xlim([0.01, 200])
+        ax2[1].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax2[1].text(0.9, 0.87, 'TCV', transform=ax2[1].transAxes)
+        ax2[1].set_xlabel(r'$\Lambda_{div}$')
+        ax2[1].set_ylim([0.1, 200])
+        ax2[1].set_yscale('log')
+
+        ax3[1].set_xscale('log')
+        ax3[1].set_xlim([1, 200])
+        ax3[1].set_xlabel(r'$\delta_b [\rho_s]$')
+        ax3[1].text(0.9, 0.87, 'TCV', transform=ax3[1].transAxes)
+        ax3[1].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax3[1].set_ylim([0.1, 200])
+        ax3[1].set_yscale('log')
+
+        for r, c, _idx in zip(ranges, colorList, range(len(btAsdex))):
+            ax[1].text(0.05, 0.8 - 0.13 * _idx,
+                       str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                       color=c, transform=ax[1].transAxes)
+            ax2[1].text(0.05, 0.8 - 0.13 * _idx,
+                        str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                        color=c, transform=ax2[1].transAxes)
+            ax3[1].text(0.6, 0.77 - 0.13 * _idx,
+                        str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                        color=c, transform=ax3[1].transAxes)
+
+        fig.savefig('../pdfbox/BlobLambdaConstantBt.pdf',
+                    bbox_to_inchest='tight')
+        fig2.savefig('../pdfbox/EfoldLambdaConstantBt.pdf',
+                     bbox_to_inchest='tight')
+        fig3.savefig('../pdfbox/EfoldBlobConstantBt.pdf',
+                     bbox_to_inchest='tight')
+
+    elif selection == 9:
+        shotListA = (34103, 34102, 34104)
+        btAsdex = (0.6, 0.8, 1)
+        colorList = ('#01406C', '#F03C07', '#28B799')
+        Directory = "/Users/vianello/Desktop/Topic-21/" \
+                    "Experiments/AUG/analysis/data/"
+        # this is the figure of Blob-size vs Lambda
+        fig, ax = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                     sharex=True, sharey=True)
+        fig.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the figure of Efold vs Lambda
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the figure of Efold vs Blob-size
+        fig3, ax3 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                       sharex=True)
+        fig3.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
+        # this is the cycle throug AUG shots
+        # first the plot for AUG
+        for shot, col in zip(shotListA, colorList):
+            for s in ('1', '2', '3', '4', '5'):
+                try:
+                    Data = xray.open_dataarray(Directory +
+                                               'Shot%5i' % shot +
+                                               '_'+s+'Stroke.nc')
+                    Vperp = Data.Vperp
+                    Size = 0.5*Data.TauB*np.abs(Vperp)/1e-4
+                    SizeErr = np.sqrt(
+                        np.power(Data.Vperp*Data.TauBErr, 2) +
+                        np.power(Data.TauB*Data.VperpErr, 2))/2/1e-4
+                    if SizeErr > 0.5*Size:
+                        SizeErr = 0.5*Size
+                    _idx = np.where((Data.rhoLambda >= Data.Rho-0.03) &
+                                    (Data.rhoLambda <= Data.Rho+0.03))[0]
+                    _idx2 = np.where((Data.rhoLiB >= Data.Rho-0.03) &
+                                     (Data.rhoLiB <= Data.Rho+0.03))[0]
+                    print(('Size for shot {} plunge {} is {} +/- {}').format(
+                        shot, s, Size, SizeErr))
+                    print(('Lambda for shot {} plunge {} is {} +/- {}').format(
+                        shot, s,
+                        np.nanmean(Data.LambdaProfile[_idx]),
+                        np.nanstd(Data.LambdaProfile[_idx])))
+                    print(('Efold for shot {} plunge {} is {} +/- {}').format(
+                        shot, s,
+                        np.nanmean(Data.Efold[_idx2])*1e2,
+                        np.nanstd(Data.Efold[_idx2])*1e2))
+                    # Blob vs Lambda
+                    ax[0].errorbar(
+                        np.nanmean(Data.LambdaProfile[_idx]), Size,
+                        fmt='o', yerr=SizeErr,
+                        xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                        ms=15, color=col, alpha=0.7, label='AUG')
+                    # Efold Vs Lambda
+                    ax2[0].errorbar(
+                        np.nanmean(Data.LambdaProfile[_idx]),
+                        np.nanmean(Data.Efold[_idx2])*1e2,
+                        fmt='o', yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                        xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                        ms=15, color=col, alpha=0.7, label='AUG')
+                    # Efold vs Blob
+                    ax3[0].errorbar(
+                        Size, np.nanmean(Data.Efold[_idx2])*1e2,
+                        xerr=SizeErr, yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                        fmt='o', ms=15, color=col, alpha=0.7, label='AUG')
+                except:
+                    print(('not done for shot {} stroke {}').format(shot, s))
+                    pass
+        ax[0].set_xscale('log')
+        ax[0].set_yscale('log')
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylabel(r'$\delta_b [\rho_s]$')
+        ax[0].text(0.9, 0.87, 'AUG', transform=ax[0].transAxes)
+        # Efold vs Lambda
+        ax2[0].set_xscale('log')
+        ax2[0].set_yscale('log')
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax2[0].text(0.9, 0.87, 'AUG', transform=ax2[0].transAxes)
+        ax2[0].set_ylim([1, 50])
+        # Efold vs Blob-size
+        ax3[0].set_xscale('log')
+        ax3[0].set_yscale('log')
+        ax3[0].axes.get_xaxis().set_visible(False)
+        ax3[0].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax3[0].text(0.9, 0.87, 'AUG', transform=ax3[0].transAxes)
+        ax3[0].set_ylim([1, 50])
+        for ip, c, _idx in zip(btAsdex, colorList, range(len(btAsdex))):
+            ax[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                       color=c, transform=ax[0].transAxes)
+            ax2[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                        color=c, transform=ax2[0].transAxes)
+            ax3[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
+                        color=c, transform=ax3[0].transAxes)
+
+        # now we group according to Ip also the data for TCV
+        ranges = ((100, 200), (200, 300), (300, 400))
+        shotList = [57450, 57454, 57459, 57461, 57497]
+        DataUsed = DataTCV[DataTCV['Shots'].isin(shotList)]
+        for r, c in zip(ranges, colorList):
+            _dummy = DataUsed[((DataUsed['Ip'].abs() >= r[0]) &
+                               (DataUsed['Ip'].abs() < r[1]))]
+            ax[1].errorbar(_dummy['Lambda Div'],
+                           _dummy['Blob Size [rhos]']/2,
+                           xerr=_dummy['Lambda Div Err'],
+                           yerr=_dummy['Blob size Err [rhos]']/2, fmt='o',
+                           ms=15, color=c, alpha=0.3)
+            # Efold vs Lambda
+            ax2[1].errorbar(_dummy['Lambda Div'],
+                            _dummy['Efold']*1e2,
+                            xerr=_dummy['Lambda Div Err'],
+                            yerr=_dummy['EfoldErr']*1e2, fmt='o',
+                            ms=15, color=c, alpha=0.3)
+            # Efold vs Blob size
+            ax3[1].errorbar(_dummy['Blob Size [rhos]']/2,
+                            _dummy['Efold']*1e2,
+                            xerr=_dummy['Blob size Err [rhos]']/2,
+                            yerr=_dummy['EfoldErr']*1e2, fmt='o',
+                            ms=15, color=c, alpha=0.3)
+
+        ax[1].set_xscale('log')
+        ax[1].set_xlim([0.01, 200])
+        ax[1].set_ylabel(r'$\delta_b [\rho_s]$')
+        ax[1].text(0.9, 0.87, 'TCV', transform=ax[1].transAxes)
+        ax[1].set_xlabel(r'$\Lambda_{div}$')
+        ax[1].set_ylim([0.1, 250])
+        ax[1].set_yscale('log')
+        # Efold vs Lambda
+        ax2[1].set_xscale('log')
+        ax2[1].set_xlim([0.01, 200])
+        ax2[1].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax2[1].text(0.9, 0.87, 'TCV', transform=ax2[1].transAxes)
+        ax2[1].set_xlabel(r'$\Lambda_{div}$')
+        ax2[1].set_ylim([0.1, 200])
+        ax2[1].set_yscale('log')
+
+        ax3[1].set_xscale('log')
+        ax3[1].set_xlim([0.1, 200])
+        ax3[1].set_xlabel(r'$\delta_b [\rho_s]$')
+        ax3[1].text(0.9, 0.87, 'TCV', transform=ax3[1].transAxes)
+        ax3[1].set_ylabel(r'$\lambda_n [$cm$]$')
+        ax3[1].set_ylim([0.1, 200])
+        ax3[1].set_yscale('log')
+
+        for r, c, _idx in zip(ranges, colorList, range(len(btAsdex))):
+            ax[1].text(0.05, 0.8 - 0.13 * _idx,
+                       str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                       color=c, transform=ax[1].transAxes)
+            ax2[1].text(0.05, 0.8 - 0.13 * _idx,
+                        str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                        color=c, transform=ax2[1].transAxes)
+            ax3[1].text(0.6, 0.77 - 0.13 * _idx,
+                        str(r[0]) + r'$\leq $I$_p$ < %3i' % r[1] + ' kA',
+                        color=c, transform=ax3[1].transAxes)
+
+        fig.savefig('../pdfbox/BlobLambdaConstantQ95.pdf',
+                    bbox_to_inchest='tight')
+        fig2.savefig('../pdfbox/EfoldLambdaConstantQ95.pdf',
+                     bbox_to_inchest='tight')
+        fig3.savefig('../pdfbox/EfoldBlobConstantQ95.pdf',
+                     bbox_to_inchest='tight')
+
+    elif selection == 10:
+        shotListA = (34105, 34102, 34106)
+        colorList = ('#01406C', '#F03C07', '#28B799')
+        iPAug = (0.6, 0.8, 1)
+        DirectoryAug = "/Users/vianello/Documents/Fisica/"\
+                       "Conferences/IAEA/iaea2018/data/aug/"
+        # this is the plot with amplitude, target vs H-5
+        fig, ax = mpl.pylab.subplots(figsize=(10, 9), nrows=3,
+                                     ncols=1, sharex=True)
+        fig.subplots_adjust(hspace=0.08,
+                            bottom=0.15, left=0.15,
+                            right=0.98)
+        # this is the plot of the amplitude, target vs nGw
+        fig2, ax2 = mpl.pylab.subplots(figsize=(10, 9),
+                                       nrows=3, ncols=1,
+                                       sharex=True)
+        fig2.subplots_adjust(hspace=0.08,
+                             bottom=0.15, left=0.15, right=0.98)
+        # this is the plot if shoulder vs LambdaDiv
+        fig3, ax3 = mpl.pylab.subplots(figsize=(10, 6),
+                                       nrows=2, ncols=1, sharex=True)
+        fig3.subplots_adjust(hspace=0.08,
+                             bottom=0.15, left=0.15, right=0.98)
+
+        for i, (shot, ip, col) in enumerate(zip(shotListA, iPAug, colorList)):
+            df = xray.open_dataarray(
+                '../../AUG/analysis/data/Shot%5i' % shot +
+                '_DensityRadiation.nc')
+            File = h5py.File(DirectoryAug + 'Shot{}.h5'.format(shot), 'r')
+            LiBN = File['LiBNorm'].value
+            rho = File['rhoLiB'].value
+            time = File['timeLiB'].value
+            # now integrate in the near and far SOL defining respectively for
+            # (1<rho<1.03 and 1.03<rho<1.06) wrt initial perio [1.2, 1.4]
+            _idx = np.where((time >= 1.2) & (time <= 1.4))[0]
+            Reference = np.nanmean(LiBN[_idx, :], axis=0)
+            errReference = np.nanstd(LiBN[_idx, :], axis=0)
+            LiBN = LiBN[np.where(time > 1.4)[0], :]
+            time = time[np.where(time > 1.4)[0]]
+            _npoint = int(np.floor((time.max()-time.min()))/0.02)
+            Split = np.asarray(np.array_split(LiBN, _npoint, axis=0))
+            Amplitude = np.asarray(
+                [np.nanmean(p, axis=0)-Reference for p in Split])
+            ErrAmplitude = np.asarray([
+                np.sqrt(np.power(np.nanstd(p, axis=0), 2) +
+                        np.power(errReference, 2)) for p in Split])
+            _ = np.asarray(np.array_split(time, _npoint))
+            timeSplit = np.asarray([np.mean(k) for k in _])
+            aNear = np.nanmean(Amplitude[:, np.where(
+                (rho >= 1) & (rho < 1.03))[0]], axis=1)
+            aFar = np.nanmean(Amplitude[:, np.where(
+                (rho >= 1.03) & (rho < 1.06))[0]], axis=1)
+            aNearS = np.nanstd(Amplitude[:, np.where(
+                (rho >= 1) & (rho < 1.03))[0]], axis=1)
+            aFarS = np.nanstd(Amplitude[:, np.where(
+                (rho >= 1.03) & (rho < 1.06))[0]], axis=1)
+            # we now limit all the quantities in netcdf to
+            # time greater than the minimum of
+            # the timeSplit and interpolate
+            _dummy = df.where((df.t >= timeSplit.min()) &
+                              (df.t <= timeSplit.max()), drop=True)
+            # this is the plot vs edge density
+            S = interp1d(
+                _dummy.t.values, _dummy.sel(sig='H-5').values,
+                kind='linear', fill_value='extrapolate')
+            ax[0].errorbar(S(timeSplit), aNear, yerr=aNearS,
+                           fmt='o', color=col,
+                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            ax[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
+                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            ax[2].plot(_dummy.sel(sig='H-5'),
+                       _dummy.sel(sig='neTarget'), 'o', color=col,
+                       label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            # this is the plot vs greenwald
+            S = interp1d(
+                _dummy.t.values, _dummy.sel(sig='nGw').values,
+                kind='linear', fill_value='extrapolate')
+            ax2[0].errorbar(S(timeSplit), aNear, yerr=aNearS,
+                            fmt='o', color=col,
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            ax2[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            ax2[2].plot(_dummy.sel(sig='nGw'),
+                        _dummy.sel(sig='neTarget'), 'o', color=col,
+                        label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+
+            # now load the Lambda Div from saved h5 file
+            File = h5py.File(DirectoryAug+'Shot{}.h5'.format(shot))
+            _idx = np.where((File['LambdaDivRho'].value >= 1) &
+                            (File['LambdaDivRho'].value < 1.03))[0]
+            LNear = np.nanmean(File['LambdaDiv'].value[_idx, :],
+                               axis=0).ravel()
+            _idx = np.where((File['LambdaDivRho'].value >= 1.03) &
+                            (File['LambdaDivRho'].value < 1.06))[0]
+            LFar = np.nanmean(File['LambdaDiv'].value[_idx, :], axis=0).ravel()
+            LTime = File['LambdaDivTime'].value.ravel()
+            LNear = LNear[np.where((LTime >= timeSplit.min()) &
+                                   (LTime <= timeSplit.max()))[0]]
+            LFar = LFar[np.where((LTime >= timeSplit.min()) &
+                                 (LTime <= timeSplit.max()))[0]]
+            LTime = LTime[np.where((LTime >= timeSplit.min()) &
+                                   (LTime <= timeSplit.max()))[0]]
+
+            S = interp1d(LTime, LNear, kind='linear', fill_value='extrapolate')
+            ax3[0].errorbar(S(timeSplit), aNear,
+                            yerr=aNearS, fmt='o', color=col,
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            ax3[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[1].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylim([0, 1])
+        ax[1].set_ylim([0, 1])
+        ax[2].set_ylim([0, 1])
+        ax[2].set_xlim([0.5, 4])
+        ax[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
+        ax[0].set_ylabel(r'Amp [a.u]')
+        ax[0].text(0.5, 0.8, r'$1\leq \rho < 1.03$',
+                   transform=ax[0].transAxes)
+        ax[1].set_ylabel(r'Amp [a.u.]')
+        ax[1].text(0.5, 0.8, r'$1.03\leq \rho < 1.06$',
+                   transform=ax[1].transAxes)
+        ax[2].set_xlabel(r'n$_e^{Edge}[10^{20}$m$^{-2}]$')
+        leg = ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
+        for text, color in zip(leg.get_texts(), colorList):
+            text.set_color(color)
+
+        ax2[0].axes.get_xaxis().set_visible(False)
+        ax2[1].axes.get_xaxis().set_visible(False)
+        ax2[0].set_ylim([0, 1])
+        ax2[1].set_ylim([0, 1])
+        ax2[2].set_ylim([0, 1])
+        ax2[2].set_xlim([0.25, 1])
+        ax2[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
+        ax2[0].set_ylabel(r'Amp [a.u]')
+        ax2[0].text(0.5, 0.8, r'$1\leq \rho < 1.03$',
+                    transform=ax2[0].transAxes)
+        ax2[1].set_ylabel(r'Amp [a.u.]')
+        ax2[1].text(0.5, 0.8, r'$1.03\leq \rho < 1.06$',
+                    transform=ax2[1].transAxes)
+        ax2[2].set_xlabel(r'n$_e$/n$_G$')
+        leg = ax2[0].legend(loc='best', numpoints=1,
+                            frameon=False, fontsize=14)
+        for text, color in zip(leg.get_texts(), colorList):
+            text.set_color(color)
+
+        ax3[0].axes.get_xaxis().set_visible(False)
+        ax3[0].set_ylim([0, 1])
+        ax3[1].set_ylim([0, 1])
+        ax3[1].set_xlim([0.1, 30])
+        ax3[0].set_xscale('log')
+        ax3[1].set_xscale('log')
+        ax3[0].set_ylabel(r'Amp [a.u]')
+        ax3[0].text(0.2, 0.3, r'$1\leq \rho < 1.03$',
+                    transform=ax3[0].transAxes)
+        ax3[1].set_ylabel(r'Amp [a.u.]')
+        ax3[1].text(0.2, 0.3, r'$1.03\leq \rho < 1.06$',
+                    transform=ax3[1].transAxes)
+        ax3[1].set_xlabel(r'$\Lambda_{div}$')
+        leg = ax3[0].legend(loc='best', numpoints=1,
+                            frameon=False, fontsize=14)
+        for text, color in zip(leg.get_texts(), colorList):
+            text.set_color(color)
+
+        fig.savefig('../pdfbox/AmplitudeTargetVsDensityConstantBt.pdf',
+                    bbox_to_inches='tight')
+        fig2.savefig(
+            '../pdfbox/AmplitudeTargetVsGreenwaldConstantBt.pdf',
+            bbox_to_inches='tight')
+        fig3.savefig('../pdfbox/AmplitudeVsLambdaConstantBt.pdf',
+                     bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
