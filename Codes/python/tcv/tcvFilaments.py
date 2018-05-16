@@ -16,7 +16,7 @@ import xarray as xray
 import bottleneck
 import quickspikes as qs
 from lmfit.models import GaussianModel
-
+import tcvProfiles
 
 class Turbo(object):
     """
@@ -50,6 +50,7 @@ class Turbo(object):
        langmuir
        scipy
        quickspikes
+       profiletools
     """
 
     def __init__(self, shot, gas='D2', Lp='Div'):
@@ -296,6 +297,8 @@ class Turbo(object):
                         (self.rhoArray <= self.RRsep[_idx].max())))[0]
         data.attrs['Efold'] = self.Efolding[_idx].mean()
         data.attrs['EfoldErr'] = self.Efolding[_idx].std()
+        data.attrs['EfoldGpr'] = self.EfoldingGpr[_idx].mean()
+        data.attrs['EfoldGprErr'] = self.EfoldingGpr[_idx].mean()
         # add also the results of the conditional average
         # which is useful
         data.attrs['CAS'] = cs
@@ -485,7 +488,7 @@ class Turbo(object):
         if _ii.size < npoint:
             self.profileEn = xray.DataArray(
                 _data[_ii] / 1e19,
-                coords={'drsep': _rho[_ii]})
+                coords=[_rho[ii]], dims=['drsep'])
             self.profileEn.attrs['err'] = _err[_ii] / 1e19
         else:
             # density profile and corresponding spline
@@ -493,10 +496,43 @@ class Turbo(object):
                 _rho[_ii],
                 _data[_ii] / 1e19,
                 npoint=npoint)
+        _idx0 = np.where(self.profileEn.err == 0)[0]
+        if _idx0.size != 0:
+            self.profileEn.err[_idx0]  =  \
+                np.mean(self.profileEn.err[np.where(self.profileEn.err != 0)[0]])
         self.splineEn = UnivariateSpline(self.profileEn.rho.values,
                                          self.profileEn.values,
                                          w=1. / self.profileEn.err,
                                          ext=0)
+        # we had the computation of the profiles using the profiletools
+        # which allows to combine also with Thomson data
+        Profile = tcvProfiles.tcvProfiles(self.shot)
+        EnProf = Profile.profileNe(t_min = _time.min()-0.05,
+                                   t_max = _time.max() + 0.05,
+                                   abscissa = 'Rmid')
+        # Compute the GPR estimate of the Fit
+        _rhoN = np.linspace(EnProf.X.ravel().min(),
+                            EnProf.X.ravel().max(),151)
+        _yN, _yE, _gp = Profile.gpr_robustfit(_rhoN,gaussian_length_scale=0.3,
+                                            nu_length_scale=0.03)
+        # now convert to R-Rmid
+        _rhoN -= self._eq.getRmidOutSpline()(_time.mean())
+        # drop the value in the profile below 2 cm inside the LCFS
+        _ = EnProf.remove_points((EnProf.X[:,0] - self._eq.getRmidOutSpline()(_time.mean())) < -0.02)
+        # remember that EnProf save the density in [10^20]
+        self.profileEnGpr = xray.DataArray(
+            EnProf.y*10,
+            coords=[EnProf.X.ravel()- self._eq.getRmidOutSpline()(_time.mean())],
+            dims='drsep')
+        self.profileEnGpr.attrs['err'] = EnProf.err_y*10
+        self.profileEnGpr.attrs['err X'] = EnProf.err_X
+        # the spline is built on GPR fit
+        _idx = np.where(_rhoN >= -0.02)[0]
+        self.splineGpr = UnivariateSpline(
+            _rhoN[_idx],
+            _yN[_idx]*10,
+            w= 1./(_yE[_idx]*10), ext=0)
+
         # compute also the profile of Te
         _data = self._filament.getNode(
             r'\FP_%1i' % plunge + 'PL_TE').data()
@@ -526,6 +562,8 @@ class Turbo(object):
                                     100)
         self.Efolding = np.abs(self.splineEn(self.rhoArray) /
                                self.splineEn.derivative()(self.rhoArray))
+        self.EfoldingGpr = np.abs(self.splineGpr(self.rhoArray) /
+                               self.splineGpr.derivative()(self.rhoArray))
 
     def _computeDeltaT(self, x, y, e):
         """
