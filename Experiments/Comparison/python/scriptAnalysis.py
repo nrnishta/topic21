@@ -37,6 +37,9 @@ def print_menu():
     print('9. Statistics at constant q95')
     print('10. Shoulder and Target density evolution Constant Bt')
     print('11. Shoulder and Target density evolution Constant q95')
+    print("12. Efold vs Lambda same fueling with/wo cryopumps")
+    print("13. Efold vs Lambda different fueling with/wo cryopumps")
+    print("14. Efold vs Lambda H-Mode/L-Mode")
     print("99: End")
     print(67 * "-")
 
@@ -1340,6 +1343,238 @@ while loop:
             bbox_to_inches='tight')
         fig3.savefig('../pdfbox/AmplitudeVsLambdaConstantQ95.pdf',
                      bbox_to_inches='tight')
+
+    elif selection == 12:        
+        shotListA = (34276, 34278, 34102)
+        cryo = ('#34276 H-Mode cryo off',
+                '#34278 H-Mode cryon on',
+                '#34102 L-mode')
+#        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        colorList = ('#324D5C', '#E37B40', 'k')
+        Directory = '../../AUG/analysis/data/'
+        # figure with Efold vs blob Size
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # figure for Blob vs Lambda
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig2.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # first the plot for AUG
+        for shot, col in zip(shotListA, colorList):
+            for s in ('1', '2', '3', '4', '5'):
+                try:
+                    Data = xray.open_dataarray(Directory +
+                                               'Shot%5i' % shot +
+                                               '_'+s+'Stroke.nc')
+                    Vperp = Data.Vperp
+                    Size = 0.5*Data.TauB*np.abs(Vperp)/1e-4
+                    SizeErr = np.sqrt(
+                        np.power(Data.Vperp*Data.TauBErr, 2) +
+                        np.power(Data.TauB*Data.VperpErr, 2))/2/1e-4
+                    if SizeErr > 0.5*Size:
+                        SizeErr = 0.5*Size
+                    _idx = np.where((Data.rhoLambda >= Data.Rho-0.03) &
+                                    (Data.rhoLambda <= Data.Rho+0.03))[0]
+                    _idx2 = np.where((Data.rhoLiB >= Data.Rho-0.03) &
+                                     (Data.rhoLiB <= Data.Rho+0.03))[0]
+                    eFold = np.nanmean(Data.Efold[_idx2])*1e2
+
+                    ax.errobar(Size, np.nanmean(Data.Efold[_idx2])*1e2,
+                               xerr=SizeErr,
+                               yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                               fmt='o', color=col, ms=15, alpha=0.6)
+                    ax2.errorbar(np.nanmean(Data.LambdaProfile[_idx]),
+                                 Size, yerr=SizeErr,
+                                 xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                                 fmt='o',
+                                 color=col, ms=15, alpha=0.6)
+                except:
+                    print(('not done for shot {} stroke {}').format(shot, s))
+                    pass
+
+        # figure with Efold vs Blob-size
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlim([10, 500])
+        ax.set_ylim([1, 20])
+        ax.set_xlabel(r'$\delta_b [\rho_s]$')
+        ax.set_ylabel(r'$\lambda_n$ [cm]')
+        ax.set_title('Same fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax.text(0.05, 0.8 - 0.1 * _idx, cr,
+                    color=c, transform=ax.transAxes, fontsize=12)
+        fig.savefig('../pdfbox/EfoldSizeShots%5i'
+                    % shotListA[0] +
+                    '_%5i' % shotListA[1] + '.pdf', bbox_to_inches='tight')
+
+        # figure with Blob size vs Lambda
+        ax2.set_xscale('log')
+#        ax2.set_xlim([0.01, 30])
+        ax2.set_ylabel(r'$\delta_b [\rho_s]$')
+        ax2.set_xlabel(r'$\Lambda_{div}$')
+        ax2.set_title('Same fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax2.text(0.05, 0.8 - 0.1 * _idx, cr,
+                     color=c, transform=ax2.transAxes, fontsize=12)
+        fig2.savefig('../pdfbox/BlobLambdaShots%5i'
+                     % shotListA[0] +
+                     '_%5i' % shotListA[1] + '.pdf', bbox_to_inches='tight')
+
+    elif selection == 13:
+        shotListA = (34276, 34281, 34102)
+        cryo = ('# 34276 H-Mode cryo off',
+                '# 34281 H-Mode cryon on',
+                '# 34102 L-mode')
+        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        Directory = '/Users/vianello/Desktop/Topic-21/Experiments/AUG/analysis/data/'
+        # figure with Efold vs blob Size
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # figure for Blob vs Lambda
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig2.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # first the plot for AUG
+        for shot, col in zip(shotListA, colorList):
+            for s in ('1', '2', '3', '4', '5'):
+                try:
+                    Data = xray.open_dataarray(Directory +
+                                               'Shot%5i' % shot +
+                                               '_'+s+'Stroke.nc')
+                    Vperp = Data.Vperp
+                    Size = 0.5*Data.TauB*np.abs(Vperp)/1e-4
+                    SizeErr = np.sqrt(
+                        np.power(Data.Vperp*Data.TauBErr, 2) +
+                        np.power(Data.TauB*Data.VperpErr, 2))/2/1e-4
+                    if SizeErr > 0.5*Size:
+                        SizeErr = 0.5*Size
+                    _idx = np.where((Data.rhoLambda >= Data.Rho-0.03) &
+                                    (Data.rhoLambda <= Data.Rho+0.03))[0]
+                    _idx2 = np.where((Data.rhoLiB >= Data.Rho-0.03) &
+                                     (Data.rhoLiB <= Data.Rho+0.03))[0]
+                    eFold = np.nanmean(Data.Efold[_idx2])*1e2
+
+                    ax.errobar(Size, np.nanmean(Data.Efold[_idx2])*1e2,
+                               xerr=SizeErr,
+                               yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                               fmt='o', color=col, ms=15, alpha=0.6)
+                    ax2.errorbar(np.nanmean(Data.LambdaProfile[_idx]),
+                                 Size, yerr=SizeErr,
+                                 xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                                 fmt='o',
+                                 color=col, ms=15, alpha=0.6)
+                except:
+                    print(('not done for shot {} stroke {}').format(shot, s))
+                    pass
+
+        # figure with Efold vs Blob-size
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlim([10, 500])
+        ax.set_ylim([1, 20])
+        ax.set_xlabel(r'$\delta_b [\rho_s]$')
+        ax.set_ylabel(r'$\lambda_n$ [cm]')
+        ax.set_title('Different fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax.text(0.05, 0.8 - 0.1 * _idx, cr,
+                    color=c, transform=ax.transAxes,
+                    fontsize=12)
+        fig.savefig('../pdfbox/EfoldSizeShots%5i'
+                    % shotListA[0] +
+                    '_%5i' % shotListA[1] + '.pdf', bbox_to_inches='tight')
+
+        # figure with Blob size vs Lambda
+        ax2.set_xscale('log')
+#        ax2.set_xlim([0.01, 30])
+        ax2.set_ylabel(r'$\delta_b [\rho_s]$')
+        ax2.set_xlabel(r'$\Lambda_{div}$')
+        ax2.set_title('Different fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax2.text(0.05, 0.8 - 0.1 * _idx, cr,
+                     color=c, transform=ax2.transAxes,
+                     fontsize=12)
+        fig2.savefig('../pdfbox/BlobLambdaShots%5i'
+                     % shotListA[0] +
+                     '_%5i' % shotListA[1] + '.pdf', bbox_to_inches='tight')
+
+    elif selection == 14:
+        shotListA = (34276, 34278, 34281, 34102)
+        cryo = ('# 34276 H-Mode cryo off',
+                '# 34278 H-Mode cryo on same fueling',
+                '# 34281 H-Mode cryo different fueling',
+                '# 34102 L-mode')
+        colorList = ('#324D5C', '#E37B40', '#60A65F', 'k')
+        Directory = '/Users/vianello/Desktop/Topic-21/Experiments/AUG/analysis/data/'
+        # figure with Efold vs blob Size
+        fig, ax = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # figure for Blob vs Lambda
+        fig2, ax2 = mpl.pylab.subplots(figsize=(8, 5), nrows=1, ncols=1)
+        fig2.subplots_adjust(bottom=0.17, left=0.17, hspace=0.05, top=0.9)
+        # first the plot for AUG
+        for shot, col in zip(shotListA, colorList):
+            for s in ('1', '2', '3', '4', '5'):
+                try:
+                    Data = xray.open_dataarray(Directory +
+                                               'Shot%5i' % shot +
+                                               '_'+s+'Stroke.nc')
+                    Vperp = Data.Vperp
+                    Size = 0.5*Data.TauB*np.abs(Vperp)/1e-4
+                    SizeErr = np.sqrt(
+                        np.power(Data.Vperp*Data.TauBErr, 2) +
+                        np.power(Data.TauB*Data.VperpErr, 2))/2/1e-4
+                    if SizeErr > 0.5*Size:
+                        SizeErr = 0.5*Size
+                    _idx = np.where((Data.rhoLambda >= Data.Rho-0.03) &
+                                    (Data.rhoLambda <= Data.Rho+0.03))[0]
+                    _idx2 = np.where((Data.rhoLiB >= Data.Rho-0.03) &
+                                     (Data.rhoLiB <= Data.Rho+0.03))[0]
+                    eFold = np.nanmean(Data.Efold[_idx2])*1e2
+
+                    ax.errobar(Size, np.nanmean(Data.Efold[_idx2])*1e2,
+                               xerr=SizeErr,
+                               yerr=np.nanstd(Data.Efold[_idx2])*1e2,
+                               fmt='o', color=col, ms=15, alpha=0.6)
+                    ax2.errorbar(np.nanmean(Data.LambdaProfile[_idx]),
+                                 Size, yerr=SizeErr,
+                                 xerr=np.nanstd(Data.LambdaProfile[_idx]),
+                                 fmt='o',
+                                 color=col, ms=15, alpha=0.6)
+                except:
+                    print(('not done for shot {} stroke {}').format(shot, s))
+                    pass
+
+        # figure with Efold vs Blob-size
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlim([10, 500])
+        ax.set_ylim([1, 20])
+        ax.set_xlabel(r'$\delta_b [\rho_s]$')
+        ax.set_ylabel(r'$\lambda_n$ [cm]')
+        ax.set_title('Different fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax.text(0.05, 0.8 - 0.1 * _idx, cr,
+                    color=c, transform=ax.transAxes,
+                    fontsize=12)
+        fig.savefig('../pdfbox/EfoldSizeShots%5i'
+                    % shotListA[0] +
+                    '_%5i' % shotListA[1] +
+                    '_%5i' % shotListA[2] + '.pdf', bbox_to_inches='tight')
+
+        # figure with Blob size vs Lambda
+        ax2.set_xscale('log')
+#        ax2.set_xlim([0.01, 30])
+        ax2.set_ylabel(r'$\delta_b [\rho_s]$')
+        ax2.set_xlabel(r'$\Lambda_{div}$')
+        ax2.set_ylim([0, 100])
+        ax2.set_title('Different fueling')
+        for cr, c, _idx in zip(cryo, colorList, range(len(cryo))):
+            ax2.text(0.05, 0.8 - 0.1 * _idx, cr,
+                     color=c, transform=ax2.transAxes,
+                     fontsize=12)
+        fig2.savefig('../pdfbox/BlobLambdaShots%5i'
+                     % shotListA[0] +
+                     '_%5i' % shotListA[1] +
+                     '_%5i' % shotListA[2] + '.pdf', bbox_to_inches='tight')
+
     elif selection == 99:
         loop = False
     else:
