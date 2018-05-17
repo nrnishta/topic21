@@ -69,10 +69,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 0].plot(df.sel(sig='H-5')[:-10]/10,
                           df.sel(sig='neTarget')[:-10], '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 0].plot(df.sel(sig='H-5')[:-10]/10,
                           df.sel(sig='D10')[:-10]/1e3, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 0].set_xlim([0.1, 0.5])
         ax[0, 0].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 0].axes.get_xaxis().set_visible(False)
@@ -92,10 +94,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 1].plot(df.sel(sig='en'),
                           df.sel(sig='neMaxTarget')/10, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 1].plot(df.sel(sig='en'),
                           df.sel(sig='Bolo')/1e3, '.',  color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 1].set_xlim([0.1, 1.2])
         ax[0, 1].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 1].axes.get_xaxis().set_visible(False)
@@ -109,7 +113,7 @@ while loop:
         for text, color in zip(leg.get_texts(), colorList):
             text.set_color(color)
         fig.savefig('../pdfbox/TargetDensityRadiationVsDensityConstantBt.pdf',
-                    bbox_to_inches='tight')
+                    bbox_to_inches='tight', dpi=300)
     elif selection == 2:
         shotAug = (34105, 34102, 34106)
         iPAug = (0.6, 0.8, 1)
@@ -127,10 +131,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 0].plot(df.sel(sig='nGw')[:-10],
                           df.sel(sig='neTarget')[:-10], '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 0].plot(df.sel(sig='nGw')[:-10],
                           df.sel(sig='D10')[:-10]/1e3, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 0].set_xlim([0.1, 1])
         ax[0, 0].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 0].axes.get_xaxis().set_visible(False)
@@ -150,10 +156,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 1].plot(df.sel(sig='n/nG'),
                           df.sel(sig='neMaxTarget')/10, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 1].plot(df.sel(sig='n/nG'),
                           df.sel(sig='Bolo')/1e3, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 1].set_xlim([0.1, 1.])
         ax[0, 1].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 1].axes.get_xaxis().set_visible(False)
@@ -168,7 +176,7 @@ while loop:
             text.set_color(color)
         fig.savefig(
             '../pdfbox/TargetDensityRadiationVsGreenwaldConstantBt.pdf',
-            bbox_to_inches='tight')
+            bbox_to_inches='tight', dpi=300)
 
     elif selection == 3:
         shotAug = (34103, 34102, 34104)
@@ -187,10 +195,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 0].plot(df.sel(sig='H-5')[:-10]/10,
                           df.sel(sig='neTarget')[:-10], '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 0].plot(df.sel(sig='H-5')[:-10]/10,
                           df.sel(sig='D10')[:-10]/1e3, '.', color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 0].set_xlim([0.1, 0.5])
         ax[0, 0].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 0].axes.get_xaxis().set_visible(False)
@@ -210,10 +220,12 @@ while loop:
                 '_DensityRadiation.nc')
             ax[0, 1].plot(df.sel(sig='en'),
                           df.sel(sig='neMaxTarget')/10, '.',  color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
             ax[1, 1].plot(df.sel(sig='en'),
                           df.sel(sig='Bolo')/1e3, '.',  color=col,
-                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                          label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                          rasterized=True)
         ax[0, 1].set_xlim([0.1, 1.2])
         ax[0, 1].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0, 1].axes.get_xaxis().set_visible(False)
@@ -227,7 +239,7 @@ while loop:
         for text, color in zip(leg.get_texts(), colorList):
             text.set_color(color)
         fig.savefig('../pdfbox/TargetDensityRadiationVsDensityConstantQ95.pdf',
-                    bbox_to_inches='tight')
+                    bbox_to_inches='tight', dpi=300)
 
     elif selection == 4:
         shotAug = (34103, 34102, 34104)
@@ -1081,24 +1093,30 @@ while loop:
                 kind='linear', fill_value='extrapolate')
             ax[0].errorbar(S(timeSplit), aNear, yerr=aNearS,
                            fmt='o', color=col,
-                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                           rasterized=True)
             ax[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
-                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                           label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                           rasterized=True)
             ax[2].plot(_dummy.sel(sig='H-5'),
                        _dummy.sel(sig='neTarget'), 'o', color=col,
-                       label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                       label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                       rasterized=True)
             # this is the plot vs greenwald
             S = interp1d(
                 _dummy.t.values, _dummy.sel(sig='nGw').values,
                 kind='linear', fill_value='extrapolate')
             ax2[0].errorbar(S(timeSplit), aNear, yerr=aNearS,
                             fmt='o', color=col,
-                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                            rasterized=True)
             ax2[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
-                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                            label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                            rasterized=True)
             ax2[2].plot(_dummy.sel(sig='nGw'),
                         _dummy.sel(sig='neTarget'), 'o', color=col,
-                        label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+                        label=r'#%5i' % shot + ' %3.2f' % ip + ' MA',
+                        rasterized=True)
 
             # now load the Lambda Div from saved h5 file
             File = h5py.File(DirectoryAug+'Shot{}.h5'.format(shot))
@@ -1180,12 +1198,12 @@ while loop:
             text.set_color(color)
 
         fig.savefig('../pdfbox/AmplitudeTargetVsDensityConstantBt.pdf',
-                    bbox_to_inches='tight')
+                    bbox_to_inches='tight', dpi=300)
         fig2.savefig(
             '../pdfbox/AmplitudeTargetVsGreenwaldConstantBt.pdf',
-            bbox_to_inches='tight')
+            bbox_to_inches='tight', dpi=300)
         fig3.savefig('../pdfbox/AmplitudeVsLambdaConstantBt.pdf',
-                     bbox_to_inches='tight')
+                     bbox_to_inches='tight', dpi=300)
 
     elif selection == 11:
         shotListA = (34103, 34102, 34104)
