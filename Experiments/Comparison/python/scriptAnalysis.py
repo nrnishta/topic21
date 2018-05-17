@@ -40,6 +40,7 @@ def print_menu():
     print("12. Efold vs Lambda same fueling with/wo cryopumps")
     print("13. Efold vs Lambda different fueling with/wo cryopumps")
     print("14. Efold vs Lambda H-Mode/L-Mode")
+    print("15. CAS example combined")
     print("99: End")
     print(67 * "-")
 
@@ -1587,6 +1588,15 @@ while loop:
                      % shotListA[0] +
                      '_%5i' % shotListA[1] +
                      '_%5i' % shotListA[2] + '.pdf', bbox_to_inches='tight')
+
+    elif selection == 15:
+        DataTCV = xray.open_dataarray(
+            '../../TCV/analysis/data/BlobShot54873_plunge1_rrsep1cm.nc')
+        DataAUG = xray.open_dataarray(
+            '../../AUG/analysis/data/Shot34102_1Stroke.nc')
+        # now the 2 panel with CAS and FWHM
+        fig, ax = mpl.pylab.subplots(figsize=(10, 7), nrows=2, ncols=2)
+        # AUG part
 
     elif selection == 99:
         loop = False
