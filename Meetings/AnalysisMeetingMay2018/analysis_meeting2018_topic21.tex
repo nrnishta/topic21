@@ -110,9 +110,34 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
       different velocity estimate. $v_r$ from
       $\mathbf{E}\times\mathbf{B}$ evaluation from floating potentials
       on CAS, $v_z$ from 2D cross-correlation analysis
-
   \end{itemize}
 }
+\only<3>{
+  \centering{\includegraphics[width=0.7\textwidth]{../../Experiments/Comparison/pdfbox/ExampleCas}}
+  \begin{itemize}
+    \item Blob-size is $\delta_b = 0.5 * \tau_b*v_{\perp}$
+    \item $\tau_b$ estimated from FWHM of Conditional Avearage
+      (\alert{different from Carralero}) including asymmetric part
+      (\alert{different from Tsui})
+  \end{itemize}
+}
+\only<4>{
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{../../Experiments/Comparison/pdfbox/ExampleCorrelation}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+  \begin{itemize}
+    \item Correlation on TCV computed using a gaussian Fit of the
+      central part (better resolution)
+    \item on AUG the correlation is in general asymmetric. Maximum
+      time lag estimated from the zeros of the imaginary part of the
+      hilbert transform of the correlation function
+  \end{itemize}
+    \end{column}
+  \end{columns}
+}
+
 \end{frame}
 
 
@@ -344,6 +369,8 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
       along flux tube and compare to measurement}
     \item \textcolor{ta3scarletred}{Balmer series analysis for
         recombination analysis on TCV \textbf{K. Verhaegh}}
+    \item \textcolor{ta3orange}{GPI analysis and comparison with probe
+      \textbf{Walkden, Cziegler}}  
   \item \textcolor{ta3scarletred}{HFSD}
     \item \textcolor{ta3scarletred}{\ldots}
       
