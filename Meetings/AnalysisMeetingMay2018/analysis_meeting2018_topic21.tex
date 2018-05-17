@@ -48,7 +48,7 @@ Codrina Ionita-Schrittwieser, Heinz Isliker, Alexander Karpushov,
 Jernej Kovacic, Benoît Labit, Bruce Lipschultz, 
 Roberto Maurizio, Ken McClements, Fulvio Militello, Jeppe Miki Busk Olsen, Jens Juul Rasmussen, Timo Ravensbergen, Bernd Sebastian Schneider, Roman Schrittwieser, Jakub Seidl, Monica Spolaore, Christian Theiler, Cedric Kar-Wai Tsui, Kevin Verhaegh, Jose Vicente, 
 Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
-j\end{frame}
+\end{frame}
 
 \begin{frame}{Motivation and deliverables}
   \Fontvi
@@ -88,10 +88,38 @@ j\end{frame}
 }
 \end{frame}
 
+\begin{frame}{Devices, diagnostics and methods}
+\only<1>{
+  \centering{\includegraphics[width=0.8\textwidth]{../generalFigures/Divertor-AUG-TCV}}
+
+  \begin{itemize}
+    \item \textbf{AUG:} Metallic wall, cryopumps, closed divertor with
+      SP on vertical target, short divertor leg
+    \item \textbf{TCV:} Carbon wall, completely open divertor,
+      operated with relative long divertor leg, no cryopump  
+  \end{itemize}
+}
+\only<2>{
+  \vspace{-1.5cm}
+  \centering{\includegraphics[width=0.7\textwidth]{../generalFigures/ProbeHead}}
+\Fontvi
+  \begin{itemize}
+    \item \textbf{AUG:} Ion saturation current measured at different
+      radial/poloidal position to get velocity from 2D cross-correlation
+    \item \textbf{TCV:} Only 1 j$_{sat}$ measurement available,
+      different velocity estimate. $v_r$ from
+      $\mathbf{E}\times\mathbf{B}$ evaluation from floating potentials
+      on CAS, $v_z$ from 2D cross-correlation analysis
+
+  \end{itemize}
+}
+\end{frame}
+
+
 \begin{frame}{Current scan at constant B$_t$ in L-Mode plasma}
   \begin{columns}
     \begin{column}{0.6\textwidth}
-      \includegraphics<1>[width=\textwidth]{~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
+      \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
       \includegraphics<4>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantBt}
@@ -148,9 +176,9 @@ j\end{frame}
           the transition to highly-recycling regime in analogy to
           JET HT \parencite{Wynn:2018gp} \onslide<10>{\alert{but once evolution \textit{vs} greenwald
             fraction is considered the evolution is equivalent between
-            different current.}
-          \item \textcolor{ta3chameleon}{Still some inconsistency at lower
-            current in agreement with different detachment evolution}}}
+            different current.}}
+          \item<only@10> \textcolor{ta3chameleon}{Still some inconsistency at lower
+            current in agreement with different detachment evolution}}
         \item<only@11> Amplitude evolution reconciled in AUG if
           considered as a function of local evolution of $\Lambda_{div}$
         \item<only@12> For both AUG and TCV $\lambda_n$ increases
@@ -167,12 +195,12 @@ j\end{frame}
 \begin{frame}{Current scan at constant q$_{95}$}
   \begin{columns}
     \begin{column}{0.6\textwidth}
-      \includegraphics<1>[width=\textwidth]{~/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
+      \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}
       \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}
       \includegraphics<4>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantQ95}
-      \includegraphics<5>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationGreenwaldConstantQ95}
-      \includegraphics<6>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantQ95}
+      \includegraphics<5>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsGreenwaldConstantQ95}
+      \includegraphics<6-7>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantQ95}
       \includegraphics<8>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeTargetVsGreenwaldConstantBt}
       \includegraphics<9>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeVsLambdaConstantBt}
       \includegraphics<10>[width=\textwidth]{../../Experiments/Comparison/pdfbox/EfoldBlobConstantQ95}         
@@ -207,7 +235,7 @@ j\end{frame}
           at very large values of $\Lambda_{div}$}
         \item<only@7>  This is due to the fact we did not reach
           divertor detachment which \alert{seems mandatory for
-            upstream profile modification}  
+            upstream profile modification}}  
         \item<only@8> AUG: Amplitude evolution as a function of
           greenwald fraction confirms that shoulder starts appearing
           at the onset of highly recycling regime 
@@ -224,7 +252,7 @@ j\end{frame}
     \end{column}
   \end{columns}
 \end{frame}
-% %% H-Mode same fueling
+% % %% H-Mode same fueling
 \begin{frame}{H-Mode analysis on AUG}
     \Fontvi
   \vspace{-1cm}
@@ -245,10 +273,10 @@ j\end{frame}
         \item<1|only@1>\textcolor{colorA}{\# 34276 without the
             cryompumps}
         \item<1|only@1> \textcolor{colorB}{\# 34278 with the same
-            fueling as \# 34276 but with the cryompump}
+            fueling as} \textcolor{colorA}{\# 34276} \textcolor{colorB}{but with the cryompump}
         \item<1|only@1> \textcolor{colorC}{\#34281 where we increase
             fueling and seeding trying to mimic the same subdivertor
-            pressure as \# 34276}
+            pressure as} \textcolor{colorA}{\# 34276}
       \end{itemize}
     \item<1|only@1> Keeping the same fueling with the cryopump clearly
       reduce the pressure in the the sub-divertor area, we don't reach
@@ -275,29 +303,52 @@ j\end{frame}
 \end{columns}
 \end{frame}
 
-% \begin{frame}{Conclusion}
-%   \Fontvi
-%   \begin{itemize}
-%     \item Current scan at constant B$_t$ and at constant q$_{95}$
-%       performed during density ramps L-Mode experiments both at AUG
-%       and TCV
-%     \item In both the case shoulder appear earlier in density at lower
-%       current but AUG shows reconciliation of behavior if considered
-%       as a function of greenwald fraction and $\Lambda_{div}$
-%     \item Both the experiments exhibit at constant B$_t$ flattening of the profile as
-%       blob size is increasing, independently from the current. The
-%       same behavior is observed during current scan at constant
-%       q$_{95}$ \alert{only on AUG}
-%     \item On TCV during the current scan at constant q$_{95}$
-%       detachment not reached and this \alert{prevent upstream profile
-%         flattening}
-%     \item H-Mode experiments performed on AUG where fueling and
-%       pumping have been varied. Proved inter-ELM profile flattening
-%       also in H-Mode with a more efficient puffing without the
-%       cryopump. \alert{Hints on the role of neutrals also in H-Mode}
-%   \end{itemize}
-% \end{frame}
+\begin{frame}{Conclusion}
+  \Fontvi
+  \begin{itemize}
+    \item Current scan at constant B$_t$ and at constant q$_{95}$
+      performed during density ramps L-Mode experiments both at AUG
+      and TCV
+    \item In both the case shoulder appear earlier in density at lower
+      current but AUG shows reconciliation of behavior if considered
+      as a function of greenwald fraction and $\Lambda_{div}$ for
+      constant B$_t$ but not for constant q$_{95}$. AUG still well
+      represented by $\Lambda_{div}$. \alert{Shoulder starts
+        developing at the onset of highly recycling regime}
+    \item Both the experiments exhibit at constant B$_t$ flattening of the profile as
+      blob size is increasing, independently from the current. The
+      same behavior is observed during current scan at constant
+      q$_{95}$ \alert{only on AUG}
+    \item On TCV during the current scan at constant q$_{95}$
+      detachment not reached and this \alert{prevents upstream profile
+        flattening}
+    \item H-Mode experiments performed on AUG where fueling and
+      pumping have been varied. \alert{Proved inter-ELM profile flattening
+      also in H-Mode} \alert{but high neutral pressure (not only edge
+      density) is needed}
+  \item<2-> \textbf{\textcolor{ta3scarletred}{Can we find a different parameter to reconcile
+        the experimental observation?}}
+  \end{itemize}
+\end{frame}
 
+\begin{frame}{On going work}
+  A series of works are still on-going \textcolor{ta3scarletred}{or
+    yet to be started}
+  \begin{itemize}[<+->]
+    \item Neutral density estimate from light emission
+      \textbf{M. Agostini}
+    \item Wall embedded probe analysis \textbf{S. Costea,
+        M. Spolaore}
+    \item Shoulder from Reflectometry analysis \textbf{E. Sieglun}
+    \item \textcolor{ta3scarletred}{SOLPS modelling AUG/TCV for modelling collisionality
+      along flux tube and compare to measurement}
+    \item \textcolor{ta3scarletred}{Balmer series analysis for
+        recombination analysis on TCV \textbf{K. Verhaegh}}
+  \item \textcolor{ta3scarletred}{HFSD}
+    \item \textcolor{ta3scarletred}{\ldots}
+      
+  \end{itemize}
+\end{frame}
 % \begin{frame}{D$_{\alpha}$ tomography: work in progress}
 % \Fontvi
 %   \begin{columns}
