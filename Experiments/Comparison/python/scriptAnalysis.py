@@ -4,8 +4,10 @@ import matplotlib as mpl
 import xarray as xray
 import h5py
 from scipy.interpolate import UnivariateSpline, interp1d
+from scipy.signal import hilbert
 import pandas as pd
 from os.path import expanduser
+from lmfit.models import GaussianModel
 mpl.rcParams['font.family'] = 'sans-serif'
 mpl.rc("font", size=18)
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -1592,12 +1594,137 @@ while loop:
     elif selection == 15:
         DataTCV = xray.open_dataarray(
             '../../TCV/analysis/data/BlobShot54873_plunge1_rrsep1cm.nc')
+        DataTCVn = xray.open_dataarray(
+            '../../TCV/analysis/data/BlobShot54873_plunge1_rrsep1cm_norm.nc')
         DataAUG = xray.open_dataarray(
             '../../AUG/analysis/data/Shot34102_1Stroke.nc')
         # now the 2 panel with CAS and FWHM
         fig, ax = mpl.pylab.subplots(figsize=(10, 7), nrows=2, ncols=2)
         # AUG part
+        ax[0, 0].plot(DataAUG.t*1e6, DataAUG.sel(sig='Isat_m06'), '-k', lw=2)
+        ax[0, 0].fill_between(DataAUG.t*1e6,
+                              DataAUG.sel(sig='Isat_m06') -
+                              DataAUG.err.reshape(3, 501)[0, :],
+                              DataAUG.sel(sig='Isat_m06') +
+                              DataAUG.err.reshape(
+                                  3, 501)[0, :], facecolor='gray',
+                              alpha=0.5, edgecolor='white')
+        # compute the FWHM
+        _x, _y = DataAUG.t.values, DataAUG.sel(sig='Isat_m06').values
+        _y -= _y.min()
+        S = UnivariateSpline(_x, _y-_y.max()/2, s=0)
+        r1, r2 = S.roots()
+        ax[0, 0].axvspan(r1*1e6, r2*1e6, facecolor='yellow', alpha=0.5)
+        # now the others two
+        colorList = ('#01406C', '#F03C07', '#28B799')
+        ax[1, 0].plot(DataAUG.t*1e6, DataAUG.sel(sig='Isat_m07'), '-',
+                      color=colorList[1], lw=2, label=r'J$_s^{z}$')
+        ax[1, 0].fill_between(DataAUG.t*1e6,
+                              DataAUG.sel(sig='Isat_m07') -
+                              DataAUG.err.reshape(3, 501)[2, :],
+                              DataAUG.sel(sig='Isat_m07') +
+                              DataAUG.err.reshape(
+                                  3, 501)[2, :], facecolor='#F03C07', edgecolor='white',
+                              alpha=0.5)
+        ax[1, 0].plot(DataAUG.t*1e6, DataAUG.sel(sig='Isat_m10'), '-',
+                      color=colorList[2], lw=2, label=r'J$_s^{r}$')
+        ax[1, 0].fill_between(DataAUG.t*1e6,
+                              DataAUG.sel(sig='Isat_m10') -
+                              DataAUG.err.reshape(3, 501)[1, :],
+                              DataAUG.sel(sig='Isat_m10') +
+                              DataAUG.err.reshape(
+                                  3, 501)[1, :], facecolor='#28B799',
+                              alpha=0.5, edgecolor='white')
 
+        ax[0, 0].set_title('AUG')
+        ax[0, 0].set_ylabel(r'$\delta$J$_s [\sigma]$')
+        ax[0, 0].axes.get_xaxis().set_visible(False)
+        ax[0, 0].set_xlim([-100, 100])
+        ax[1, 0].set_xlim([-100, 100])
+        ax[1, 0].set_xlabel(r't [$\mu$s]')
+        ax[1, 0].set_ylabel(r'$\delta$J$_s [\sigma]$')
+        leg = ax[1, 0].legend(loc='best', numpoints=1, frameon=False)
+        for t, c in zip(leg.get_texts(), ('#F03C07', '#28B799')):
+            t.set_color(c)
+
+        # ----------
+        # now the TCV part
+        ax[0, 1].plot(DataTCVn.t*1e6, DataTCVn.sel(sig='Is'), '-k', lw=2)
+        ax[0, 1].fill_between(DataTCVn.t*1e6,
+                              DataTCVn.sel(sig='Is') -
+                              DataTCVn.err.reshape(8, 501)[0, :],
+                              DataTCVn.sel(sig='Is') +
+                              DataTCVn.err.reshape(
+                                  8, 501)[0, :], facecolor='gray',
+                              alpha=0.5, edgecolor='white')
+        # compute the FWHM
+        _x, _y = DataTCVn.t.values, DataTCVn.sel(sig='Is').values
+        _y -= _y.min()
+        S = UnivariateSpline(_x, _y-_y.max()/2, s=0)
+        r1, r2 = S.roots()
+        ax[0, 1].axvspan(r1*1e6, r2*1e6, facecolor='yellow', alpha=0.5)
+        # now the others two
+        colorList = ('#01406C', '#F03C07', '#28B799')
+        ax[1, 1].plot(DataTCV.t*1e6, DataTCV.sel(sig='Epol')/1e3, '-',
+                      color=colorList[1], lw=2)
+        ax[1, 1].fill_between(DataTCV.t*1e6,
+                              DataTCV.sel(sig='Epol')/1e3 -
+                              DataTCV.err.reshape(8, 501)[1, :]/1e3,
+                              DataTCV.sel(sig='Epol')/1e3 +
+                              DataTCV.err.reshape(
+                                  8, 501)[1, :]/1e3, facecolor='#F03C07',
+                              alpha=0.5, edgecolor='white')
+
+        ax[0, 1].set_title('TCV')
+        ax[0, 1].set_ylabel(r'$\delta$J$_s [\sigma]$')
+        ax[0, 1].axes.get_xaxis().set_visible(False)
+        ax[0, 1].set_xlim([-100, 100])
+        ax[1, 1].set_xlim([-100, 100])
+        ax[1, 1].set_xlabel(r't [$\mu$s]')
+        ax[1, 1].set_ylabel(r'E$_{\theta}$[kV/m]')
+        fig.savefig('../pdfbox/ExampleCas.pdf', bbox_to_inches='tight')
+
+        # now example of CROSS-Correlation computation
+        # AUGD
+        fig, ax = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
+                                     sharex=True)
+        fig.subplots_adjust(hspace=0.05, right=0.83, left=0.2, top=0.95)
+        a = DataAUG.sel(sig='Isat_m07').values
+        b = DataAUG.sel(sig='Isat_m06').values
+        xcor = np.correlate(a, b, mode='same')
+        xcor /= np.sqrt(np.dot(a, a)*np.dot(b, b))
+        lag = np.arange(xcor.size, dtype='float')-xcor.size/2
+        # in microsecond
+        lag *= 0.4
+        ax[0].plot(lag, xcor, 'k-', lw=2)
+        axt = ax[0].twinx()
+        h = hilbert(xcor)
+        axt.plot(lag, np.imag(h), 'r-')
+        ax[0].text(0.1, 0.9, 'AUG', transform=ax[0].transAxes)
+        ax[0].axes.get_xaxis().set_visible(False)
+        ax[0].set_ylabel('Correlation')
+        axt.set_ylabel('Im (H(C))', color='red')
+        axt.spines['right'].set_color('red')
+        axt.xaxis.label.set_color('red')
+        axt.tick_params(axis='y', colors='red')
+        # TCV
+        a = DataTCV.sel(sig='VFM_1').values
+        b = DataTCV.sel(sig='VFT_1').values
+        xcor = np.correlate(a, b, mode='same')
+        xcor /= np.sqrt(np.dot(a, a)*np.dot(b, b))
+        lag = np.arange(xcor.size, dtype='float')-xcor.size/2
+        lag *= 0.4
+        ax[1].plot(lag, xcor, 'k-', lw=2)
+        mod = GaussianModel()
+        pars = mod.guess(xcor, x=lag)
+        pars['sigma'].set(value=10, vary=True)
+        out = mod.fit(xcor, pars, x=lag)
+        ax[1].plot(lag, out.best_fit, 'r--')
+        ax[1].text(0.1, 0.9, 'TCV', transform=ax[1].transAxes)
+        ax[1].set_xlabel(r't [$\mu$s]')
+        ax[1].set_ylabel('Correlation')
+        fig.savefig('../pdfbox/ExampleCorrelation.pdf',
+                    bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:
