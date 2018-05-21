@@ -4963,7 +4963,8 @@ while loop:
                  'D17': {'Name': 'S2L1A00',
                          'xchord': [1.437, 2.173],
                          'ychord': [-1.063, -0.282]}}
-        for shot in shotList:
+        tmaxList = (3.87, 3.5, 4.05, 3.21, 4.01)
+        for shot, _tmx in zip(shotList, tmaxList):
             # load the greenwald fraction, limit to time greater than 1
             # smooth and decimate
             Tot = dd.shotfile('TOT', shot)
@@ -4971,8 +4972,9 @@ while loop:
             nGW = decimate(bottleneck.move_mean(nGWA.data, window=30), 5, ftype='fir',
                            zero_phase=True)
             tGW = decimate(nGWA.time, 5, ftype='fir', zero_phase=True)
-            nGW = nGW[np.where(tGW >= 1)[0]]
-            tGW = tGW[np.where(tGW >= 1)[0]]
+            nGW = nGW[np.where((tGW >= 0.5) & (tGW <= _tmx))[0]]
+            tGW = tGW[np.where((tGW >= 0.5) & (tGW <= _tmx))[0]]
+            Tot.close()
             # load the target density
             Target = langmuir.Target(shot)
             peakTarget = decimate(bottleneck.move_mean(

@@ -131,29 +131,15 @@ class Libes(object):
         # limit to the region for rho > 1
         _idx = np.where((self.time > start))[0]
         _npoint = int(np.floor((self.time[_idx].max()-self.time[_idx].min())/dt))
-        Amplitude = []
-        Location = []
-        Efold = []
-        time = np.zeros(_npoint)
-        rhoDummy = self.rho[self.rho>=1]
-        pN = pN[self.rho >= 1]
-        # number of point given the resolution
-        
-        for i in range(_npoint):
-            a, b, c, pDummy, eDummy = self.averageProfile(trange=[start+i*dt, start+(i+1)*dt],
-                                                          **kwargs)
-            pDummy = pDummy[self.rho>=1]
-            Amplitude.append(pDummy-pN)
-            Location.append(rhoDummy[np.argmax(pDummy-pN)])
-            time[i] = (start+i*dt+dt/2)
-            Efold.append(c[self.rho>1])
-
-            
-        self.Amplitude = np.asarray(Amplitude)
-        self.Location = np.asarray(Location)
-        self.timeAmplitude = time
+        # we use array split
+        _dummy = self.neNorm[np.where(self.time > start)[0], :]
+        Split = np.asarray(np.array_split(_dummy, _npoint, axis=0))
+        Amplitude = np.asarray([np.nanmean(p, axis=0)-pN for p in Split])
+        self.timeAmplitude = np.nanmean(
+            np.asarray(np.array_split(self.time[_idx], _npoint)))
+        self.Amplitude = Amplitude[:, np.where(self.rho>1)]
+        self.Location = np.max(self.Amplitude, axis=1)
         self.rhoAmplitude = self.rho[self.rho>=1]
-        self.Efold = np.asarray(Efold)
 
     def _maskElm(self, usedda=False, threshold=3000, trange=[2, 3],
                  check=False):
