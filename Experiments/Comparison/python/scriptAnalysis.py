@@ -1060,11 +1060,15 @@ while loop:
             time = File['timeLiB'].value
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.03 and 1.03<rho<1.06) wrt initial perio [1.2, 1.4]
-            _idx = np.where((time >= 1.2) & (time <= 1.4))[0]
+            if shot == 34105:
+                _trange = [0.7, 0.8]
+            else:
+                _trange = [1.2, 1.4]
+            _idx = np.where((time >= _trange[0]) & (time <= _trange[1]))[0]
             Reference = np.nanmean(LiBN[_idx, :], axis=0)
             errReference = np.nanstd(LiBN[_idx, :], axis=0)
-            LiBN = LiBN[np.where(time > 1.4)[0], :]
-            time = time[np.where(time > 1.4)[0]]
+            LiBN = LiBN[np.where(time > _trange[1])[0], :]
+            time = time[np.where(time > _trange[1])[0]]
             _npoint = int(np.floor((time.max()-time.min()))/0.02)
             Split = np.asarray(np.array_split(LiBN, _npoint, axis=0))
             Amplitude = np.asarray(
@@ -1120,6 +1124,7 @@ while loop:
 
             # now load the Lambda Div from saved h5 file
             File = h5py.File(DirectoryAug+'Shot{}.h5'.format(shot))
+
             _idx = np.where((File['LambdaDivRho'].value >= 1) &
                             (File['LambdaDivRho'].value < 1.03))[0]
             LNear = np.nanmean(File['LambdaDiv'].value[_idx, :],
@@ -1134,12 +1139,22 @@ while loop:
                                  (LTime <= timeSplit.max()))[0]]
             LTime = LTime[np.where((LTime >= timeSplit.min()) &
                                    (LTime <= timeSplit.max()))[0]]
+            if shot == 34104:
+                LNear = LNear[np.where(LTime <= 4)[0]]
+                LFar = LFar[np.where(LTime <= 4)[0]]
+                LTime = LTime[np.where(LTime <= 4)[0]]
 
             S = interp1d(LTime, LNear, kind='linear', fill_value='extrapolate')
-            ax3[0].errorbar(S(timeSplit), aNear,
-                            yerr=aNearS, fmt='o', color=col,
+            ax3[0].errorbar(S(timeSplit[np.where(timeSplit <= 4.)[0]]),
+                            aNear[np.where(timeSplit <= 4.)[0]],
+                            yerr=aNearS[np.where(timeSplit <= 4.)[0]],
+                            fmt='o', color=col,
                             label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
-            ax3[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
+            S = interp1d(LTime, LFar, kind='linear', fill_value='extrapolate')
+            ax3[1].errorbar(S(timeSplit[np.where(timeSplit <= 4.)[0]]),
+                            aFar[np.where(timeSplit <= 4.)[0]],
+                            yerr=aFarS[np.where(timeSplit <= 4.)[0]],
+                            fmt='o', color=col,
                             label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
 
         ax[0].axes.get_xaxis().set_visible(False)
@@ -1239,11 +1254,15 @@ while loop:
             time = File['timeLiB'].value
             # now integrate in the near and far SOL defining respectively for
             # (1<rho<1.03 and 1.03<rho<1.06) wrt initial perio [1.2, 1.4]
-            _idx = np.where((time >= 1.2) & (time <= 1.4))[0]
+            if shot == 34103:
+                _trange = [0.7, 0.8]
+            else:
+                _trange = [1.2, 1.4]
+            _idx = np.where((time >= _trange[0]) & (time <= _trange[1]))[0]
             Reference = np.nanmean(LiBN[_idx, :], axis=0)
             errReference = np.nanstd(LiBN[_idx, :], axis=0)
-            LiBN = LiBN[np.where(time > 1.4)[0], :]
-            time = time[np.where(time > 1.4)[0]]
+            LiBN = LiBN[np.where(time > _trange[1])[0], :]
+            time = time[np.where(time > _trange[1])[0]]
             _npoint = int(np.floor((time.max()-time.min()))/0.02)
             Split = np.asarray(np.array_split(LiBN, _npoint, axis=0))
             Amplitude = np.asarray(
@@ -1309,9 +1328,12 @@ while loop:
                                    (LTime <= timeSplit.max()))[0]]
 
             S = interp1d(LTime, LNear, kind='linear', fill_value='extrapolate')
-            ax3[0].errorbar(S(timeSplit), aNear,
-                            yerr=aNearS, fmt='o', color=col,
+            ax3[0].errorbar(S(timeSplit[np.where(timeSplit <= 4.)[0]]),
+                            aNear[np.where(timeSplit <= 4.)[0]],
+                            yerr=aNearS[np.where(timeSplit <= 4.)[0]],
+                            fmt='o', color=col,
                             label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
+            S = interp1d(LTime, LFar, kind='linear', fill_value='extrapolate')
             ax3[1].errorbar(S(timeSplit), aFar, yerr=aFarS, fmt='o', color=col,
                             label=r'#%5i' % shot + ' %3.2f' % ip + ' MA')
 
