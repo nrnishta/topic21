@@ -698,7 +698,7 @@ while loop:
                     "Experiments/AUG/analysis/data/"
         # this is the figure of Blob-size vs Lambda
         fig, ax = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
-                                     sharex=True, sharey=True)
+                                     sharex=True)
         fig.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
         # this is the figure of Efold vs Lambda
         fig2, ax2 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
@@ -760,23 +760,24 @@ while loop:
                     pass
         ax[0].set_xscale('log')
         ax[0].set_yscale('log')
+        ax[0].set_ylim([1, 20])
         ax[0].axes.get_xaxis().set_visible(False)
         ax[0].set_ylabel(r'$\delta_b [\rho_s]$')
         ax[0].text(0.9, 0.87, 'AUG', transform=ax[0].transAxes)
         # Efold vs Lambda
         ax2[0].set_xscale('log')
         ax2[0].set_yscale('log')
+        ax2[0].set_ylim([1, 20])
         ax2[0].axes.get_xaxis().set_visible(False)
         ax2[0].set_ylabel(r'$\lambda_n [$cm$]$')
         ax2[0].text(0.9, 0.87, 'AUG', transform=ax2[0].transAxes)
-        ax2[0].set_ylim([1, 50])
         # Efold vs Blob-size
         ax3[0].set_xscale('log')
         ax3[0].set_yscale('log')
+        ax3[0].set_ylim([1, 20])
         ax3[0].axes.get_xaxis().set_visible(False)
         ax3[0].set_ylabel(r'$\lambda_n [$cm$]$')
         ax3[0].text(0.9, 0.87, 'AUG', transform=ax3[0].transAxes)
-        ax3[0].set_ylim([1, 50])
         for ip, c, _idx in zip(btAsdex, colorList, range(len(btAsdex))):
             ax[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
                        color=c, transform=ax[0].transAxes)
@@ -859,7 +860,7 @@ while loop:
                     "Experiments/AUG/analysis/data/"
         # this is the figure of Blob-size vs Lambda
         fig, ax = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
-                                     sharex=True, sharey=True)
+                                     sharex=True)
         fig.subplots_adjust(bottom=0.15, left=0.17, hspace=0.05, top=0.97)
         # this is the figure of Efold vs Lambda
         fig2, ax2 = mpl.pylab.subplots(figsize=(8, 8), nrows=2, ncols=1,
@@ -930,14 +931,14 @@ while loop:
         ax2[0].axes.get_xaxis().set_visible(False)
         ax2[0].set_ylabel(r'$\lambda_n [$cm$]$')
         ax2[0].text(0.9, 0.87, 'AUG', transform=ax2[0].transAxes)
-        ax2[0].set_ylim([1, 50])
+        ax2[0].set_ylim([1, 25])
         # Efold vs Blob-size
         ax3[0].set_xscale('log')
         ax3[0].set_yscale('log')
         ax3[0].axes.get_xaxis().set_visible(False)
         ax3[0].set_ylabel(r'$\lambda_n [$cm$]$')
         ax3[0].text(0.9, 0.87, 'AUG', transform=ax3[0].transAxes)
-        ax3[0].set_ylim([1, 50])
+        ax3[0].set_ylim([1, 25])
         for ip, c, _idx in zip(btAsdex, colorList, range(len(btAsdex))):
             ax[0].text(0.05, 0.8 - 0.13 * _idx, r'I$_p$=%2.1f' % ip + ' MA',
                        color=c, transform=ax[0].transAxes)
@@ -1159,8 +1160,8 @@ while loop:
 
         ax[0].axes.get_xaxis().set_visible(False)
         ax[1].axes.get_xaxis().set_visible(False)
-        ax[0].set_ylim([0, 1])
-        ax[1].set_ylim([0, 1])
+        ax[0].set_ylim([0, 0.65])
+        ax[1].set_ylim([0, 0.65])
         ax[2].set_ylim([0, 1])
         ax[2].set_xlim([0.5, 4])
         ax[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
@@ -1177,8 +1178,8 @@ while loop:
 
         ax2[0].axes.get_xaxis().set_visible(False)
         ax2[1].axes.get_xaxis().set_visible(False)
-        ax2[0].set_ylim([0, 1])
-        ax2[1].set_ylim([0, 1])
+        ax2[0].set_ylim([0, 0.65])
+        ax2[1].set_ylim([0, 0.65])
         ax2[2].set_ylim([0, 1])
         ax2[2].set_xlim([0.25, 0.7])
         ax2[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
@@ -1195,8 +1196,8 @@ while loop:
             text.set_color(color)
 
         ax3[0].axes.get_xaxis().set_visible(False)
-        ax3[0].set_ylim([0, 1])
-        ax3[1].set_ylim([0, 1])
+        ax3[0].set_ylim([0, 0.65])
+        ax3[1].set_ylim([0, 0.65])
         ax3[1].set_xlim([0.1, 30])
         ax3[0].set_xscale('log')
         ax3[1].set_xscale('log')
