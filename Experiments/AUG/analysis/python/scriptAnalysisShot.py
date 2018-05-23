@@ -99,6 +99,7 @@ def print_menu():
     print "57. Compare shots 34276-34278-34281 profiles"
     print "58. Elm behavior 34276-34278-34281 "
     print "59. Radiation and peak density vs Greenwald fraction (data saved)"
+    print "60. Compare profiles including L-Mode"
     print "99: End"
     print 67 * "-"
 
@@ -5022,6 +5023,138 @@ while loop:
             df = xray.DataArray(savedArray, coords=[
                                 coords, tGW], dims=['sig', 't'])
             df.to_netcdf('../data/Shot%5i' % shot + '_DensityRadiation.nc')
+    elif selection == 60:
+        shotList = (34102, 34276, 34281)
+        colorList = ('#324D5C', '#E37B40', '#60A65F')
+        colorTimeList = ('#FF4F00', '#00A963', '#0080B6')
+        fig = mpl.pylab.figure(figsize=(14, 14))
+        fig.subplots_adjust(hspace=0.28, right=0.96, top=0.96)
+        ax1 = mpl.pylab.subplot2grid((4, 3), (0, 0), colspan=3)
+        # these are the panel for upstream profiles
+        ax2 = mpl.pylab.subplot2grid((4, 3), (1, 0))
+        ax3 = mpl.pylab.subplot2grid((4, 3), (1, 1))
+        ax4 = mpl.pylab.subplot2grid((4, 3), (1, 2))
+        # these are the panel for target profiles
+        ax5 = mpl.pylab.subplot2grid((4, 3), (2, 0))
+        ax6 = mpl.pylab.subplot2grid((4, 3), (2, 1))
+        ax7 = mpl.pylab.subplot2grid((4, 3), (2, 2))
+        # these are the panel for Lambda
+        ax8 = mpl.pylab.subplot2grid((4, 3), (3, 0))
+        ax9 = mpl.pylab.subplot2grid((4, 3), (3, 1))
+        ax10 = mpl.pylab.subplot2grid((4, 3), (3, 2))
+        # list of axes
+        axProf = (ax2, ax3, ax4)
+        axTarg = (ax5, ax6, ax7)
+        axLamb = (ax8, ax9, ax10)
+        # tranges
+        tListH = ((3, 3.1), (3.8, 3.9), (5.1, 5.2))
+        tListL = ((1.8, 1.9), (3, 3.1), (3.65, 3.75))
+        _mode = ('L', 'H', 'H')
+        # now we need to find for each of the time intervals
+        # the appropriate threshold for inter-ELM
+        thresholdList = ((1, 1, 1), 
+                         (1000, 500, 250), 
+                         (1800, 1200, 800)
+                         )
+        for shot, col, thresh, _axp, _axt, _axl, _m in itertools.izip(
+                shotList, colorList, thresholdList,
+                axProf, axTarg, axLamb, _mode):
+            diag = dd.shotfile('DCN', shot)('H-5')
+            ax1.plot(diag.time, diag.data/1e19, color=col,
+                     label='# %5i' % shot, lw=3)
+            LiB = libes.Libes(shot)
+            Target = langmuir.Target(shot)
+            if _m == 'L':
+                tList = tListL
+            else:
+                tList = tListH
+            for t, _tr, _colorT in zip(
+                    tList, thresh, colorTimeList):
+                if _m == 'H':
+                    p, e, ef, pN, eN = LiB.averageProfile(
+                        trange=[t[0], t[1]],
+                        interelm=True, threshold=_tr)
+                    _axp.semilogy(LiB.rho, pN, color=_colorT, lw=2)
+                    _axp.errorbar(LiB.rho, pN, yerr=eN, fmt='none',
+                                  ecolor=_colorT, alpha=0.3)
+                    rho, en, err = Target.PlotEnProfile(
+                        trange=[t[0], t[1]], interelm=True,
+                        threshold=_tr, Plot=False)
+                    _axt.errorbar(rho, en/1e19, yerr=err/1e19/2,
+                                  fmt='--o', capsize=0, color=_colorT, ms=12,
+                                  mec=_colorT, alpha=0.5)
+                    rhoL, Lambda = Target.computeLambda(
+                        trange=[t[0], t[1]], interelm=True,
+                        threshold=_tr, Plot=False)
+                    
+                    _axl.semilogy(rhoL[rhoL < rho.max()], Lambda[rhoL < rho.max()], '-',
+                                  color=_colorT, lw=2)
+                else:
+                    p, e, ef, pN, eN = LiB.averageProfile(
+                        trange=[t[0], t[1]])
+                    _axp.semilogy(LiB.rho, pN, color=_colorT, lw=2)
+                    _axp.errorbar(LiB.rho, pN, yerr=eN, fmt='none',
+                                  ecolor=_colorT, alpha=0.3)
+                    rho, en, err = Target.PlotEnProfile(
+                        trange=[t[0], t[1]],  Plot=False)
+                    _axt.errorbar(rho, en/1e19, yerr=err/1e19/2,
+                                  fmt='--o', capsize=0, color=_colorT, ms=12,
+                                  mec=_colorT, alpha=0.5)
+                    rhoL, Lambda = Target.computeLambda(
+                        trange=[t[0], t[1]], Plot=False)
+                    
+                    _axl.semilogy(rhoL[rhoL < rho.max()], Lambda[rhoL < rho.max()], '-',
+                                  color=_colorT, lw=2)
+
+
+        for _p, _t, _s in zip(axProf, axTarg, shotList):
+            _p.set_xlim([0.98, 1.06])
+            _t.set_xlim([0.98, 1.06])
+            _p.set_ylim([1e-1, 3])
+            _t.set_ylim([0, 10])
+            _p.axes.get_xaxis().set_visible(False)
+            _t.axes.get_xaxis().set_visible(False)
+            _p.text(0.1, 0.86, r'#%5i' % _s, transform=_p.transAxes)
+            _t.text(0.1, 0.86, r'#%5i' % _s, transform=_t.transAxes)
+
+        for i in np.linspace(1, 2, 2, dtype='int'):
+            axProf[i].axes.get_yaxis().set_visible(False)
+            axTarg[i].axes.get_yaxis().set_visible(False)
+            axLamb[i].axes.get_yaxis().set_visible(False)
+
+        label = (r'n$_e$/n$_e(\rho_p = 1)$',
+                 r'n$_e[10^{19}$m$^{-3}]$',
+                 r'$\Lambda_{div}$')
+        for l, ax in zip(label, (axProf, axTarg, axLamb)):
+            ax[0].set_ylabel(l)
+        for ax, _s in zip(axLamb, shotList):
+            ax.set_ylim([0.01, 30])
+            ax.set_xlabel(r'$\rho$')
+            ax.set_xlim([0.98, 1.06])
+            ax.set_xticks([0.98, 1, 1.02, 1.04])
+            ax.axhline(1, ls='--', lw=2, color='gray')
+            ax.text(0.1, 0.86, r'#%5i' % _s, transform=ax.transAxes)
+
+        for _m in _mode:
+            if _m == 'L':
+                tList = tListL
+                line = '--'
+            else:
+                tList = tListH
+                line = '-'
+            for _t, _c in zip(tList, colorTimeList):
+                ax1.axvline((_t[0]+_t[1])/2, ls=line, lw=2, color=_c)
+
+        ax1.set_ylabel(r'n$_e$ H-5 [10$^{19}$]')
+        ax1.set_xlabel(r't[s]')
+        ax1.set_xlim([0, 7])
+        ax1.set_ylim([0, 6])
+        leg = ax1.legend(loc='best', numpoints=1, frameon=False)
+        for t, c in zip(leg.get_texts(), colorList):
+            t.set_color(c)
+        fig.savefig('../pdfbox/UpstreamDivertorProfiles%5i' % shotList[0] +
+                    '_%5i' % shotList[1] + '_%5i' % shotList[2]+'.pdf',
+                    bbox_to_inches='tight')
 
     elif selection == 99:
         loop = False
