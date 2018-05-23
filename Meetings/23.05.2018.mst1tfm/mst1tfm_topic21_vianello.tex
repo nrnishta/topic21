@@ -31,7 +31,7 @@ uniquename=init,backend=bibtex8,arxiv=abs,mcite]{biblatex}
 \newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
 \newbox\footlineextrabox
 % for reducing font on a single slide
-\newcommand\Fontvi{\fontsize{8}{7.2}\selectfont}
+\newcommand\Fontvi{\fontsize{9}{8.2}\selectfont}
 \title{Filamentary transport in high-power H-mode conditions and in no/small-ELM regimes to predict heat and particle loads on PFCs for future devices}
 \date{23 May 2018}
 \author[N.Vianello]{presented by N. Vianello on behalf of  MST1-Topic 21
@@ -52,41 +52,19 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
 \begin{frame}{Background}
   \only<1>{
 \begin{itemize}
-\item Role of turbulence transport in the SOL saturation is a well
+\item Role of turbulence transport in the SOL density profile evolution is a well
   know
-  feature \parencite{LaBombard:2001ks,Rudakov:2005ic,Garcia:2007hh,Carralero:2014gs}. \textcolor{red}{Increasing
-  density, even without reaching detachment SOL profile tend to flatten}
+  feature
+  \parencite{LaBombard:2001ks,Rudakov:2005ic,Garcia:2007hh,Carralero:2014gs}. \textcolor{red}{By
+    increasing
+  density, even without reaching detachment,  SOL density profile tends to flatten}
 \end{itemize}}
-% \only<2-3>{
-%   \begin{columns}
-%     \begin{column}{0.5\textwidth}
-%       \begin{itemize}
-%       \item Present understanding suggests that a transition of filament
-%         propagation regime is dominated by effective
-%         collisionality $\Lambda$ \parencite{Myra:2006p2754}
-%         \begin{equation*}
-%           \Lambda = \frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}
-%         \end{equation*}
-%         \item<3> \textcolor{red}{At constant blob size, increasing
-%             collisionality provide a change in the filaments velocity
-%             scaling properties}
-%       \end{itemize}
-%     \end{column}
-%     \begin{column}{0.5\textwidth}
-% %      \includegraphics<2>[width=\textwidth]{../pdfbox/Presentation/FigMyra}
-%         \begin{tikzonimage}[width=\textwidth]{../generalFigures/FigMyra}
-%           \only<3>{
-%             \draw [->, ultra thick, red] (0.7,0.3) -- (0.7,0.6);}
-%         \end{tikzonimage}
-%     \end{column}
-%   \end{columns}
-% }
 \only<2-4>{
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{itemize}
       \item AUG and JET (HT) \parencite{Carralero:2015gu} suggest that $\Lambda_{div}=\frac{L_{\parallel}/c_s}{1/\nu_{ei}}\frac{\Omega_i}{\Omega_e}$ dominates this
-        process and a transition from
+        process through a transition from
         \textcolor{ta3chameleon}{sheath-limited}
         \onslide<3-4>{to \textcolor{blue}{inertial regime}} 
         \item<4> \textcolor{red}{Tested by changing n$_e$
@@ -117,8 +95,8 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
       \item<6-7> On TCV \parencite{Vianello:2017ku} $\Lambda_{div}$
         necessary but not sufficient to guarantee increase $\lambda_n$
         in the far SOL
-      \item<7|only@7> Additional mechanism suggested among which
-        \alert{neutral clogging} 
+      \item<7|only@7> Additional mechanisms suggested among which
+        \alert{effect of divertor neutrals (\emph{clogging mechanism})} 
     \end{itemize}
   \end{column}
   \begin{column}{0.6\textwidth}
@@ -186,30 +164,31 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
   \begin{itemize}
     \item \textbf{AUG:} Ion saturation current measured at different
       radial/poloidal position to get velocity from 2D cross-correlation
-    \item \textbf{TCV:} Only 1 j$_{sat}$ measurement available,
-      different velocity estimate. $v_r$ from
+    \item \textbf{TCV:} A single j$_{sat}$ measurement available,
+      which implies different velocity estimate. $v_r$ from
       $\mathbf{E}\times\mathbf{B}$ evaluation from floating potentials
-      on CAS, $v_z$ from 2D cross-correlation analysis
+      $v_z$ from 2D cross-correlation analysis ({\small \textit{see
+          Tsui,  PoP submitted}})
   \end{itemize}
 }
 \only<3>{
   \centering{\includegraphics[width=0.7\textwidth]{../../Experiments/Comparison/pdfbox/ExampleCas}}
   \begin{itemize}
-    \item Blob-size is $\delta_b = 0.5 * \tau_b*v_{\perp}$
-    \item $\tau_b$ estimated from FWHM of Conditional Avearage
-      binormal blob velocity estimated (although differently in the
-      two devices)
+    \item Blob-size is $\delta_b = \frac{\tau_b*v_{\perp}}{2}$
+    \item $\tau_b$ estimated from FWHM of Conditional Average, 
+      binormal blob velocity estimated 
   \end{itemize}
 }
 \end{frame}
 
 
 \begin{frame}{Current scan at constant B$_t$ in L-Mode plasma}
+  \Fontvi
   \begin{columns}
-    \begin{column}{0.6\textwidth}
+    \begin{column}{0.7\textwidth}
       \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantBt}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantBt}
-      \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
+      \includegraphics<3>[width=.8\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantBt}
       \includegraphics<4>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantBt}
       \includegraphics<5>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsGreenwaldConstantBt}
       \only<6>{
@@ -218,7 +197,7 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
           \draw [thick, ta3orange, ->] (0.77, 0.45) -- (0.77, 0.55);
         \end{tikzonimage}
       }
-      \includegraphics<7>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantBt}
+      \includegraphics<7>[width=.95\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantBt}
       \includegraphics<8>[width=\textwidth]{../../Experiments/Comparison/pdfbox/ExampleShoulderAmplitude}
       \includegraphics<9>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeTargetVsDensityConstantBt}
       \includegraphics<10>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeTargetVsGreenwaldConstantBt}      
@@ -226,17 +205,16 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
       \includegraphics<12>[width=\textwidth]{../../Experiments/Comparison/pdfbox/EfoldBlobConstantBt}         
       \includegraphics<13>[width=\textwidth]{../../Experiments/Comparison/pdfbox/EfoldLambdaConstantBt}         
     \end{column}
-    \begin{column}{0.4\textwidth}
+    \begin{column}{0.3\textwidth}
       \begin{itemize}
-        \item<1|only@1> Shape matched in within the single scan done for each of
-          the machine
+        \item<1|only@1> Shape well matched in both the device
         \item<1|only@1> The scan implies a modification of the
           L$_{\parallel}$ (shown from the X-point height to the outer
           target).
-          There is a factor of 5 difference between
-          the two machines due to the very long outer divertor leg of TCV
+          Factor of 5 difference between
+          the two machines
         \item<2|only@2> AUG: Fueling reduced only at lower I$_p$ to
-          avoid earlier disruption. Similar neutral pressure in the
+          avoid earlier disruption. Comparable neutral pressure in the
           subdivertor region reached. 0.5 MW NBI additional power added to
           keep power in the SOL approximately constant
         \item<3|only@3> TCV: Ohmic heating only. Similar neutral compression reached and
@@ -247,9 +225,9 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
           density and the radiation close to divertor target exhibit
           rollover at increasing density with increasing current
         \item<5|only@5> Whenever considered as a function of
-          Greenwald fraction the behaviors at different currents
-          almost reconciled for AUG \alert{but not for TCV and at 0.6
-            MA for AUG}
+          Greenwald fraction the $n_e^{peak}$ behaviors at different currents
+          reconciled for both the machine AUG \alert{partially for
+            radiation movement}
         \item<only@6-7> We now consider the Target and upstream
           profiles at the same level of densities  
         \item<only@7> For both AUG and TCV flattening of normalized
@@ -264,10 +242,10 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
         \item<only@8> Distinguishing behavior on the near and far SOL  
         \only<9-10>{\item Amplitude evolve faster in density at lower
           current in the far SOL. Amplitude starts increasing close to
-          the transition to highly-recycling regime in analogy to
-          JET HT \parencite{Wynn:2018gp} \onslide<10>{\alert{but once evolution \textit{vs} greenwald
-            fraction is considered the evolution is equivalent between
-            different current.}}
+          the transition to highly-recycling regime as in 
+          JET HT \parencite{Wynn:2018gp} \onslide<10>{\alert{but
+              evolution is equivalent if considered \textit{vs} greenwald
+            fraction }}
           \item<only@10> \textcolor{ta3chameleon}{Still some inconsistency at lower
             current in agreement with different detachment evolution}}
         \item<only@11> Amplitude evolution reconciled in AUG if
@@ -284,20 +262,21 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
 \end{frame}  
 
 \begin{frame}{Current scan at constant q$_{95}$}
+\Fontvi
   \begin{columns}
-    \begin{column}{0.6\textwidth}
+    \begin{column}{0.7\textwidth}
       \includegraphics<1>[width=\textwidth]{/Users/vianello/Documents/Fisica/Conferences/IAEA/iaea2018/pdfbox/EquilibriaIpScanConstantQ95}
       \includegraphics<2>[width=\textwidth]{../../Experiments/AUG/analysis/pdfbox/GeneralIpScanConstantq95}
-      \includegraphics<3>[width=.9\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}
+      \includegraphics<3>[width=.8\textwidth]{../../Experiments/TCV/analysis/pdfbox/CurrentScanConstantQ95}
       \includegraphics<4>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsDensityConstantQ95}
       \includegraphics<5>[width=\textwidth]{../../Experiments/Comparison/pdfbox/TargetDensityRadiationVsGreenwaldConstantQ95}
-      \includegraphics<6-7>[width=\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantQ95}
+      \includegraphics<6-7>[width=.95\textwidth]{../../Experiments/Comparison/pdfbox/UpstreamTargetProfilesConstantQ95}
       \includegraphics<8>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeTargetVsGreenwaldConstantBt}
       \includegraphics<9>[width=\textwidth]{../../Experiments/Comparison/pdfbox/AmplitudeVsLambdaConstantBt}
       \includegraphics<10>[width=\textwidth]{../../Experiments/Comparison/pdfbox/EfoldBlobConstantQ95}         
       \includegraphics<11>[width=\textwidth]{../../Experiments/Comparison/pdfbox/EfoldLambdaConstantQ95}         
     \end{column}
-    \begin{column}{0.4\textwidth}
+    \begin{column}{0.3\textwidth}
       \begin{itemize}
         \item<1|only@1> Shape matched in within the single scan even
           though this required for TCV operation with very low
@@ -344,7 +323,7 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Neutral behavior investigation on AUG: M. Agostini}
+\begin{frame}{Neutral behavior investigation on AUG}
   \only<1>{
     \begin{columns}
       \begin{column}{0.5\textwidth}
@@ -366,20 +345,36 @@ Nickolas Walkden, Zhang Wei, Elisabeth Wolfrum, W. Vijvers}
     \end{columns}
   }
   \only<2>{
-    \centering{\includgraphics[width=7cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig2.pdf}}
+    \centering{\includegraphics[width=10cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig2.pdf}}
+
+    \vspace{1cm}
+    
     At the beginning of the fueling ramp emission localized in the HFS
   }
   \only<3>{
-    \centering{\includgraphics[width=7cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig3.pdf}}
+    \centering{\includegraphics[width=10cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig3.pdf}}
+
+    \vspace{1cm}
+    
 Radiation starts moving along the separatrix with different patterns between the two radiation
   }
   \only<4>{
-    \centering{\includgraphics[width=7cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig4.pdf}}
+    \centering{\includegraphics[width=10cm]{../../Experiments/AUG/analysis/pdfbox/Dalpha/Agostini_Fig4.pdf}}
+
+    \vspace{1cm}
+    
     Emission propagate also towards the LFS and moves towards the CFR
   }
+
+  \vspace{1cm}
+
+{\begin{flushleft}
+{\small \textit{(M. Agostini)}}
+  \end{flushleft}
+}
 \end{frame}
 
-\begin{frame}{Heat transport and power balance: D. Carralero}
+\begin{frame}{Heat transport and power balance}
   \only<1>{
     \begin{columns}
     \begin{column}{0.5\textwidth}
@@ -397,8 +392,7 @@ Radiation starts moving along the separatrix with different patterns between the
   \end{columns}
 }
 \only<2>{
-  \centering{\includegraphics[width=7cm]{../../Experiments/AUG/analysis/pdfbox/Carralero_powerbalance}}
-  \Fontvi
+  \centering{\includegraphics[width=10cm]{../../Experiments/AUG/analysis/pdfbox/Carralero_powerbalance}}
   \begin{itemize}
     \item Parallel heat flux dominated by ion conduction whereas
       perpendicular component dominated by ion convection
@@ -406,6 +400,11 @@ Radiation starts moving along the separatrix with different patterns between the
       P$_{\mathrm{SOL}}$ still remains in the $Q_{\perp}$ for
       $r-r_{\mathrm{LCFS}} \sim 20$ cm
   \end{itemize}
+}
+
+{\begin{flushleft}
+{\small \textit{(D. Carralero)}}
+  \end{flushleft}
 }
 \end{frame}
 % % %% H-Mode same fueling
@@ -442,16 +441,18 @@ Radiation starts moving along the separatrix with different patterns between the
     \item<2|only@2> Different behavior of ELM during the fueling
       ramp. ELM size and frequency changes strongly without the
       cryopump or during extreme fueling case
-    \item<3|only@3> The profiles for shot \# 34278 with the cryopum
-      and lower fueling remains more steep in all the three timing
-      wind and the plasma is still attached. Interestingly for shot \#
+    \item<3|only@3> The profiles for shot \# 34278 with the cryopump
+      and lower fueling remains more steep in all the three time
+      windows and the plasma is still attached. Interestingly for shot \#
       34281 with the cryopumps and higher fueling the detachment is
       more pronounced
-    \item<4|only@4> Without the cryopumps, we reached flatter
+    \item<4|only@4> The shoulder is almost comparable 
+      w.r.t. L-Mode plasma (even if higher density is needed)
+    \item<5|only@5> Without the cryopumps, we reached flatter
          profiles with comparable inter-ELM resolved blob-size. This
          indicates strong neutral pressure effects in determining
          upstream profiles
-    \item<5|only@5> Increasing the fueling and correspondingly the
+    \item<6|only@6> Increasing the fueling and correspondingly the
       divertor neutral pressure move towards a situation similar to
       \# 34276 without the cryopump
       \end{itemize}
