@@ -1166,10 +1166,10 @@ while loop:
         ax[2].set_xlim([0.5, 4])
         ax[2].set_ylabel(r'n$^{peak}_{target} [10^{20}$m$^{-3}]$')
         ax[0].set_ylabel(r'Amp [a.u]')
-        ax[0].text(0.5, 0.8, r'$1\leq \rho < 1.03$',
+        ax[0].text(0.1, 0.8, r'$1\leq \rho < 1.03$',
                    transform=ax[0].transAxes)
         ax[1].set_ylabel(r'Amp [a.u.]')
-        ax[1].text(0.5, 0.8, r'$1.03\leq \rho < 1.06$',
+        ax[1].text(0.1, 0.8, r'$1.03\leq \rho < 1.06$',
                    transform=ax[1].transAxes)
         ax[2].set_xlabel(r'n$_e^{Edge}[10^{20}$m$^{-2}]$')
         leg = ax[0].legend(loc='best', numpoints=1, frameon=False, fontsize=14)
