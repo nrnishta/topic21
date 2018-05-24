@@ -168,22 +168,25 @@ while loop:
 
     elif selection == 4:
         shotList = (60888, 61041, 58698)
-        fig = mpl.pylab.figure(figsize=(10, 18))
+        fig = mpl.pylab.figure(figsize=(15, 16))
         fig.subplots_adjust(hspace=0.3, top=0.96,
                             right=0.95, bottom=0.1)
         # subplot for equilibrium
-        ax1 = mpl.pylab.subplot2grid((5, 3), (0, 0))
-        ax12 = mpl.pylab.subplot2grid((5, 3), (0, 1))
-        ax13 = mpl.pylab.subplot2grid((5, 3), (0, 2))
+        ax1 = fig.add_axes([0.8, 0.7, 0.18, 0.23])
+        ax12 = fig.add_axes([0.8, 0.4, 0.18, 0.23])
+        ax13 = fig.add_axes([0.8, 0.1, 0.18, 0.23])
         # subplot for upstream profiles
+        
         # iP
-        ax2 = mpl.pylab.subplot2grid((5, 3), (1, 0), colspan=3)
+        ax2 = mpl.pylab.subplot2grid((5, 4), (0, 0), colspan=3)
         # <n_E>
-        ax3 = mpl.pylab.subplot2grid((5, 3), (2, 0), colspan=3)
+        ax3 = mpl.pylab.subplot2grid((5, 4), (1, 0), colspan=3)
         # GasP2
-        ax4 = mpl.pylab.subplot2grid((5, 3), (3, 0), colspan=3)
+        ax4 = mpl.pylab.subplot2grid((5, 4), (2, 0), colspan=3)
+        # NBH
+        ax4b = mpl.pylab.subplot2grid((5, 4), (3, 0), colspan=3)
         # Dalpha
-        ax5 = mpl.pylab.subplot2grid((5, 3), (4, 0), colspan=3)
+        ax5 = mpl.pylab.subplot2grid((5, 4), (4, 0), colspan=3)
         # colorList
         colorL = ('#82A17E', '#1E4682', '#DD6D3D')
 
@@ -230,12 +233,16 @@ while loop:
             HalphaV = mds.Data.compile(r'pd_calibrated(1)').evaluate()
             ax4.plot(HalphaV.getDimensionAt().data(),
                      HalphaV.data(), '-', lw=2, color=col)
+            # power
+            Power = Tree.getNode(r'\results::nbh:powr_neutral')
+            ax4b.plot(Power.getDimensionAt().data(),
+                      Power.data(), '-', lw=2, color=col)
             Tree.quit()
             # fueling
             Gas = gas.Gas(Tree.shot, gases='D2', valves=1)
             ax5.plot(Gas.flow.time, Gas.flow.values/1e21, lw=2, color=col)
 
-        for _ax in (ax2, ax3, ax4):
+        for _ax in (ax2, ax3, ax4, ax4b):
             _ax.set_xlim([0, 2])
             _ax.axes.get_xaxis().set_visible(False)
         ax5.set_xlim([0, 2])
@@ -247,8 +254,10 @@ while loop:
         ax3.set_ylabel(r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
         ax3.set_ylim([0, 16])
         ax4.set_ylabel(r'D$_{\alpha}$ [a.u.]')
+        ax4b.set_ylabel(r'NBH [MW]')
+        ax4b.set_ylim([0, 1.1])
         ax5.set_ylabel(r'D$_2 [10^{21}$s${-1}]$ ')
-        ax5.set_ylim([0, 1])
+        ax5.set_ylim([0, 1.5])
         fig.savefig(('../pdfbox/GeneralPlotShot{}_{}_{}.pdf').format(
             shotList[0], shotList[1], shotList[2]), bbox_to_inches='tight')
     elif selection == 99:
