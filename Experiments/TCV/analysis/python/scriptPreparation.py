@@ -329,7 +329,8 @@ while loop:
             # Dalpha
             HalphaV = mds.Data.compile(r'pd_calibrated(1)').evaluate()
             ax4.plot(HalphaV.getDimensionAt().data(),
-                     HalphaV.data(), '-', lw=2, color=col)
+                     HalphaV.data(), '-', lw=2, color=col, rasterized=True,
+                     alpha=0.5)
             # power
             Power = Tree.getNode(r'\results::nbh:powr_neutral')
             ax4b.plot(Power.getDimensionAt().data(),
@@ -361,7 +362,8 @@ while loop:
         ax5.set_ylabel(r'D$_2 [10^{21}$s${-1}]$ ')
         ax5.set_ylim([0, 1.5])
         fig.savefig(('../pdfbox/GeneralPlotShot{}_{}_{}.pdf').format(
-            shotList[0], shotList[1], shotList[2]), bbox_to_inches='tight')
+            shotList[0], shotList[1], shotList[2]),
+                    bbox_to_inches='tight', dpi=300)
 
     elif selection == 99:
         loop = False
