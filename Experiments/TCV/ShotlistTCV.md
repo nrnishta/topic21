@@ -58,14 +58,14 @@ Ideally we would like to reach density up to the **Degraded H-Mode**. The strate
 the best scenario obtained on Topic-24, Topic-06 and Topic-18 and play with density/power. **Remember we are limited to
 the number of strokes for shot, presently limited to 1**
 
-1. H-Mode plasma. Reference scenario is # 60888,  low Ip H-mode, with up to 1 MW of NBH and average density up to 0.8e20 with Ip = 140kA
-2. Repeat point #1 with different plunges. 
+1. H-Mode plasma. Reference scenario is # 60888,  low Ip H-mode, with up to 1 MW of NBH and average density up to 0.7e20 with Ip = 140kA. Slightly adjust the fueling keeping the same FeedForward seeting of 61041
+2. If succeful Repeat point #1 with different plunges time. If not adjust fueling/power.
 3. Repeat point #1 with different plunges **We need at least 3 points in time for each scenario**
-4. Repeat # 60917 but with constant seeding. Use plunge time as #1.
+4. Repeat # 60917 but with constant seeding. Keep the same ramp but reaching 1/3 of the value and then constant seeding. Use plunge time as #1.
 5. Repeat #4 adjust seeding accordingly if necessary. Use plunge time as #2
 6. Repeat #5 if optimal seeding found use plunge as #3
-7. Repeat #5 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating. If #5 succesfull then change stroking time
-8. Repeat #5, reducing feed-forward gas while keeping best option for power ramp from #12-#13. Add N seeding and monitor target temperature
+7. If previous shots were succesful we can choose to increase the statistics by repeating some of the shots with different plunge times or go to higher current different scenario as # 61041 but keep the optimal seeding found on shot #5
+8. If #7 succesfull repeat changin the stroke time otherwise go back to original plan and repeat #5 with a 4th point of stroke
 9. Contingency
 10. Contingency
 11. Contingency
