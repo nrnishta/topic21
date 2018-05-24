@@ -5,6 +5,8 @@ import numpy as np
 from tcv.diag.frp import FastRP
 from scipy.interpolate import UnivariateSpline
 from scipy import constants
+import gas
+import eqtools
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 mpl.rc("font", size=18)
 mpl.rc("lines", linewidth=2)
@@ -15,6 +17,7 @@ def print_menu():
     print "1. Current scan from Topic 25"
     print "2. Loop on Topic 25 Upstream profile evolution"
     print "3. Plot proposed density ramp"
+    print "4. Proposed H-Mode reference"
     print "99: End"
     print 67 * "-"
 
@@ -162,7 +165,92 @@ while loop:
         ax.legend(loc='best', numpoints=1, frameon=False)
         mpl.pylab.savefig('../pdfbox/ProposedDensityRamp.pdf',
                           bbox_to_inches='tight')
-        
+
+    elif selection == 4:
+        shotList = (60888, 61041, 58698)
+        fig = mpl.pylab.figure(figsize=(10, 18))
+        fig.subplots_adjust(hspace=0.3, top=0.96,
+                            right=0.95, bottom=0.1)
+        # subplot for equilibrium
+        ax1 = mpl.pylab.subplot2grid((5, 3), (0, 0))
+        ax12 = mpl.pylab.subplot2grid((5, 3), (0, 1))
+        ax13 = mpl.pylab.subplot2grid((5, 3), (0, 2))
+        # subplot for upstream profiles
+        # iP
+        ax2 = mpl.pylab.subplot2grid((5, 3), (1, 0), colspan=3)
+        # <n_E>
+        ax3 = mpl.pylab.subplot2grid((5, 3), (2, 0), colspan=3)
+        # GasP2
+        ax4 = mpl.pylab.subplot2grid((5, 3), (3, 0), colspan=3)
+        # Dalpha
+        ax5 = mpl.pylab.subplot2grid((5, 3), (4, 0), colspan=3)
+        # colorList
+        colorL = ('#82A17E', '#1E4682', '#DD6D3D')
+
+        axL = (ax1, ax12, ax13)
+        for shot, _axeq, col in zip(shotList, axL, colorL):
+            Eq = eqtools.TCVLIUQETree(shot)
+            # normalize the poloidal flux at 1s
+            if shot == 58698:
+                t0 = 0.7
+            else:
+                t0=1.2
+            i0 = np.argmin(np.abs(Eq.getTimeBase()-t0))
+            psiN = (Eq.getFluxGrid()[i0]-
+                    Eq.getFluxAxis()[i0])/(Eq.getFluxLCFS()[i0]-
+                                           Eq.getFluxAxis()[i0])
+            _axeq.contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(0., 1, 10), colors=col,
+                          linestyles='-')
+            _axeq.contour(Eq.getRGrid(), Eq.getZGrid(), psiN[:],
+                          np.linspace(1.01, 1.1, 5), colors=col,
+                          linestyles='--')
+            tilesP, vesselP = Eq.getMachineCrossSectionPatch()
+            _axeq.set_aspect('equal')
+            _axeq.add_patch(tilesP)
+            _axeq.add_patch(vesselP)
+            _axeq.set_aspect('equal')
+            _axeq.set_xlabel('R [m]')
+            _axeq.set_ylabel('Z [m]')
+            _axeq.set_title((r'# {}').format(shot))
+            _axeq.set_xlim([0.5, 1.2])
+            _axeq.set_ylim([-0.8, 0.8])
+            # now plot the current
+            Tree = mds.Tree('tcv_shot', shot)
+            # iP
+            iP = mds.Data.compile(r'tcv_ip()').evaluate()
+            ax2.plot(iP.getDimensionAt().data(),
+                     iP.data()/1e3, lw=2, color=col,
+                     label=('# {}').format(shot))
+            # average density
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            ax3.plot(enAVG.getDimensionAt().data(), enAVG.data()/1e19,
+                     lw=2, color=col)
+            # Dalpha
+            HalphaV = mds.Data.compile(r'pd_calibrated(1)').evaluate()
+            ax4.plot(HalphaV.getDimensionAt().data(),
+                     HalphaV.data(), '-', lw=2, color=col)
+            Tree.quit()
+            # fueling
+            Gas = gas.Gas(Tree.shot, gases='D2', valves=1)
+            ax5.plot(Gas.flow.time, Gas.flow.values/1e21, lw=2, color=col)
+
+        for _ax in (ax2, ax3, ax4):
+            _ax.set_xlim([0, 2])
+            _ax.axes.get_xaxis().set_visible(False)
+        ax5.set_xlim([0, 2])
+        ax5.set_xlabel(r't [s]')
+        ax2.set_ylabel(r'I$_p$[ kA]')
+        leg = ax2.legend(loc='best', frameon=False, numpoints=1)
+        for t, c in zip(leg.get_texts(), colorL):
+            t.set_color(c)
+        ax3.set_ylabel(r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+        ax3.set_ylim([0, 16])
+        ax4.set_ylabel(r'D$_{\alpha}$ [a.u.]')
+        ax5.set_ylabel(r'D$_2 [10^{21}$s${-1}]$ ')
+        ax5.set_ylim([0, 1])
+        fig.savefig(('../pdfbox/GeneralPlotShot{}_{}_{}.pdf').format(
+            shotList[0], shotList[1], shotList[2]), bbox_to_inches='tight')
     elif selection == 99:
         loop = False
     else:

@@ -76,7 +76,7 @@ while loop:
         # create the plot
         fig, ax = mpl.pylab.subplots(figsize=(12, 16), nrows=4,
                                      ncols=2, sharex=True)
-        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.98)
+        fig.subplots_adjust(hspace=0.2, top=0.98, left=0.1, right=0.95)
         for shot, col in zip(shotList, colorList):
             eq = eqtools.TCVLIUQETree(shot)
             Tree = mds.Tree('tcv_shot', shot)
