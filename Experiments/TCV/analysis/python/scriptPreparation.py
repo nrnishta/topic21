@@ -8,7 +8,7 @@ from scipy import constants
 import gas
 import eqtools
 mpl.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-mpl.rc("font", size=18)
+mpl.rc("font", size=22)
 mpl.rc("lines", linewidth=2)
 
 
