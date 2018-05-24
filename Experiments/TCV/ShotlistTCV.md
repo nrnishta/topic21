@@ -1,7 +1,7 @@
 # TCV operational plan
 **Available number of Shots #31**
 
-## Calendar Week 24 (12.06-16.06)
+## Calendar Week 24/2017 (12.06-16.06)
 ### L-Mode Experiment. Ip scan, DN, Low density
 1.  Shape from 57088,  Ip = 245 kA,  Reverse Bt,
     density ramp from Line Average Density = 3.8e19 @ 0.5 s to 11e19 @ 1.6s,  Bt = 1.43T. Plunge @ 0.65, 1.52
@@ -17,7 +17,7 @@
 10. Repeat #1 in forward field
 11. Repeat #3 in forward field
 
-## Calendar Week 43-44 (23.10-03.11)
+## Calendar Week 43-44/2017 (23.10-03.11)
 ### L-Mode
 Completition of the L-Mode programme including a low collisionality case (#1), a current scan in DN 
 configuration (#2, #3), a current scan in forward field (#4, #5) and a case without detachment/shoulder 
@@ -37,20 +37,39 @@ The target plasma is an high density H-Mode plasma where we reach detachment of 
 Ideally we would like to reach density up to the **Degraded H-Mode**. The strategy is moving from 
 the best scenario obtained on Topic-24, Topic-06 and Topic-18 and play with density/power.
 
-8. H-Mode plasma. Try to reproduce shot 55860. Shape needs to be adjusted with SP on the floor. Plunges @ 0.5 and 1 s
-9. Repeat point #8 with different plunges @0.7 1.15
-10. Repeat point #8 add N seeding. Use seeding from half of the value of # 57822. Monitor target temperature evolution
-11. Repeat #1 adjust seeding accordingly.
-12. Repeat 58366 with NBH power ramp from 1s associated with the feed-forward gas fueling. Power from (200kW, 1s) to (800 kW, 1.4s). Adjust vertial position (z=5 cm)
-13. Repeat #5 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating. If #5 succesfull then change stroking time
-14. Repeat #5, reducing feed-forward gas while keeping best option for power ramp from #12-#13. Add N seeding and monitor target temperature
-15. Repeat #7 adjusting dosing rate and change stroking time
-16. Contingency
-17. Contingency
-18. Contingency
+1. H-Mode plasma. Try to reproduce shot 55860. Shape needs to be adjusted with SP on the floor. Plunges @ 0.5 and 1 s
+2. Repeat point #8 with different plunges @0.7 1.15
+3. Repeat point #8 add N seeding. Use seeding from half of the value of # 57822. Monitor target temperature evolution
+4. Repeat #1 adjust seeding accordingly.
+5. Repeat 58366 with NBH power ramp from 1s associated with the feed-forward gas fueling. Power from (200kW, 1s) to (800 kW, 1.4s). Adjust vertial position (z=5 cm)
+6. Repeat #5 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating. If #5 succesfull then change stroking time
+7. Repeat #5, reducing feed-forward gas while keeping best option for power ramp from #12-#13. Add N seeding and monitor target temperature
+8. Repeat #7 adjusting dosing rate and change stroking time
+9. Contingency
+10. Contingency
+11. Contingency
 ### Contingency shot
-1. Repeat Shot 58698 with 2 plunges 0.5 and 0.9
-2. Reprise shot 58711, extend power pulse 0.55-1.85 s, traslate the feed forward 100 ms before, add a faster ramp from 1.75s
+12. Repeat Shot 58698 with 2 plunges 0.5 and 0.9
+13. Reprise shot 58711, extend power pulse 0.55-1.85 s, traslate the feed forward 100 ms before, add a faster ramp from 1.75s
+
+## Calendar week 24/2018 (11 Shots)
+The target plasma is an high density H-Mode plasma where we reach detachment of the outer divertor. 
+Ideally we would like to reach density up to the **Degraded H-Mode**. The strategy is moving from 
+the best scenario obtained on Topic-24, Topic-06 and Topic-18 and play with density/power. **Remember we are limited to
+the number of strokes for shot, presently limited to 1**
+
+1. H-Mode plasma. Reference scenario is # 60888,  low Ip H-mode, with up to 1 MW of NBH and average density up to 0.8e20 with Ip = 140kA
+2. Repeat point #1 with different plunges. 
+3. Repeat point #1 with different plunges **We need at least 3 points in time for each scenario**
+4. Repeat # 60917 but with constant seeding. Use plunge time as #1.
+5. Repeat #4 adjust seeding accordingly if necessary. Use plunge time as #2
+6. Repeat #5 if optimal seeding found use plunge as #3
+7. Repeat #5 eventually adjusting power/density ramp. If additional power is needed use ECRH central heating. If #5 succesfull then change stroking time
+8. Repeat #5, reducing feed-forward gas while keeping best option for power ramp from #12-#13. Add N seeding and monitor target temperature
+9. Contingency
+10. Contingency
+11. Contingency
+
 
 
 
