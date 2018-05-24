@@ -1,7 +1,8 @@
 from __future__ import print_function
 import sys
 if sys.platform == 'darwin':
-    sys.path.append('/Users/vianello/Documents/Fisica/Computing/pythonlib/submodules/profiletools')
+    sys.path.append('/Users/vianello/Documents/Fisica/Computing/'
+                    'cd cd 60884pythonlib/submodules/profiletools')
     sys.path.append('/Users/vianello/Documents/Fisica/Computing/OMFIT-source/omfit/classes')
 else:
     sys.path.append('/home/vianello/pythonlib/submodules/profiletools')
