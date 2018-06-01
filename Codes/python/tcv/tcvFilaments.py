@@ -18,6 +18,8 @@ import quickspikes as qs
 from lmfit.models import GaussianModel
 import tcvProfiles
 
+
+# noinspection PyAttributeOutsideInit
 class Turbo(object):
     """
     Python class for the evaluation of
@@ -100,7 +102,7 @@ class Turbo(object):
         # to analysis region we choose the appropriate timing
         try:
             self.Target = langmuir.LP(self.shot)
-        except:
+        except RuntimeError:
             print('Langmuir probe data not found')
             self.Target = None
 
@@ -139,13 +141,13 @@ class Turbo(object):
         if 'Type' in kwargs:
             Type = kwargs['Type']
         else:
-            Type ='THRESHOLD'
+            Type = 'THRESHOLD'
 
         if 'outlier' not in kwargs:
             outlier = False
         try:
             if self.plunge != plunge:
-                self._loadProbe(plunge=plunge,outlier=outlier)
+                self._loadProbe(plunge=plunge, outlier=outlier)
                 self._loadProfile()
             else:
                 print('Already loaded')
@@ -186,7 +188,7 @@ class Turbo(object):
         # using the same method used by C.Tsui and J.Boedo
         # only for this we don't take the value but the xarray
         sVfF = self.vFF[:, ((self.vF.time >= tmin) &
-                          (self.vF.time <= tmax))]
+                            (self.vF.time <= tmax))]
         sEp = self.Epol[((self.Epol.time >= tmin) &
                          (self.Epol.time <= tmax))].values
         sEr = self.Erad[((self.Erad.time >= tmin) &
@@ -198,6 +200,7 @@ class Turbo(object):
             dtS = dtS
         else:
             dtS = 0.0002
+        # noinspection PyAttributeOutsideInit
         self.Structure = timeseries.Timeseries(
             sIs,
             self.iS.time.values[
@@ -209,7 +212,7 @@ class Turbo(object):
         # the output will be an xray DataArray containing
         # the results of CAS plus additional informations
         names = np.append(['Is', 'Epol', 'Erad'], self.vF.Probe.values)
-        data = xray.DataArray(cs, coords=[names, tau], dims=['sig','t'])
+        data = xray.DataArray(cs, coords=[names, tau], dims=['sig', 't'])
         # add the errorss
         data.attrs['err'] = err
         # position, time
@@ -249,7 +252,7 @@ class Turbo(object):
         data.attrs['vpol2'] = out['vpol2']
         # now we also add the third type of evaluation of
         # the vperp as done by C. Tsui and J. Boedo
-        vpol3, dvpol3, _, _  = self._computeVpolCC(sVfF)
+        vpol3, dvpol3, _, _ = self._computeVpolCC(sVfF)
         data.attrs['vpol3'] = vpol3
         data.attrs['dvpol3'] = dvpol3
         # autocorrelation time
@@ -261,7 +264,7 @@ class Turbo(object):
              (self.profileTe.rho <= self.RRsep[_idx].max()))].std().item()
         CsDict = self._computeRhos(Ravg, np.asarray(
             [self.RRsep[_idx].min(), self.RRsep[_idx].max()]),
-                                       (tmax + tmin) / 2)
+                                   (tmax + tmin) / 2)
         data.attrs['rhos'] = CsDict['rhos']
         data.attrs['drhos'] = CsDict['drhos']
         data.attrs['Cs'] = CsDict['Cs']
@@ -272,14 +275,14 @@ class Turbo(object):
         Lambda, Err = self._computeLambda(
             rrsep=[self.RRsep[_idx].min(),
                    self.RRsep[_idx].max()],
-            trange=[tmin-0.04, tmax+0.04], Lp='Div')
+            trange=[tmin - 0.04, tmax + 0.04], Lp='Div')
         data.attrs['LambdaDiv'] = Lambda
         data.attrs['LambdaDivErr'] = Err
         # All Lp
         Lambda, Err = self._computeLambda(
             rrsep=[self.RRsep[_idx].min(),
                    self.RRsep[_idx].max()],
-            trange=[tmin-0.04, tmax+0.04], Lp='Tot')
+            trange=[tmin - 0.04, tmax + 0.04], Lp='Tot')
         data.attrs['Lambda'] = Lambda
         data.attrs['LambdaErr'] = Err
         # Theta computation again require to
@@ -294,7 +297,7 @@ class Turbo(object):
 
         # add the Efolding 
         _idx = np.where(((self.rhoArray >= self.RRsep[_idx].min()) &
-                        (self.rhoArray <= self.RRsep[_idx].max())))[0]
+                         (self.rhoArray <= self.RRsep[_idx].max())))[0]
         data.attrs['Efold'] = self.Efolding[_idx].mean()
         data.attrs['EfoldErr'] = self.Efolding[_idx].std()
         data.attrs['EfoldGpr'] = self.EfoldingGpr[_idx].mean()
@@ -374,8 +377,8 @@ class Turbo(object):
         # get the time basis
         time = self._tree.getNode(
             r'\FP' + self.vfNames[0]).getDimensionAt().data()
-        dt = (time.max()-time.min())/(time.size-1)
-        Fs = np.round(1./dt)
+        dt = (time.max() - time.min()) / (time.size - 1)
+        Fs = np.round(1. / dt)
         # now we load the floating potential and save them in an xarray
         vF = []
         vFF = []
@@ -429,10 +432,10 @@ class Turbo(object):
         # are the same otherwise univariate interpolate the position
         if Rtime.size != self.iS.time.size:
             S = interp1d(Rtime[~np.isnan(Rhop)], Rhop[~np.isnan(Rhop)],
-                         kind='linear',fill_value='extrapolate')
+                         kind='linear', fill_value='extrapolate')
             self.Rhop = S(self.iS.time.values)
             S = interp1d(Rtime[~np.isnan(RRsep)], RRsep[~np.isnan(RRsep)],
-                         kind='linear',fill_value='extrapolate')
+                         kind='linear', fill_value='extrapolate')
             self.RRsep = S(self.iS.time.values)
             self.Rtime = self.iS.time.values
         else:
@@ -498,7 +501,7 @@ class Turbo(object):
                 npoint=npoint)
         _idx0 = np.where(self.profileEn.err == 0)[0]
         if _idx0.size != 0:
-            self.profileEn.err[_idx0]  =  \
+            self.profileEn.err[_idx0] = \
                 np.mean(self.profileEn.err[np.where(self.profileEn.err != 0)[0]])
         self.splineEn = UnivariateSpline(self.profileEn.rho.values,
                                          self.profileEn.values,
@@ -507,31 +510,31 @@ class Turbo(object):
         # we had the computation of the profiles using the profiletools
         # which allows to combine also with Thomson data
         Profile = tcvProfiles.tcvProfiles(self.shot)
-        EnProf = Profile.profileNe(t_min = _time.min()-0.05,
-                                   t_max = _time.max() + 0.05,
-                                   abscissa = 'Rmid')
+        EnProf = Profile.profileNe(t_min=_time.min() - 0.05,
+                                   t_max=_time.max() + 0.05,
+                                   abscissa='Rmid')
         # Compute the GPR estimate of the Fit
         _rhoN = np.linspace(EnProf.X.ravel().min(),
-                            EnProf.X.ravel().max(),151)
-        _yN, _yE, _gp = Profile.gpr_robustfit(_rhoN,gaussian_length_scale=0.3,
-                                            nu_length_scale=0.03)
+                            EnProf.X.ravel().max(), 151)
+        _yN, _yE, _gp = Profile.gpr_robustfit(_rhoN, gaussian_length_scale=0.3,
+                                              nu_length_scale=0.03)
         # now convert to R-Rmid
         _rhoN -= self._eq.getRmidOutSpline()(_time.mean())
         # drop the value in the profile below 2 cm inside the LCFS
-        _ = EnProf.remove_points((EnProf.X[:,0] - self._eq.getRmidOutSpline()(_time.mean())) < -0.02)
+        _ = EnProf.remove_points((EnProf.X[:, 0] - self._eq.getRmidOutSpline()(_time.mean())) < -0.02)
         # remember that EnProf save the density in [10^20]
         self.profileEnGpr = xray.DataArray(
-            EnProf.y*10,
-            coords=[EnProf.X.ravel()- self._eq.getRmidOutSpline()(_time.mean())],
+            EnProf.y * 10,
+            coords=[EnProf.X.ravel() - self._eq.getRmidOutSpline()(_time.mean())],
             dims='drsep')
-        self.profileEnGpr.attrs['err'] = EnProf.err_y*10
+        self.profileEnGpr.attrs['err'] = EnProf.err_y * 10
         self.profileEnGpr.attrs['err X'] = EnProf.err_X
         # the spline is built on GPR fit
         _idx = np.where(_rhoN >= -0.02)[0]
         self.splineGpr = UnivariateSpline(
             _rhoN[_idx],
-            _yN[_idx]*10,
-            w= 1./(_yE[_idx]*10), ext=0)
+            _yN[_idx] * 10,
+            w=1. / (_yE[_idx] * 10), ext=0)
 
         # compute also the profile of Te
         _data = self._filament.getNode(
@@ -539,7 +542,7 @@ class Turbo(object):
         try:
             _err = self._filament.getNode(
                 r'\FP_%1i' % plunge + 'PL_TEERR').data()
-        except:
+        except ValueError:
             _err = None
         if _ii.size < npoint:
             self.profileTe = xray.DataArray(
@@ -563,7 +566,7 @@ class Turbo(object):
         self.Efolding = np.abs(self.splineEn(self.rhoArray) /
                                self.splineEn.derivative()(self.rhoArray))
         self.EfoldingGpr = np.abs(self.splineGpr(self.rhoArray) /
-                               self.splineGpr.derivative()(self.rhoArray))
+                                  self.splineGpr.derivative()(self.rhoArray))
 
     def _computeDeltaT(self, x, y, e):
         """
@@ -666,7 +669,7 @@ class Turbo(object):
         out = mod.fit(xcorA, pars, x=lagA)
         dtA = out.params['center'].value
         vpA = (0.2433 - 0.0855) * constants.inch / (dtA)
-        vpAS = vpA*(out.params['center'].stderr/dtA)
+        vpAS = vpA * (out.params['center'].stderr / dtA)
         # repeat for another couple
         a = bottleneck.move_mean(
             data.sel(sig='VFB_' + str(int(self.plunge))), window=3)
@@ -686,7 +689,7 @@ class Turbo(object):
         out = mod.fit(xcorB, pars, x=lagB)
         dtB = out.params['center'].value
         vpB = (0.2433 + 0.1512) * constants.inch / (dtB)
-        vpBS = vpB*(out.params['center'].stderr/dtB)
+        vpBS = vpB * (out.params['center'].stderr / dtB)
 
         # --------------------------
         # repeat for the last couple
@@ -709,7 +712,7 @@ class Turbo(object):
         out = mod.fit(xcorC, pars, x=lagC)
         dtC = out.params['center'].value
         vpC = (0.0855 + 0.1512) * constants.inch / (dtC)
-        vpCS = vpB*(out.params['center'].stderr/dtC)
+        vpCS = vpB * (out.params['center'].stderr / dtC)
 
         _all = np.asarray([vpA, vpB, vpC])
         _allDt = np.asarray([dtA, dtB, dtC])
@@ -743,7 +746,7 @@ class Turbo(object):
         dtDS = out.params['center'].stderr
         # compute velocity with error
         vrD = (1.57e-3) / dtD
-        vrDS = vrD * (dtDS/dtD)
+        vrDS = vrD * (dtDS / dtD)
         # ------------
         # M-R2
         a = bottleneck.move_mean(
@@ -767,7 +770,7 @@ class Turbo(object):
         dtES = out.params['center'].stderr
         # compute velocity with error
         vrE = (1.57e-3) / dtE
-        vrES = vrE * (dtES/dtE)
+        vrES = vrE * (dtES / dtE)
         #
         _allDt = np.asarray([dtD, dtE])
         deltaRadial = np.nanmean([vrD, vrE])
@@ -778,12 +781,12 @@ class Turbo(object):
         # use the formula introduced in Carralero NF paper
         Ltheta = (0.2433 + 0.1512) * constants.inch
         Lr = 0.00157
-        _dummy = np.sqrt(np.power(dtB/Ltheta,2) +
-                         np.power((2*deltaTimeR - dtB)/(2*Lr),2))
-        vperp2 = 1./_dummy
-        vrad2 = np.cos(np.arcsin(vperp2*dtB/Ltheta))*vperp2
-        vpol2 = np.power(vperp2, 2)*(dtB/Ltheta)
-        
+        _dummy = np.sqrt(np.power(dtB / Ltheta, 2) +
+                         np.power((2 * deltaTimeR - dtB) / (2 * Lr), 2))
+        vperp2 = 1. / _dummy
+        vrad2 = np.cos(np.arcsin(vperp2 * dtB / Ltheta)) * vperp2
+        vpol2 = np.power(vperp2, 2) * (dtB / Ltheta)
+
         out = {'vperp': vperp, 'vpol': deltaPoloidal,
                'vrad': deltaRadial, 'vpolErr': deltaPoloidalStd,
                'vperp2': vperp2, 'vrad2': vrad2, 'vpol2': vpol2}
@@ -823,7 +826,7 @@ class Turbo(object):
         dtAS = out.params['center'].stderr
         # compute velocity with error
         vpA = (0.2433 - 0.0855) * constants.inch / dtA
-        vpAS = vpA * (dtAS/dtA)
+        vpAS = vpA * (dtAS / dtA)
         # ---------------------
         # repeat with the couple bottom top
         a = data.sel(Probe='VFB_' + str(int(self.plunge)))
@@ -847,12 +850,12 @@ class Turbo(object):
         dtBS = out.params['center'].stderr
         # compute velocity with error
         vpB = (0.2433 + 0.1512) * constants.inch / dtB
-        vpBS = vpB * (dtBS/dtB)
+        vpBS = vpB * (dtBS / dtB)
         # for some reason the use of the couple Top bottom yealds
         # unreliable results. We introduce a confidence as normalized
         # difference and eventually if too large we use only
         # the couple Top middle
-        confidence = (vpA-vpB)/(vpA)
+        confidence = (vpA - vpB) / (vpA)
         if confidence > 0.2:
             vP = vpA
             vPErr = vpAS
@@ -860,7 +863,7 @@ class Turbo(object):
             # now determine the weighted average and
             # corresponding error
             vP = np.average(np.asarray([vpA, vpB]),
-                            weights=np.asarray([1./vpAS, 1./vpBS]))
+                            weights=np.asarray([1. / vpAS, 1. / vpBS]))
             vPErr = np.std(np.asarray([vpA, vpB]))
         # -------------------
         # now do the same
@@ -887,7 +890,7 @@ class Turbo(object):
         dtCS = out.params['center'].stderr
         # compute velocity with error
         vrC = (1.57e-3) / dtC
-        vrCS = vrC * (dtCS/dtC)
+        vrCS = vrC * (dtCS / dtC)
         # -----------
         # couple M-R2
         a = data.sel(Probe='VFM_' + str(int(self.plunge)))
@@ -911,26 +914,26 @@ class Turbo(object):
         dtDS = out.params['center'].stderr
         # compute velocity with error
         vrD = (1.57e-3) / dtD
-        vrDS = vrD * (dtDS/dtD)
+        vrDS = vrD * (dtDS / dtD)
         # now determine the weighted average and corresponding error
         vR = np.average(np.asarray([vrC, vrD]),
-                        weights=np.asarray([1./vrCS, 1./vrDS]))
+                        weights=np.asarray([1. / vrCS, 1. / vrDS]))
         vRErr = np.std(np.asarray([vrC, vrD]))
 
         # and now the 2D cross-correlation
         # determine the angle
-        theta = np.arctan(vR/vP)
-        dtheta = theta*np.sqrt(
-            np.power(vRErr/vR, 2) + np.power(vPErr/vP, 2))
+        theta = np.arctan(vR / vP)
+        dtheta = theta * np.sqrt(
+            np.power(vRErr / vR, 2) + np.power(vPErr / vP, 2))
         vZ = vP * np.power(np.sin(theta), 2)
         # propagate the error
-        _dumm = np.sqrt(np.power(vPErr/vP, 2) +
-                        np.power(dtheta/theta, 2))
+        _dumm = np.sqrt(np.power(vPErr / vP, 2) +
+                        np.power(dtheta / theta, 2))
         dvZ = vZ * _dumm
         return vZ, dvZ, vP, vR
 
-    def _computeLambda(self, rrsep=[0.001,0.003],
-                       trange=[0.8,0.9], Lp='Div'):
+    def _computeLambda(self, rrsep=None,
+                       trange=None, Lp='Div'):
         """
         Restore from MDSplus Tree the value of divertor collisionality
         If not available it computes it using Field Line Tracing code through
@@ -947,6 +950,11 @@ class Turbo(object):
         :return:
             Value of divertor normalized collisionality
         """
+        if rrsep is None:
+            rrsep = [0.001, 0.003]
+        if trange is None:
+            trange = [0.8, 0.9]
+
         try:
             if Lp == 'Div':
                 _LambdaN = self._filament.getNode(
@@ -958,13 +966,13 @@ class Turbo(object):
                 )
             LpT = _LambdaN.getDimensionAt(0).data()
             _idx = np.where(((LpT >= trange[0]) &
-                            (LpT <= trange[1])))[0]
+                             (LpT <= trange[1])))[0]
             xCl = _LambdaN.getDimensionAt(1).data()
-            tmp = np.nanmean(_LambdaN.data()[_idx,:],axis=0)
-            tmpstd = np.nanstd(_LambdaN.data()[_idx,:],axis=0)
+            tmp = np.nanmean(_LambdaN.data()[_idx, :], axis=0)
+            tmpstd = np.nanstd(_LambdaN.data()[_idx, :], axis=0)
             _rdx = np.where(((xCl >= rrsep[0]) & (xCl <= rrsep[1])))[0]
-            Lambda = np.mean( tmp[ _rdx ],weights=1. / tmpstd[ _rdx ] )
-            LambdaErr = np.std(tmp[_rdx],weights=1./tmpstd[_rdx])
+            Lambda = np.mean(tmp[_rdx], weights=1. / tmpstd[_rdx])
+            LambdaErr = np.std(tmp[_rdx], weights=1. / tmpstd[_rdx])
         except:
             _Lambda, xCl = self.Target.Lambda(gas=self.gas, trange=trange)
             _rdx = np.where(((xCl >= rrsep[0]) & (xCl <= rrsep[1])))[0]
@@ -982,7 +990,7 @@ class Turbo(object):
             # the input Data has all the variables we need to compute
             # the averages
             _idx = np.where(
-                ((LpN.getDimensionAt(0).data() >= data.tmin-0.06) &
+                ((LpN.getDimensionAt(0).data() >= data.tmin - 0.06) &
                  (LpN.getDimensionAt(0).data() <= data.tmax + 0.06)))[0]
             # average over time
             tmp = np.nanmean(LpN.data()[_idx, :], axis=0)
@@ -992,17 +1000,17 @@ class Turbo(object):
                  (LpN.getDimensionAt(1).data() <= data.RrsepMax)))[0]
             Lpar = np.mean(tmp[_rdx])
             dLpar = np.std(tmp[_rdx])
-            _dBlob = data.FWHM*np.sqrt(
+            _dBlob = data.FWHM * np.sqrt(
                 np.power(data.vrExB, 2) +
                 np.power(data.vpol3, 2))
-            _numerator = _dBlob * np.power(0.88, 1./5)
-            _denominator = (np.power(Lpar, 2./5) *
-                            np.power(data.rhos, 4./5.))
-            Theta = np.power(_numerator/_denominator, 5./2.)
+            _numerator = _dBlob * np.power(0.88, 1. / 5)
+            _denominator = (np.power(Lpar, 2. / 5) *
+                            np.power(data.rhos, 4. / 5.))
+            Theta = np.power(_numerator / _denominator, 5. / 2.)
             dTheta = Theta * np.sqrt(
                 (data.FWHMerr / data.FWHM) ** 2 +
                 (data.vrExBerr / data.vrExB) ** 2 +
-                (data.dvpol3/data.vpol3) ** 2 +
+                (data.dvpol3 / data.vpol3) ** 2 +
                 (dLpar / Lpar) ** 2 + (data.drhos / data.rhos) ** 2)
         except:
             Theta = np.nan
@@ -1025,9 +1033,9 @@ class Turbo(object):
             data.t, signal.values - signal.max().item() / 2., s=0)
         # find the roots and the closest roots to 0
         roots = spline.roots()
-        tmin = roots[roots < 0][-1]*2
+        tmin = roots[roots < 0][-1] * 2
         try:
-            tmax = roots[roots > 0][0]*2
+            tmax = roots[roots > 0][0] * 2
         except:
             tmax = 2.5e-5
         # now the fluctuations of the Epol
@@ -1075,7 +1083,6 @@ class Turbo(object):
         data.attrs['err'] = eO
         return data
 
-    
     def bw_filter(self, data, freq, fs, ty, order=5):
         ny = 0.5 * fs
         if np.size(freq) == 1:
