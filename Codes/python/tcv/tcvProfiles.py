@@ -52,7 +52,7 @@ class tcvProfiles(object):
         -------
         Return a profile istances from profiletools class
         """
-        self.te = profiletools.TCV.te(self.shot, **kwargs)
+        self.te = profiletools.TCV.Te(self.shot, **kwargs)
         self.te.time_average()
         return self.te
 
