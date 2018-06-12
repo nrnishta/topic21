@@ -18,6 +18,7 @@ def print_menu():
     print "2. Loop on Topic 25 Upstream profile evolution"
     print "3. Plot proposed density ramp"
     print "4. Proposed H-Mode reference"
+    print "5. Check seeding values H-Mode"
     print "99: End"
     print 67 * "-"
 
@@ -365,6 +366,60 @@ while loop:
             shotList[0], shotList[1], shotList[2]),
                     bbox_to_inches='tight', dpi=300)
 
+    elif selection == 5:
+        shotList = (60917, 61270, 61301, 61302, 61308, 61303, 61307, 61306)
+        fig, ax = mpl.pylab.subplots(figsize=(8, 18), nrows=6, ncols=1,
+                                     sharex=True)
+        fig.subplots_adjust(top=0.98,
+                            bottom=0.1)
+        for shot in shotList:
+        # now plot the current
+            Tree = mds.Tree('tcv_shot', shot)
+            # iP
+            iP = mds.Data.compile(r'tcv_ip()').evaluate()
+            ax[0].plot(iP.getDimensionAt().data(),
+                     iP.data()/1e3, lw=2, 
+                     label=('# {}').format(shot))
+            # average density
+            enAVG = Tree.getNode(r'\results::fir:n_average')
+            ax[1].plot(enAVG.getDimensionAt().data(), enAVG.data()/1e19,
+                     lw=2)
+            # Dalpha
+            HalphaV = mds.Data.compile(r'pd_calibrated(1)').evaluate()
+            ax[2].plot(HalphaV.getDimensionAt().data(),
+                     HalphaV.data(), '-', lw=2,  rasterized=True,
+                     alpha=0.5)
+            # power
+            Power = Tree.getNode(r'\results::nbh:powr_neutral')
+            ax[3].plot(Power.getDimensionAt().data(),
+                      Power.data(), '-', lw=2)
+            # fueling
+            Tree.quit
+            Gas = gas.Gas(Tree.shot, gases=('D2', 'N2'), valves=(1, 3))
+            ax[4].plot(Gas.flow.time, Gas.flow.sel(Valves=3)/1e21,
+                          lw=2)
+            ax[5].plot(Gas.flow.time,
+                       Gas.flow.sel(Valves=1)/1e21, lw=2)
+
+        for i in range(4):
+            ax[i].axes.get_xaxis().set_visible(False)
+        ax[0].legend(loc='best', numpoints=1, frameon=False,
+                     fontsize=10)
+        ax[0].set_ylabel(r'I$_p$ [kA]')
+        ax[1].set_ylabel(r'$\langle$n$_e\rangle [10^{19}$m$^{-3}]$')
+        ax[1].set_ylim([0, 16])
+        ax[2].set_ylabel(r'D$_{\alpha}$ [a.u.]')
+        ax[3].set_ylabel(r'NBH [MW]')
+        ax[3].set_ylim([0, 1.1])
+        ax[4].set_ylabel(r'N$_2 [10^{21}$s${-1}]$ ')
+        ax[4].set_ylim([0, 1.5])
+        ax[5].set_ylabel(r'D$_2 [10^{21}$s${-1}]$ ')
+        ax[5].set_ylim([0, 1.5])
+        ax[5].set_xlim([0, 2])
+        ax[5].set_xlabel(r't [s]')
+        fig.savefig('../pdfbox/H_Mode_seeding.pdf',
+                    bbox_to_inches='tight')
+        
     elif selection == 99:
         loop = False
     else:
