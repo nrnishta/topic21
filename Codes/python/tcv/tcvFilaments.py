@@ -236,25 +236,11 @@ class Turbo(object):
         # the fluctuating poloidal velocity
         data.attrs['vpExB'] = out['Er'] / Btot
         data.attrs['vpExBerr'] = out['ErErr'] / Btot
-        # now compute the v_perp according using the propagation
-        # along theta and r from floating potential pins. Consider
-        # that VFM_1 and VFR_1 are distant in the Z direction of
-        # less than 1mm
-        out = self._computeVperp(data)
-        data.attrs['vperp'] = out['vperp']
-        data.attrs['vAutoP'] = out['vpol']
-        data.attrs['vAutoR'] = out['vrad']
-        data.attrs['vAutoPErr'] = out['vpolErr']
-        # now we also add the secont type of evaluation of
-        # the vperp and different component as done by Carralero
-        data.attrs['vperp2'] = out['vperp2']
-        data.attrs['vrad2'] = out['vrad2']
-        data.attrs['vpol2'] = out['vpol2']
         # now we also add the third type of evaluation of
         # the vperp as done by C. Tsui and J. Boedo
-        vpol3, dvpol3, _, _ = self._computeVpolCC(sVfF)
-        data.attrs['vpol3'] = vpol3
-        data.attrs['dvpol3'] = dvpol3
+        vpol, dvpol, _, _ = self._computeVpolCC(sVfF)
+        data.attrs['vpol'] = vpol
+        data.attrs['dvpol'] = dvpol
         # autocorrelation time
         data.attrs['T_ac'] = self.Structure.act
         # compute the Ion sound gyroradius in this zone
@@ -827,6 +813,8 @@ class Turbo(object):
         # compute velocity with error
         vpA = (0.2433 - 0.0855) * constants.inch / dtA
         vpAS = vpA * (dtAS / dtA)
+
+
         # ---------------------
         # repeat with the couple bottom top
         a = data.sel(Probe='VFB_' + str(int(self.plunge)))
