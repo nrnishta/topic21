@@ -41,7 +41,7 @@ class Gas(object):
         # open the Tree
         self._Tree = mds.Tree('tcv_shot', self.shot)
         self._readall()
-        self._Tree.quit()
+        self._Tree.quit
 
     def _readall(self):
         """
