@@ -15,7 +15,10 @@ import xarray
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import (RBF,
                                               ConstantKernel,
-                                              WhiteKernel)
+                                              WhiteKernel,
+                                              Matern,ExpSineSquared,
+                                              RationalQuadratic)
+
 
 class fluxpressure(object):
     def __init__(self, shot):
@@ -110,7 +113,6 @@ class fluxpressure(object):
         for key in ('en', 'r','rho','te'):
             out[key] = out[key][:np.min(_npoints)]
 
-
         # for some reason there are cases where the number of points
         # of density and temperature are different
         # check if this is the case
@@ -125,7 +127,6 @@ class fluxpressure(object):
 
         neFit, neStd = self._gpfit(out['rho'],out['en']/1e19)
         teFit, teStd = self._gpfit(out['rho'],out['te'])
-
 
         # define the pressure both raw and Fit
         self.PDoFit = xarray.DataArray(
@@ -144,9 +145,12 @@ class fluxpressure(object):
             coords=[out['rho']],dims=['rho']
         )
 
-        self.TeDownstream = xarray.DataArray(out['te'],coords=out['rho'],dims=['rho'])
-        self.NeDownstream = xarray.DataArray(out['ne'],coords=out['rho'],dims=['rho'])
-
+        self.TeDownstream = xarray.DataArray(out['te'],coords=[out['rho']],dims=['rho'])
+        self.TeDownstream.attrs['Fit'] = teFit
+        self.TeDownstream.attrs['FitErr'] = teStd
+        self.NeDownstream = xarray.DataArray(out['en'],coords=[out['rho']],dims=['rho'])
+        self.NeDownstream.attrs['Fit'] = neFit
+        self.NeDownstream.attrs['FitErr'] = neStd
         return self.PDoRaw, self.PDoFit
 
     def _gpfit(self, x, y):
@@ -168,11 +172,22 @@ class fluxpressure(object):
         _dummy = _dummy[~np.isnan(_dummy).any(1)]
         x = _dummy[:, 0]
         y = _dummy[:, 1]
-        X = np.atleast_2d(x)
-        kernel = ConstantKernel(0.5,(1e-3,1e3))*RBF(5,(1e-2,1e2)) + \
-            WhiteKernel(noise_level=1)
-        gp = GaussianProcessRegressor(kernel=kernel,n_restarts_optimizer=11)
-        gp.fit(X.T,y)
+        # we have multiple values for rho, we decide to average over these values
+        # before fitting
+        yy = np.asarray([])
+        for _x in np.unique(x):
+            _idx = np.where(x == _x)[0]
+            if _idx.size > 1:
+                yy = np.append(yy,np.nanmean(y[_idx]))
+            else:
+                yy = np.append(yy,y[_idx])
+
+        X = np.atleast_2d(np.unique(x))
+        kernel = ConstantKernel(constant_value=0.01,constant_value_bounds=(0.001,0.05)) + \
+                 RationalQuadratic(length_scale=0.25) + \
+                 WhiteKernel(noise_level=1)
+        gp = GaussianProcessRegressor(kernel=kernel,n_restarts_optimizer=55)
+        gp.fit(X.T,yy)
         xN = np.atleast_2d(self.rhoUpstream)
         yFit, sigma= gp.predict(xN.T,return_std=True)
 
