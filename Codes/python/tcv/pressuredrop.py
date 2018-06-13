@@ -31,6 +31,8 @@ class fluxpressure(object):
         # init of profile
         self.Profile = tcvProfiles.tcvProfiles(self.shot)
 
+#    def fraction(self, trange=None, **kwargs):
+
     def _computeUpstream(self, trange=None, **kwargs):
         """
         Collect the profile combining existing diagnostic, both density
@@ -41,11 +43,15 @@ class fluxpressure(object):
         Parameters
         ----------
         trange: time range for the evaluation of the profiles
-
+        kwargs: any keywords accepted by gpr_robustfit of tcvProfiles
 
         Returns
         -------
-
+        PUpRaw: define also as attribute of the class. xarray DataArray containing the
+                raw data of pressure profile together with the error as attribute
+        PUpFit: defined also as attribute of the class. xarray DataArray containing
+                the fitted Pressure profile built on top of the gpr fit of the
+                density and temperature
         """
         if not trange:
             trange = [0.5, 0.7]
@@ -97,7 +103,7 @@ class fluxpressure(object):
         ----------
         trange: time range where computation of profiles at the lower target will be
             evaluated
-        kwargs: keywords
+        kwargs: keywords which are passed to method _gpfit
 
         Returns
         -------
@@ -125,8 +131,8 @@ class fluxpressure(object):
             print('formatting ' + key)
             out[key] = out[key][_id]
 
-        neFit, neStd = self._gpfit(out['rho'],out['en']/1e19)
-        teFit, teStd = self._gpfit(out['rho'],out['te'])
+        neFit, neStd = self._gpfit(out['rho'],out['en']/1e19, **kwargs)
+        teFit, teStd = self._gpfit(out['rho'],out['te'], **kwargs)
 
         # define the pressure both raw and Fit
         self.PDoFit = xarray.DataArray(
@@ -153,26 +159,42 @@ class fluxpressure(object):
         self.NeDownstream.attrs['FitErr'] = neStd
         return self.PDoRaw, self.PDoFit
 
-    def _gpfit(self, x, y):
+    def _gpfit(self, x, y, **kwargs):
         """
         Perform a gaussian process regression fit using a combination
-        of ConstantKernel,RBF and WhiteKernel. The new basis
-        will be the
+        of ConstantKernel,Rational Quadratic and WhiteKernel.
         Parameters
         ----------
         x: indipendent parameter of the fit
         y: dependent parameter of the fit
-
+        kwargs: any argument for ConstantKernel,
+            RationalQuadratic and WhiteKernel
         Returns
         -------
-
+        yfit : fitted value on the rhoUpstream basis
+        std : error on the fit evaluation
         """
+        if constant_value in kwargs:
+            constant_value = kwargs['constant_value']
+        else:
+            constant_value = 0.01
 
+        if length_scale in kwargs:
+            length_scale = kwargs['length_scale']
+        else:
+            length_scale = 0.25
+
+        if noise_level in kwargs:
+            noise_level = kwargs['noise_level']
+        else:
+            noise_level = 0.5
+        # avoid NaNs
         _dummy = np.vstack((x, y)).transpose()
         _dummy = _dummy[~np.isnan(_dummy).any(1)]
         x = _dummy[:, 0]
         y = _dummy[:, 1]
-        # we have multiple values for rho, we decide to average over these values
+        # we have multiple values for rho,
+        # we decide to average over these values
         # before fitting
         yy = np.asarray([])
         for _x in np.unique(x):
@@ -183,9 +205,10 @@ class fluxpressure(object):
                 yy = np.append(yy,y[_idx])
 
         X = np.atleast_2d(np.unique(x))
-        kernel = ConstantKernel(constant_value=0.01,constant_value_bounds=(0.001,0.05)) + \
-                 RationalQuadratic(length_scale=0.25) + \
-                 WhiteKernel(noise_level=1)
+        kernel = ConstantKernel(constant_value=constant_value,
+                                constant_value_bounds=(0.001,1)) + \
+                 RationalQuadratic(length_scale=length_scale) + \
+                 WhiteKernel(noise_level=noise_level)
         gp = GaussianProcessRegressor(kernel=kernel,n_restarts_optimizer=55)
         gp.fit(X.T,yy)
         xN = np.atleast_2d(self.rhoUpstream)
