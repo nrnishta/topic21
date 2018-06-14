@@ -67,4 +67,13 @@ if create_nodes:
     tree.addNode('DIVU', "SIGNAL").addTag('LPDIVU')
     tree.addNode('DIVX', "SIGNAL").addTag('LPDIVX')
     tree.addNode('RHO', "SIGNAL").addTag('LPRHO')
+    # -----------------------
+    # Now the interELM profiles for H-Mode
+    tree.setDefault(tree.getNode('-'))
+    tree.setDefault(tree.addNode(".LANGMUIR"))
+    tree.addNode('DENS',"SIGNAL").addTag('LPNE')
+    tree.addNode('TE',"SIGNAL").addTag('LPTE')
+    tree.addNode('JSAT2',"SIGNAL").addTag('LPJSAT2')
+    tree.addNode('PPERP',"SIGNAL").addTag('LPPPERP')
     tree.write()
+
