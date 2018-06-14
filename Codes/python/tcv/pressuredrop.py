@@ -31,7 +31,55 @@ class fluxpressure(object):
         # init of profile
         self.Profile = tcvProfiles.tcvProfiles(self.shot)
 
-#    def fraction(self, trange=None, **kwargs):
+    def fraction(self, trange=None, **kwargs):
+        """
+        It compute both the upstream and downstream profile in the given
+        time range. Then it computes the ration 2*P_t/P_u all along the
+        profile but on the fitted profiles
+        Parameters
+        ----------
+        trange: time range where to perform the analysis
+        kwargs: these are the keywords which are passed to methods _computeUpstream
+            _computeTarget
+
+        Returns
+        -------
+        It returns the fraction profile, representing the momentum loss
+        """
+        # keywords for the upstream fit
+        if not trange:
+            trange = [0.5, 0.7]
+        if gaussian_length_scale in kwargs:
+            gaussian_length_scale = kwargs['gaussian_length_scale']
+        else:
+            gaussian_length_scale = 3.0
+        if nu_length_scale in kwargs:
+            nu_length_scale = kwargs['nu_length_scale']
+        else:
+            nu_length_scale = 0.1
+        # keyword for downstreamfit
+        if constant_value in kwargs:
+            constant_value = kwargs['constant_value']
+        else:
+            constant_value = 0.01
+        if length_scale in kwargs:
+            length_scale = kwargs['length_scale']
+        else:
+            length_scale = 0.25
+        if noise_level in kwargs:
+            noise_level = kwargs['noise_level']
+        else:
+            noise_level = 0.5
+
+        PUpR, PUpF = self._computeUpstream(trange=trange,gaussian_length_scale=gaussian_length_scale,
+                                           nu_length_scale=nu_length_scale)
+        PDoR, PDoF = self._computeTarget(trange=trange,constant_value=constant_value,
+                                         length_scale=length_scale,noise_level=noise_level)
+        # now since the Fit are computed on the same rho basis we can directly compute the
+        #
+        Fraction = xarray.DataArray(2*PDoFloadloadLP/PUpF, coords=[self.rhoUpstream],
+                                    dims=['rho'])
+        return Fraction
 
     def _computeUpstream(self, trange=None, **kwargs):
         """
