@@ -355,44 +355,42 @@ class Timeseries(object):
                 Type='THRESHOLD',
                 normalize=normalize, detrend=detrend,
                 rmsNorm=rmsNorm, threshold=threshold,nw=nw)
-        maxima = np.zeros(self.nsamp, dtype='intp')
-        maxima[self._locationindex] = 1
+#        maxima = np.zeros(self.nsamp, dtype='intp')
+#        maxima[self._locationindex] = 1
         # we need to ensure that we have 0 up to iwin
-        maxima[-self.iwin-1:] = 0
-        maxima[:self.iwin]=0
+#        maxima[-self.iwin-1:] = 0
+#        maxima[:self.iwin]=0
         csTot = np.zeros((nSig + 1, self.nw,
-                          maxima.sum()))
-        print('Number of structure mediated %4i' % maxima.sum())
-        d_ev = np.asarray(np.where(maxima >= 1)[0])
-        ampTot = np.zeros((nSig + 1, int(maxima.sum())))
-        for i in range(d_ev.size):
-            for n in range(nSig):
-                dummy = inputS[n,
-                        d_ev[i] - self.iwin:d_ev[i] + self.iwin + 1]
-                if detrend:
-                    dummy = scipy.signal.detrend(dummy, type='linear')
-                else:
-                    dummy -= dummy.mean()
-                ampTot[n + 1, i] = dummy[
-                                   int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
-                                   dummy[int(self.iwin / 2):
-                                   int(3 * self.iwin / 2)].min()
-                if normalize:
-                    dummy /= dummy.std()
-                csTot[n + 1, :, i] = dummy
-            # add also the amplitude of the reference signal
-            dummy = copy.deepcopy(self.sig)[
-                    d_ev[i] - self.iwin:
-                    d_ev[i] + self.iwin + 1]
-
-            if detrend:
-                dummy = scipy.signal.detrend(dummy, type='linear')
-            else:
-                dummy -= dummy.mean()
-            ampTot[0, i] = dummy[
-                            int(self.iwin / 2): 3 * int(self.iwin / 2)].max() - \
-                            dummy[int(self.iwin / 2):
-                            int(3 * self.iwin / 2)].min()
+                          self._locationindex.size))
+        ampTot = np.zeros((nSig + 1, self._locationindex.size))
+        for i,idx in enumerate(self._locationindex):
+            if self.iwin < idx < ((self.nsamp - 1) - self.iwin):
+                for n in range(nSig):
+                    dummy = inputS[n,
+                            idx - self.iwin: idx + self.iwin + 1]
+                    if detrend:
+                        dummy = scipy.signal.detrend(dummy, type='linear')
+                    else:
+                        dummy -= dummy.mean()
+                    ampTot[n + 1, i] = dummy[
+                                       int(self.iwin / 2.): int(3. * self.iwin / 2.)].max() - \
+                                       dummy[int(self.iwin / 2):
+                                       int(3 * self.iwin / 2)].min()
+                    if normalize:
+                        dummy /= dummy.std()
+                    csTot[n + 1, :, i] = dummy
+                    # add also the amplitude of the reference signal
+                    dummy = copy.deepcopy(self.sig)[
+                            idx - self.iwin:
+                            idx + self.iwin + 1]
+                    if detrend:
+                        dummy = scipy.signal.detrend(dummy, type='linear')
+                    else:
+                        dummy -= dummy.mean()
+                    ampTot[0, i] = dummy[
+                                    int(self.iwin / 2): int(3*self.iwin / 2)].max() - \
+                                    dummy[int(self.iwin / 2):
+                                    int(3 * self.iwin / 2)].min()
         # now compute the cas
         cs = np.mean(csTot, axis=2)
         cs[0, :] = csO
@@ -571,8 +569,6 @@ class Timeseries(object):
                 else:
                     thresh = 3 * np.sqrt(self.variance) + self.mean
                     print('Threshold is 3 sigma in signal not normalized')
-            Nbursts, ratio, av_width, windows = self.identify_bursts(
-                thresh, rmsNorm=rmsNorm)
             self._locationindex = self.detect_peaks_1d(thresh,rmsNorm=rmsNorm)
             self.location = self.time[self._locationindex]
 
@@ -581,7 +577,7 @@ class Timeseries(object):
                 nw = 501
             if nw % 2 == 0:
                  nw += 1
-            csTot = np.ones((nw, Nbursts))
+            csTot = np.ones((nw, self._locationindex.size))
             for i, idx in enumerate(self._locationindex):
                 if (nw - 1) / 2. <= idx <= ((self.nsamp - 1) - (nw - 1) / 2):
                     _dummy = copy.deepcopy( self.sig[
