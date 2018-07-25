@@ -31,7 +31,7 @@ class Tree(object):
     Topic 21 Experiment
     """
 
-    def __init__(self, shot, Gas='D2', amend=False):
+    def __init__(self, shot, Gas='D2', amend=False, interelm=False):
         """
 
         Parameters
@@ -46,6 +46,9 @@ class Tree(object):
             tree but only amend the computation of the positions and
             and of the RCP according to what saved in the general
             Tree
+        target : boolean
+            Default is False. If True it read the interELM profiles at
+            the target as saved in the filaments tree
         """
         self.shot = shot
         self.gas = 'D2'
@@ -68,9 +71,13 @@ class Tree(object):
         # to compute rho from rmid for the Lparallel
         self.Eq = eqtools.TCVLIUQETree(self.shot)
         self.amend = amend
+        self.interelm= interelm
+        # in case we have inter-ELM to be written we first evaluate
+        # the quantity and write to the pulse file.
         if not self.amend:
             # load the data for langmuir
-            self._Target = langmuir.LP(self.shot, Type='floor')
+            self._Target = langmuir.LP(self.shot, Type='floor',
+                                       interelm=self.interelm)
             # load the data for the connection length
             self._loadConnection()
             # compute the Lambda
@@ -297,17 +304,17 @@ class Tree(object):
 
     def toMds(self):
 
-        if not self.amend:
+        if (not self.amend) & (not self.interelm):
             Model = mds.Tree('tcv_topic21')
             Model.createPulse(self.shot)
             del Model
         self.saveTree = mds.Tree('tcv_topic21', self.shot)
-        if not self.amend:
+        if (not self.amend):
             self._Lp2Mds()
             self._Lambda2Mds()
         self._Fp2Mds()
-        self.saveTree.quit()
-
+        self.saveTree.quit
+_id
     def _Lp2Mds(self):
         """
         Inner method to write parallel connection length

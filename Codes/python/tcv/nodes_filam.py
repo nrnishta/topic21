@@ -71,9 +71,19 @@ if create_nodes:
     # Now the interELM profiles for H-Mode
     tree.setDefault(tree.getNode('-'))
     tree.setDefault(tree.addNode(".LPNOELM"))
-    tree.addNode('DENS',"SIGNAL").addTag('LPNE')
-    tree.addNode('TE',"SIGNAL").addTag('LPTE')
-    tree.addNode('JSAT2',"SIGNAL").addTag('LPJSAT2')
-    tree.addNode('PPERP',"SIGNAL").addTag('LPPPERP')
+    tree.addNode('DENS',"SIGNAL").addTag('LANGNE')
+    tree.addNode('TE',"SIGNAL").addTag('LANGTE')
+    tree.addNode('JSAT2',"SIGNAL").addTag('LANGJSAT2')
+    tree.addNode('P_PERP',"SIGNAL").addTag('LANGPPERP')
+    tree.addNode('POS',"NUMERIC").addTag('LANGPOS')
+    tree.addNode('AREA',"SIGNAL").addTag('LANGAREA')
+    tree.addNode('PROBES',"NUMERIC").addTag('LPROBES')
+    tree.addNode('RHO_PSI',"SIGNAL").addTag('LANGRHO')
+    tree.addNode('RHO_PSI2',"SIGNAL").addTag('LANGRHO2')
+    tree.addNode('DSEP_MID',"SIGNAL").addTag('LANGDSEP')
+    tree.addNode('DSEP_MID2',"SIGNAL").addTag('LANGDSEP2')
+    tree.addNode('TIME',"NUMERIC").addTag('LANGTIME')
+    tree.addNode('TIME2',"NUMERIC").addTag('LANGTIME2')
+
     tree.write()
 

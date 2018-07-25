@@ -8,7 +8,7 @@ from cyfieldlineTracer import get_fieldline_tracer
 import eqtools
 
 class LP:
-    def __init__(self, shot, Type='floor'):
+    def __init__(self, shot, Type='floor', interelm=False):
         """
         Python class to read and compute appropriate
         profiles of LPs. It compute appropriately also
@@ -23,33 +23,43 @@ class LP:
         :param Type:
             Type of probes used.
             Possible values are 'floor','HFSwall','LFSwall'
+        :param interelm:
+            Boolean. Default is False. If true read the
+            data from filament Tree
         """
 
         self.shot = shot
         self.type = Type
-        # open the appropriate Tree and get the available probes and
-        # locations
-        self._Tree = mds.Tree('tcv_shot', self.shot)
-        # these are the probes number used in the present shot
-        self.Probes = self._Tree.getNode(
-            r'\results::langmuir:probes').data()
-        # load the position of the langmuir probes
-        self.pos = io.loadmat(r'/home/vianello/NoTivoli/work/tcv15.2.2.3/' +
-                              'data/lp_codes/LPposit.mat')['lppos']
+        self.interelm = interelm
+        if not self.interelm:
+            # open the appropriate Tree and get the available probes and
+            # locations
+            self._Tree = mds.Tree( 'tcv_shot', self.shot )
+            # these are the probes number used in the present shot
+            self.Probes = self._Tree.getNode(
+                r'\results::langmuir:probes' ).data()
+        else:
+            self._Tree = mds.Tree('tcv_topic21', self.shot)
+            # load the position of the langmuir probes
+        self.pos = io.loadmat( r'/home/vianello/NoTivoli/work/tcv15.2.2.3/' +
+                                   'data/lp_codes/LPposit.mat' )[ 'lppos' ]
         # we now have properly defined all the quantities needed
-        self._defineProbe(type=self.type)
+        self._defineProbe( type=self.type )
         # appropriate remapping upstream
         self.RemapUpstream()
         # load the equilibrium
-        self.Eqm = eqtools.TCVLIUQETree(self.shot)
-        # try to open the filament Tree otherwise we will
-        # need to compute using Field Line Tracing
-        try:
-            self._filament = mds.Tree('tcv_topic21', self.shot)
-            self._tagF = True
-        except:
-            self._tagF = False
-            print('Filament Tree not found')
+        self.Eqm = eqtools.TCVLIUQETree( self.shot )
+        if not self.interelm:
+            # try to open the filament Tree otherwise we will
+            # need to compute using Field Line Tracing
+            try:
+                self._filament = mds.Tree( 'tcv_topic21', self.shot )
+                self._tagF = True
+            except:
+                self._tagF = False
+                print('Filament Tree not found')
+
+
 
     def _defineProbe(self, type='floor'):
         """
@@ -58,51 +68,94 @@ class LP:
         are 'floor', 'HFSwall','LFSwall' with obvious
         meanings
         """
-        # now we read the position for each of the probe in
-        # term of (R, Z)
-        R, Z = zip(self._Tree.getNode(
-            r'\results::langmuir:pos').data())
-        R = np.asarray(R).ravel()
-        Z = np.asarray(Z).ravel()
-        self.t = self._Tree.getNode(
-            r'\results::langmuir:time').data()
-        self.t2 = self._Tree.getNode(
-            r'\results::langmuir:time2').data()
-        if type == 'floor':
-            # limit to the floor probe
-            self._idx = np.where(Z == -0.75)[0]
-        elif type == 'HFSwall':
-            self._idx = np.where(R == 0.624)[0]
-        elif type == 'LFSwall':
-            self._idx = np.where(R == 1.136)[0]
-        else:
-            print('Not implemented')
+        if not self.interelm:
+            # now we read the position for each of the probe in
+            # term of (R, Z)
+            R, Z = zip(self._Tree.getNode(
+                r'\results::langmuir:pos').data())
+            R = np.asarray(R).ravel()
+            Z = np.asarray(Z).ravel()
+            self.t = self._Tree.getNode(
+                r'\results::langmuir:time').data()
+            self.t2 = self._Tree.getNode(
+                r'\results::langmuir:time2').data()
+            if type == 'floor':
+                # limit to the floor probe
+                self._idx = np.where(Z == -0.75)[0]
+            elif type == 'HFSwall':
+                self._idx = np.where(R == 0.624)[0]
+            elif type == 'LFSwall':
+                self._idx = np.where(R == 1.136)[0]
+            else:
+                print('Not implemented')
 
-        self.en = self._Tree.getNode(
-           r'\results::langmuir:four_par_fit:dens').data()[:, self._idx]
-        self.te = self._Tree.getNode(
-            r'\results::langmuir:four_par_fit:Te').data()[:, self._idx]
-        self.angle = self._Tree.getNode(
-            r'\results::langmuir:area').data()[:, self._idx]
-        self.jSat2 = self._Tree.getNode(
-            r'\results::langmuir:jsat2').data()[:, self._idx]
-        self.pPer = self._Tree.getNode(
-            r'\results::langmuir:four_par_fit:P_perp').data()[:, self._idx]
-        self.R = R[self._idx]
-        self.Z = Z[self._idx]
+            self.en = self._Tree.getNode(
+               r'\results::langmuir:four_par_fit:dens').data()[:, self._idx]
+            self.te = self._Tree.getNode(
+                r'\results::langmuir:four_par_fit:Te').data()[:, self._idx]
+            self.angle = self._Tree.getNode(
+                r'\results::langmuir:area').data()[:, self._idx]
+            self.jSat2 = self._Tree.getNode(
+                r'\results::langmuir:jsat2').data()[:, self._idx]
+            self.pPer = self._Tree.getNode(
+                r'\results::langmuir:four_par_fit:P_perp').data()[:, self._idx]
+            self.R = R[self._idx]
+            self.Z = Z[self._idx]
+        else:
+            # now we read the position for each of the probe in
+            # term of (R, Z)
+            R, Z = zip( self._Tree.getNode(
+                r'\LANGPOS' ).data().transpose() )
+            R = np.asarray( R ).ravel()
+            Z = np.asarray( Z ).ravel()
+            self.t = self._Tree.getNode(
+                r'\LANGTIME' ).data()
+            self.t2 = self._Tree.getNode(
+                r'\LANGTIME2' ).data()
+            if type == 'floor':
+                # limit to the floor probe
+                self._idx = np.where( Z == -0.75 )[ 0 ]
+            elif type == 'HFSwall':
+                self._idx = np.where( R == 0.624 )[ 0 ]
+            elif type == 'LFSwall':
+                self._idx = np.where( R == 1.136 )[ 0 ]
+            else:
+                print('Not implemented')
+
+            self.en = self._Tree.getNode(
+                r'\LANGNE' ).data()[ :, self._idx ]
+            self.te = self._Tree.getNode(
+                r'\LANGTE' ).data()[ :, self._idx ]
+            self.angle = self._Tree.getNode(
+                r'\LANGAREA' ).data()[ :, self._idx ]
+            self.jSat2 = self._Tree.getNode(
+                r'\LANGJSAT2' ).data()[ :, self._idx ]
+            self.pPer = self._Tree.getNode(
+                r'\LANGPPERP' ).data()[ :, self._idx ]
+            self.R = R[ self._idx ]
+            self.Z = Z[ self._idx ]
 
     def RemapUpstream(self):
         # first of all trasform remap the R, Z to
         # Rmid
-
-        self.RUpStream = self._Tree.getNode(
-            r'\results::langmuir:dsep_mid').data()[:, self._idx]
-        self.RUpStream2 = self._Tree.getNode(
-            r'\results::langmuir:dsep_mid2').data()[:, self._idx]
-        self.Rho = self._Tree.getNode(
-            r'\results::langmuir:rho_psi').data()[:, self._idx]
-        self.Rho2 = self._Tree.getNode(
-            r'\results::langmuir:rho_psi2').data()[:, self._idx]
+        if not self.interelm:
+            self.RUpStream = self._Tree.getNode(
+                r'\results::langmuir:dsep_mid').data()[:, self._idx]
+            self.RUpStream2 = self._Tree.getNode(
+                r'\results::langmuir:dsep_mid2').data()[:, self._idx]
+            self.Rho = self._Tree.getNode(
+                r'\results::langmuir:rho_psi').data()[:, self._idx]
+            self.Rho2 = self._Tree.getNode(
+                r'\results::langmuir:rho_psi2').data()[:, self._idx]
+        else:
+            self.RUpStream = self._Tree.getNode(
+                r'\LANGDSEP').data()[:, self._idx]
+            self.RUpStream2 = self._Tree.getNode(
+                r'\LANGDSEP2').data()[:, self._idx]
+            self.Rho = self._Tree.getNode(
+                r'\LANGRHO').data()[:, self._idx]
+            self.Rho2 = self._Tree.getNode(
+                r'\LANGRHO2').data()[:, self._idx]
 
     def UpStreamProfile(self, trange=[0.6, 0.8]):
         """

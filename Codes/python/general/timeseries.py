@@ -52,8 +52,8 @@ class Timeseries(object):
         _nPoint = int(dtS / self.dt)
         self.rmsnorm = (
                            self.sig -
-                           bottleneck.move_mean(self.sig, window=_nPoint)) / \
-                       bottleneck.move_std(self.sig, window=_nPoint)
+                           bottleneck.move_mean(self.sig, window=_nPoint,min_num=1)) / \
+                       bottleneck.move_std(self.sig, window=_nPoint,min_num=1)
 
     def moments(self):
         """
