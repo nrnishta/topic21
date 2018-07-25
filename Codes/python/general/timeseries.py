@@ -52,8 +52,8 @@ class Timeseries(object):
         _nPoint = int(dtS / self.dt)
         self.rmsnorm = (
                            self.sig -
-                           bottleneck.move_mean(self.sig, window=_nPoint,min_num=1)) / \
-                       bottleneck.move_std(self.sig, window=_nPoint,min_num=1)
+                           bottleneck.move_mean(self.sig, _nPoint, min_count=1)) / \
+                       bottleneck.move_std(self.sig, _nPoint,min_count=1)
 
     def moments(self):
         """
@@ -91,42 +91,78 @@ class Timeseries(object):
         except BaseException:
             return False
 
-    def identify_bursts(self, thresh, rmsNorm=False):
+    def detect_peaks_1d(self, threshold, delta_peak=1, peak_width=3, rmsNorm=False):
         """
-        Identify the windows in the time series where the signal
-        is above a given threshold
 
         Parameters
         ----------
-        thresh : float
-            Threshold value
-        rmsNorm : Boolean default False
-            if set to True it normalize the signal in as
-            If set the reference signal is normalized
-            as (x-<x>)/rms(x) where the mean and the rms are
-            moving average and rms on a dtS
+        threshold : threshold to be identified
+        delta_peak : delta_peak is the minimum distances between subsequent bursts.
+            Default is 1. Must be integer
+        peak_width : is the peak width. Default is 5 time sampling. Must be integer
+        rmsNorm : boolean. If set perform the computation on moving rms signal
 
         Returns
         -------
-        nbursts: int
-            Number of bursts identified
-        ratio: float
-            Ratio between number of samples and number of bursts
-        avwin: float
-            mean window size of the burst
-        windows: tuple
-            a list of tuples that contains indices that
-            bracket each of the burst detected
+        The indices where bursts are identified
         """
-        if not rmsNorm:
-            crossings = np.where(np.diff(np.signbit(self.sig - thresh)))[0]
+
+        # Sort time series by magnitude.
+        if rmsNorm:
+            timeseries = copy.deepcopy(self.rmsnorm)
         else:
-            crossings = np.where(np.diff(np.signbit(self.rmsnorm - thresh)))[0]
-        windows = list(zip(crossings[::2], crossings[1::2] + 1))
-        nbursts = len(windows)
-        ratio = float(self.nsamp) / nbursts
-        avwin = np.mean([y - x for x, y in windows])
-        return nbursts, ratio, avwin, windows
+            timeseries = copy.deepcopy(self.sig)
+
+        max_idx = np.squeeze( timeseries.argsort() )[ ::-1 ]
+
+        # Cut off peaks too close to the boundary
+        max_idx = max_idx[ max_idx > delta_peak ]
+        max_idx = max_idx[ max_idx < np.size( timeseries ) - delta_peak ]
+
+        max_values = np.zeros_like( timeseries[ max_idx ] )
+        max_values[ : ] = np.squeeze( timeseries[ max_idx ] )
+
+        # Number of peaks exceeding threshold
+        num_big_ones = np.sum( timeseries > threshold )
+        # print 'Total: %d elements, %d over threshold' %
+        try:
+            max_values = max_values[ :num_big_ones ]
+            max_idx = max_idx[ :num_big_ones ]
+        except:
+            print('No peaks detected')
+            return np.array( [ ] )
+
+        # Mark the indices we need to skip here
+        max_idx_copy = np.zeros_like( max_idx )
+        max_idx_copy[ : ] = max_idx
+
+        # Eliminate values exceeding the threshold within delta_peak of another
+        # for idx, mv in enumerate(max_values):
+        # print 'iterating over %d peaks' % ( np.size(max_idx))
+        for i, idx in enumerate( max_idx ):
+            current_idx = max_idx_copy[ i ]
+            if (max_idx_copy[ i ] == -1):
+                #    print 'idx %d is zeroed out' % (idx)
+                continue
+
+            # Check if this value is larger than the surrounding values of the
+            # timeseries. If it is, continue with the next index
+            if (timeseries[ current_idx ] < timeseries[ current_idx - peak_width:
+            current_idx + peak_width ]).any():
+                max_idx_copy[ i ] = -1
+                continue
+
+            # Zero out all peaks closer than delta_peak
+            close_idx = np.abs( max_idx_copy - idx )
+            close_ones = np.squeeze( np.where( close_idx < delta_peak )[ 0 ] )
+            max_idx_copy[ close_ones ] = -1
+            # Copy back current value
+            max_idx_copy[ i ] = max_idx[ i ]
+
+        # Remove all entries equal to -1
+        max_idx_copy = max_idx_copy[ max_idx_copy != -1 ]
+        max_idx_copy = max_idx_copy[ max_idx_copy < np.size( timeseries ) ]
+        return max_idx_copy
 
     def limStructure(self, frequency=100e3,
                      wavelet='Mexican',
@@ -537,38 +573,28 @@ class Timeseries(object):
                     print('Threshold is 3 sigma in signal not normalized')
             Nbursts, ratio, av_width, windows = self.identify_bursts(
                 thresh, rmsNorm=rmsNorm)
+            self._locationindex = self.detect_peaks_1d(thresh,rmsNorm=rmsNorm)
+            self.location = self.time[self._locationindex]
 
             if nw is None:
                 print('Window length not set assumed 501 points')
                 nw = 501
             if nw % 2 == 0:
-                nw += 1
+                 nw += 1
             csTot = np.ones((nw, Nbursts))
-            inds = []
-            self.__allmaxima = np.zeros(self.nsamp)
-            for window, i in zip(windows, range(Nbursts)):
-                self.__allmaxima[window[0]:window[1]] = 1
-                ind_max = np.where(
-                    self.sig[window[0]:window[1]] ==
-                    np.max(self.sig[window[0]:window[1]]))[0][0]
-                if ((window[0] + ind_max - (nw - 1) / 2) >= 0) and \
-                                (window[0] + ind_max + (nw - 1) / 2 + 1) <= self.nsamp:
-                    _dummy = copy.deepcopy(self.sig[
-                             window[0] + ind_max - (nw - 1) / 2 :
-                             window[0] + ind_max + (nw - 1) / 2 + 1])
+            for i, idx in enumerate(self._locationindex):
+                if (nw - 1) / 2. <= idx <= ((self.nsamp - 1) - (nw - 1) / 2):
+                    _dummy = copy.deepcopy( self.sig[
+                                            idx - (nw - 1) / 2:
+                                            idx + (nw - 1) / 2 + 1 ] )
                     if detrend:
-                        _dummy = scipy.signal.detrend(
-                            _dummy, type='linear')
+                         _dummy = scipy.signal.detrend(
+                             _dummy, type='linear')
                     else:
-                        _dummy -= _dummy.mean()
+                         _dummy -= _dummy.mean()
                     if normalize:
-                        _dummy /= _dummy.std()
+                         _dummy /= _dummy.std()
                     csTot[:, i] = _dummy
-                    inds.append(window[0] + ind_max)
-                else:
-                    cut = True
-            self.location = self.time[inds]
-            self._locationindex = inds
         # now compute the cas
         if cut:
             csTot = csTot[:, :-1]
@@ -577,7 +603,6 @@ class Timeseries(object):
         cs = np.mean(csTot, axis=1)
         tau = np.linspace(- self.iwin, self.iwin, self.nw) * self.dt
         err = scipy.stats.sem(csTot, axis=1)
-
         return cs, tau, err
 
     def pdf(self, bins=10, range=None, weights=None, normed=False, **kwargs):
