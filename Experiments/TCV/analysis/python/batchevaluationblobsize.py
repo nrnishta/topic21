@@ -136,14 +136,14 @@ for shot in shotList:
                 ThetaDiv = np.append(ThetaDiv, Blob.ThetaDiv)
                 Tau = np.append(Tau, Blob.FWHM)
                 vR = np.append(vR, Blob.vrExB)
-                vP = np.append(vP, Blob.vAutoP)
+                vP = np.append(vP, Blob.vpol)
                 vPExB = np.append(vPExB, Blob.vpExB)
                 Rhos = np.append(Rhos, Blob.rhos)
                 Size = np.append(Size, _size)
                 Cs = np.append(Cs, Blob.Cs)
                 Efold = np.append(Efold, Blob.Efold)
                 EfoldGpr = np.append(EfoldGpr, Blob.EfoldGpr)
-                vP = np.append(vP, Blob.vpol)
+
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
                                          Blob.LambdaDivErr)
@@ -157,7 +157,7 @@ for shot in shotList:
                 EfoldErr = np.append(EfoldErr, Blob.EfoldErr)
                 EfoldGprErr = np.append(EfoldGprErr, Blob.EfoldGprErr)
                 print('Computed for Shot %5i' % shot +' Plunge %1i' % plunge)
-    Tree.quit()
+    Tree.quit
 
 # now we try to save appropriate pandas dataframe
 outdict = {'Shots': Shots,
