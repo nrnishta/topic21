@@ -83,11 +83,11 @@ for shot in shotList:
     bTTime = bTN.getDimensionAt().data()
     Data = tcvFilaments.Turbo(shot)
     for plunge in (1, 2):
-        for r in np.arange(0, 0.025, 0.005):
+        for r in np.arange(0, 0.028, 0.007):
             try:
                 Blob = Data.blob(
                     plunge=plunge,
-                    rrsep=[r, r+0.005],
+                    rrsep=[r, r+0.007],
                     iwin=75, rmsNorm=True,
                     detrend=True)
                 Found = True
@@ -97,27 +97,11 @@ for shot in shotList:
                       'plunge %1i' % plunge)
 
             if Found:    
-                if np.isfinite(Blob.vAutoP):
-                    _size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vAutoP**2)/Blob.rhos
-                    _dSize = _size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vAutoPErr/Blob.vAutoP)**2)
-                else:
-                    _size = Blob.FWHM*np.sqrt(
-                        Blob.vrExB**2 + Blob.vpExB**2)/Blob.rhos
-                    _dSize = _size*np.sqrt(
-                        (Blob.FWHMerr/Blob.FWHM)**2 +
-                        (Blob.vrExBerr/Blob.vrExB)**2 +
-                        (Blob.vpExBerr/Blob.vpExB)**2)
-
-                _size2 = Blob.FWHM*Blob.vperp2/Blob.rhos
-                _size3 = Blob.FWHM*np.sqrt(
-                    Blob.vpol3**2 +Blob.vrExB**2)/Blob.rhos
-                _dSize3 = _size3*np.sqrt(
+                _size = Blob.FWHM*np.sqrt(
+                    Blob.vpol**2 +Blob.vrExB**2)/Blob.rhos
+                _dSize = _size*np.sqrt(
                     (Blob.FWHMerr/Blob.FWHM)**2 +
-                    (Blob.dvpol3/Blob.vpol3)**2 +
+                    (Blob.dvpol/Blob.vpol)**2 +
                     (Blob.vrExBerr/Blob.vrExB)**2)
                 Shots = np.append(Shots, shot)
                 Ip = np.append(Ip, np.abs(
@@ -152,65 +136,51 @@ for shot in shotList:
                 ThetaDiv = np.append(ThetaDiv, Blob.ThetaDiv)
                 Tau = np.append(Tau, Blob.FWHM)
                 vR = np.append(vR, Blob.vrExB)
-                vP = np.append(vP, Blob.vAutoP)
+                vP = np.append(vP, Blob.vpol)
                 vPExB = np.append(vPExB, Blob.vpExB)
                 Rhos = np.append(Rhos, Blob.rhos)
                 Size = np.append(Size, _size)
                 Cs = np.append(Cs, Blob.Cs)
                 Efold = np.append(Efold, Blob.Efold)
                 EfoldGpr = np.append(EfoldGpr, Blob.EfoldGpr)
-                Size2 = np.append(Size2, _size2)
-                vR2 = np.append(vR2, Blob.vrad2)
-                vP2 = np.append(vP2, Blob.vpol2)
-                vBin = np.append(vBin, Blob.vperp2)
-                Size3 = np.append(Size3, _size3)
-                vP3 = np.append(vP3, Blob.vpol3)
+
                 # errors 
                 LambdaDivErr = np.append(LambdaDivErr,
                                          Blob.LambdaDivErr)
                 ThetaDivErr = np.append(ThetaDivErr, Blob.ThetaDivErr)
                 TauErr = np.append(TauErr, Blob.FWHMerr)
                 vRErr = np.append(vRErr, Blob.vrExBerr)
-                vPErr = np.append(vPErr, Blob.vAutoPErr)
+                vPErr = np.append(vPErr, Blob.dvpol)
                 vPExBErr = np.append(vPExBErr, Blob.vpExBerr)
-                vP3Err = np.append(vP3Err, Blob.dvpol3)
                 RhosErr = np.append(RhosErr, Blob.drhos)
                 SizeErr = np.append(SizeErr, _dSize)
-                Size3Err = np.append(Size3Err, _dSize3)                
                 EfoldErr = np.append(EfoldErr, Blob.EfoldErr)
                 EfoldGprErr = np.append(EfoldGprErr, Blob.EfoldGprErr)
                 print('Computed for Shot %5i' % shot +' Plunge %1i' % plunge)
-    Tree.quit()
+    Tree.quit
 
 # now we try to save appropriate pandas dataframe
 outdict = {'Shots': Shots,
            'Ip': Ip,
            '<n_e>': AvDens, 'Rho': Rho, 'Lambda Div': LambdaDiv,
            'Theta Div':ThetaDiv,
-           'Blob Size [rhos]': Size3, 
-           'Blob Size2 [rhos]': Size,
-           'Blob Size3 [rhos]': Size2, 
+           'Blob Size [rhos]': Size, 
            'Tau': Tau,
            'vR': vR,
-           'vP': vP3,
-           'vP2': vP,
-           'vPExB': vPExB,
+           'vP': vP,
            'Rhos':Rhos, 'Cs':Cs,
            'Ip Err': IpErr, '<n_e> Err': AvDensErr,
            'Lambda Div Err':LambdaDivErr,
            'Theta Div Err':ThetaDivErr,
-           'Blob size Err [rhos]':Size3Err,
-           'Blob size2 Err [rhos]': SizeErr,
+           'Blob size Err [rhos]':SizeErr,
            'Tau Err':TauErr,
            'vR Err':vRErr,
-           'vP Err':vP3Err,
+           'vP Err':vPErr,
            'vPExB Err':vPExBErr,
-           'vP2 Err': vPErr, 
            'Rhos Err':RhosErr,
            'Efold':Efold,
            'EfoldErr':EfoldErr,
            'Bt': Bt,
-           'vBin3':vBin,
            'Efold GPR':EfoldGpr, 'Efold GPR Err':EfoldGprErr}
 
 df = pd.DataFrame.from_dict(outdict)
